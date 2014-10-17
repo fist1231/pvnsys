@@ -33,6 +33,8 @@ Follow these steps to get started:
 11. Stop the application:
 
         $ Ctrl + C
+        
+12. Generate eclipse project files: $sbt elipse        
 
-12. Learn more at https://www.pvnsys.com/
+13. Learn more at https://www.pvnsys.com/
 
