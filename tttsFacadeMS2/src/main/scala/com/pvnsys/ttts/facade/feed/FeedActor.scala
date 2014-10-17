@@ -1,7 +1,8 @@
 package com.pvnsys.ttts.facade.feed
 
 import com.pvnsys.ttts.facade.server.TttsFacadeMSServer
-import akka.actor.{Actor, ActorLogging, ActorContext, Props}
+import akka.actor.{Actor, ActorLogging, ActorContext, Props, OneForOneStrategy}
+import akka.actor.SupervisorStrategy.{Restart, Stop}
 import scala.collection._
 import org.java_websocket.WebSocket
 import scala.concurrent.duration._
@@ -20,14 +21,22 @@ class FeedActor extends Actor with ActorLogging {
   import FeedActor._
   import TttsFacadeMSServer._
 
+  override val supervisorStrategy = OneForOneStrategy(loggingEnabled = false) {
+    case e =>
+      log.error("!!!! Unexpected failure: {}", e.getMessage)
+      //Restart
+      Stop
+  }
+  
+  
   val clients = mutable.ListBuffer[WebSocket]()
   override def receive = {
     case Open(ws, hs) => {
       clients += ws
       ws.send("Beginning ...")
-      val feedPushActor = context.system.actorOf(Props[FeedPushActor])
+      val feedPushActor = context.actorOf(Props[FeedPushActor])
 	  // after zero seconds, send a Greet message every second to the greeter with a sender of the greetPrinter
-	  context.system.scheduler.schedule(0.seconds, 1.second, feedPushActor, TickQuote(ws))(context.system.dispatcher, self)
+	  context.system.scheduler.schedule(0.seconds, 1.second, feedPushActor, TickQuote(ws))(context.dispatcher, self)
       log.debug("registered monitor for url {}", ws.getResourceDescriptor)
     }
     case Unregister(ws) => {
@@ -50,7 +59,12 @@ class FeedPushActor extends Actor with ActorLogging {
       val rand = Seq.fill(5)(scala.util.Random.nextInt(100))
       val msg = s"Dummy quote: $rand"
       log.debug(s"##### Sending message: $msg")
-      ws.send(msg)
+      if(ws.isOpen()) {
+        ws.send(msg)
+      } else {
+        log.debug(s"**** Unregistering self")
+        context.stop(self)
+      }
     }
   }
 }
