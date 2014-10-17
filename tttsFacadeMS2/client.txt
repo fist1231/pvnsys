@@ -1,0 +1,40 @@
+https://github.com/sksamuel/gwt-websockets
+
+<dependency>
+    <groupId>com.sksamuel.gwt</groupId>
+    <artifactId>gwt-websockets</artifactId>
+    <version>1.0.4</version>
+</dependency>
+
+Then update your .gwt.xml files to include this:
+
+<inherits name="com.sksamuel.gwt.GwtWebsockets" />
+
+
+
+		Websocket socket = new Websocket("ws://localhost:6969/feed/ws");
+		
+		
+		socket.addListener(new WebsocketListener() {
+			
+			@Override
+			public void onOpen() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onMessage(String msg) {
+				vp.add(new Label(msg));
+				sp.scrollToBottom();
+			}
+			
+			@Override
+			public void onClose() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
+		
+		socket.open();
