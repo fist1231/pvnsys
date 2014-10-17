@@ -1,36 +1,38 @@
-## PVN Sys TTTS Facade Project
+## PVN Systems TTTS Facade Project
 
 Follow these steps to get started:
 
-1. Have git installed (http://git-scm.com/downloads)
+1. Have java 1.7 installed
 
-2. Git-clone this repository.
+2. Have sbt installed (http://www.scala-sbt.org/)
+
+3. Have git installed (http://git-scm.com/downloads)
+
+4. Git-clone this repository.
 
         $ git clone https://github.com/fist1231/pvnsys.git my-project
 
-3. Change directory into your clone:
+5. Change directory into your clone:
 
-        $ cd my-project
+        $ cd my-project/tttsFacade
 
-4. Have sbt installed (http://www.scala-sbt.org/)
+6. Edit JAVA_HOME and PATH in setEnv.cmd
 
-5.	Launch SBT:
+7. Run setEnv.cmd
 
-        $ sbt clean compile run
+8.	Launch SBT:
 
-6. Compile everything and run all tests:
+        $ sbt clean compile
 
-        > test
+9. Start the application:
 
-7. Start the application:
+        $ sbt run
 
-        > re-start
+10. Browse to http://localhost:9696/
 
-8. Browse to http://localhost:9696/
+11. Stop the application:
 
-9. Stop the application:
+        $ Ctrl + C
 
-        > re-stop
-
-10. Learn more at https://www.pvnsys.com/
+12. Learn more at https://www.pvnsys.com/
 
