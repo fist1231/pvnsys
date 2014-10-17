@@ -1,19 +1,19 @@
 function log(msg) {
-	$("#log").prepend("<p>"+msg+"</p>")
+//	$("#log").prepend("<p>"+msg+"</p>")
+	$("#log").append("<p>"+msg+"</p>")
+	var objDiv = document.getElementById("log");
+	objDiv.scrollTop = objDiv.scrollHeight;
 }
 $(document).ready(function() {
 	
-//	alert("ws://"+window.location.hostname+":6969/feed/ws")
 	// hideable alert thanks to Twitter Bootstrap
 	$(".alert").alert()
 	// open a WebSocket
 	var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
-    var mapSocket = new WS("ws://"+window.location.hostname+":6969/feed/ws")
+    var feedSocket = new WS("ws://"+window.location.hostname+":6969/feed/ws")
 	
-	mapSocket.onmessage = function(event) {
+	feedSocket.onmessage = function(event) {
 		log(event.data)
-        var msg = JSON.parse(event.data)
-        if (msg.infa != null) $("#log").prepend("<p>"+msg.infa+"</p>")
     }
 	// if errors on websocket
 	var onalert = function(event) {

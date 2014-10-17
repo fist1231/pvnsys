@@ -8,11 +8,11 @@ Follow these steps to get started:
 
 2. Change directory into your clone:
 
-        $ cd my-project
+        $ cd my-project (tttsFacadeMS2 for example)
 
 3. Launch SBT:
 
-        $ sbt
+        $ sbt clean compile run
 
 4. Compile everything and run all tests:
 
@@ -28,5 +28,5 @@ Follow these steps to get started:
 
         > re-stop
 
-8. Learn more at https://www.google.com/
+8. Learn more at https://www.pvnsys.com/
 

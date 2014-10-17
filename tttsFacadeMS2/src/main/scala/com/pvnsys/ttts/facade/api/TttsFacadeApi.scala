@@ -16,7 +16,6 @@ trait TttsFacadeApi extends RouteConcatenation with StaticRoute with AbstractSys
   this: MainActors =>
 
   val rootService = system.actorOf(Props(classOf[RootService], routes))
-//  val socketService = system.actorOf(Props[SocketService])
 
   lazy val routes = logRequest(showReq _) {
     new FeedService(feed).route ~
@@ -29,12 +28,6 @@ trait StaticRoute extends Directives {
   this: AbstractSystem =>
 
   lazy val staticRoute =
-    path("favicon.ico") {
-      getFromResource("favicon.ico")
-    } ~
-    pathPrefix("markers") {
-      getFromResourceDirectory("markers/")
-    } ~
     pathPrefix("css") {
       getFromResourceDirectory("css/")
     } ~
