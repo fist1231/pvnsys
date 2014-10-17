@@ -2,31 +2,35 @@
 
 Follow these steps to get started:
 
-1. Git-clone this repository.
+1. Have git installed (http://git-scm.com/downloads)
+
+2. Git-clone this repository.
 
         $ git clone https://github.com/fist1231/pvnsys.git my-project
 
-2. Change directory into your clone:
+3. Change directory into your clone:
 
-        $ cd my-project (tttsFacadeMS2 for example)
+        $ cd my-project
 
-3. Launch SBT:
+4. Have sbt installed (http://www.scala-sbt.org/)
+
+5.	Launch SBT:
 
         $ sbt clean compile run
 
-4. Compile everything and run all tests:
+6. Compile everything and run all tests:
 
         > test
 
-5. Start the application:
+7. Start the application:
 
         > re-start
 
-6. Browse to http://localhost:9696/
+8. Browse to http://localhost:9696/
 
-7. Stop the application:
+9. Stop the application:
 
         > re-stop
 
-8. Learn more at https://www.pvnsys.com/
+10. Learn more at https://www.pvnsys.com/
 
