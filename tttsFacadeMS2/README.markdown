@@ -1,4 +1,4 @@
-## PVN Systems TTTS Facade Project
+## PVN Systems TTTS Facade Service
 
 Follow these steps to get started:
 
@@ -10,11 +10,11 @@ Follow these steps to get started:
 
 4. Git-clone this repository.
 
-        $ git clone https://github.com/fist1231/pvnsys.git my-project
+        $ git clone https://github.com/fist1231/pvnsys.git
 
 5. Change directory into your clone:
 
-        $ cd my-project/tttsFacade
+        $ cd pvnsys/tttsFacadeMS
 
 6. Edit JAVA_HOME and PATH in setEnv.cmd
 

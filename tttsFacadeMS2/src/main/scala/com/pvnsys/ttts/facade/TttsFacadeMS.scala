@@ -11,11 +11,9 @@ object TttsFacadeMS extends App with MainActors with TttsFacadeApi {
   implicit lazy val system = ActorSystem("ttts-facade-service")
   private val rs = new TttsFacadeMSServer(Configuration.portWs)
   rs.forResource("/feed/ws", Some(feed))
-//  rs.forResource("/hide/ws", Some(hide))
   rs.start
   sys.addShutdownHook({system.shutdown;rs.stop})
   IO(Http) ! Http.Bind(rootService, Configuration.host, port = Configuration.portHttp)
-//  IO(Tcp) ! Tcp.Bind(socketService, new InetSocketAddress(Configuration.host, Configuration.portTcp))
 }
 
 object Configuration {
@@ -26,6 +24,5 @@ object Configuration {
 
   val host = config.getString("ttts-facade-ms.host")
   val portHttp = config.getInt("ttts-facade-ms.ports.http")
-//  val portTcp  = config.getInt("ttts-facade-ms.ports.tcp")
   val portWs   = config.getInt("ttts-facade-ms.ports.ws")
 }
