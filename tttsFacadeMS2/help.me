@@ -1,0 +1,16 @@
+1. Kafka (kafka_2.10-0.8.1.1):
+- Windows config. Go to C:\frp\kafka_2.10-0.8.1.1\bin\windows\kafka-run-class.bat and change 'set BASE_DIR=%CD%\..' to 'set BASE_DIR=%CD%\..\..'
+- Start zookeeper server; run $kafka_2.10-0.8.1.1\bin\windows>zookeeper-server-start.bat ..\..\config\zookeeper.properties
+- start kafka server; run $kafka_2.10-0.8.1.1\bin\windows>kafka-server-start.bat ..\..\config\server.properties
+
+2. Create test topic:
+- Copy bin/kafka-topics.sh to bin/windows/kafka-topics.bat
+- modify to: kafka-run-class.bat kafka.admin.TopicCommand %*
+- kafka_2.10-0.8.1.1\bin\windows>kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+- verify: kafka_2.10-0.8.1.1\bin\windows>kafka-topics.bat --list --zookeeper localhost:2181
+
+3. Send messages:
+- kafka-console-producer.bat --broker-list localhost:9092 --topic test 
+
+4. Receive messages:
+-kafka-console-consumer.bat --zookeeper localhost:2181 --topic test --from-beginning

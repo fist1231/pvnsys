@@ -1,3 +1,5 @@
+name := """ttts-facade-microservice"""
+
 organization  := "com.pvnsys.ttts"
 
 version       := "1.0"
@@ -8,17 +10,21 @@ scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
 resolvers ++= Seq(
   "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
-  "Spray repository" at "http://repo.spray.io/"
+  "Spray repository" at "http://repo.spray.io/",
+  "JBoss repository" at "https://repository.jboss.org/nexus/content/groups/public/"
 )
 
 libraryDependencies ++= {
   val akkaV = "2.2.3"
   val sprayV = "1.2.0"
   Seq(
-//  "org.java-websocket"  %   "Java-WebSocket" % "1.3.1",
     "io.spray"            %%  "spray-json"     % "1.2.5",
     "io.spray"            %   "spray-can"      % sprayV,
     "io.spray"            %   "spray-routing"  % sprayV,
+	"org.apache.kafka" % "kafka_2.10" % "0.8.1"
+	    exclude("javax.jms", "jms")
+	    exclude("com.sun.jdmk", "jmxtools")
+	    exclude("com.sun.jmx", "jmxri"),
     "com.typesafe.akka"   %%  "akka-actor"     % akkaV,
     "com.typesafe.akka"   %%  "akka-testkit"   % akkaV   % "test",
     "io.spray"            %   "spray-testkit"  % sprayV  % "test",
