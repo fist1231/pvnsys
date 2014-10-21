@@ -21,6 +21,7 @@ libraryDependencies ++= {
     "io.spray"            %%  "spray-json"     % "1.2.5",
     "io.spray"            %   "spray-can"      % sprayV,
     "io.spray"            %   "spray-routing"  % sprayV,
+//    "com.typesafe.akka"   %%  "akka-stream-experimental" % "0.4",
 	"org.apache.kafka" % "kafka_2.10" % "0.8.1"
 	    exclude("javax.jms", "jms")
 	    exclude("com.sun.jdmk", "jmxtools")

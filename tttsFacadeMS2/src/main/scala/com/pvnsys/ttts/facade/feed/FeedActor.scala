@@ -17,6 +17,7 @@ case class TickQuote(wSock: WebSocket)
 case class KafkaNewMessage(message: String)
 case class KafkaProducerMessage()
 case class KafkaConsumerMessage(ws: WebSocket)
+case class KafkaReceivedMessage(ws: WebSocket, message: String)
 
 object FeedActor {
   sealed trait FeedMessage
@@ -45,6 +46,10 @@ class FeedActor extends Actor with ActorLogging {
 //	  context.system.scheduler.schedule(0.seconds, 1.second, feedPushActor, TickQuote(ws))(context.dispatcher, self)
 	  sendMessages()
 	  receiveMessages(ws)
+	  
+//	  val kafkaConsumerActor = context.actorOf(KafkaConsumerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
+	  //kafkaConsumerActor.tell(KafkaConsumerMessage(), self)
+
       log.debug("registered monitor for url {}", ws.getResourceDescriptor)
     }
     case Unregister(ws) => {
@@ -83,7 +88,7 @@ class FeedActor extends Actor with ActorLogging {
 
   
   def receiveMessages(ws: WebSocket) = {
-    val kafkaConsumerActor = context.actorOf(Props[KafkaConsumerActor])
+    val kafkaConsumerActor = context.actorOf(KafkaConsumerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
     kafkaConsumerActor ! KafkaConsumerMessage(ws)
   }
 
