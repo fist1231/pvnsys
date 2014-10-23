@@ -14,9 +14,6 @@ import com.pvnsys.ttts.facade.feed.FeedActor
 
 
 object KafkaProducerActor {
-
-  case object Connect
-  
   def props(address: InetSocketAddress) = Props(new KafkaProducerActor(address))
 }
 
@@ -47,28 +44,18 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
   }
   
   override def postStop() = {
-//    connections foreach { conn => 
-//      log.info("Closing connection")
-//      conn.close() 
-    }
+  }
   
   def produceKafkaMsg(sid: String) = {
 	val props = new Properties();
-//	props.put("serializer.class", "kafka.serializer.StringEncoder");
-//	// server.properties file
-//	props.put("metadata.broker.list", "localhost:9092");
-
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
 	props.put("serializer.class", Configuration.serializerClassProducer);
-//	props.put("group.id", Configuration.groupIdProducer);
 
 	val producer = new Producer[Integer, String](new ProducerConfig(props));
-
     val topic = Configuration.topicProducer
-
     var messageNo = 1
     while(messageNo < 6) {
-    	val messageStr = s"+++++ $sid ==> KAFKA Message: $messageNo"
+    	val messageStr = s"$sid ==> KAFKA Message: $messageNo"
     	log.info(s"###### KafkaProducerActor sending message $messageStr")
     	producer.send(new KeyedMessage[Integer, String](topic, messageStr));
     	messageNo += 1

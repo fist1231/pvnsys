@@ -12,13 +12,14 @@ import scala.concurrent.ExecutionContext
 import com.pvnsys.ttts.facade.mq.KafkaProducerActor
 import com.pvnsys.ttts.facade.mq.KafkaConsumerActor
 import java.net.InetSocketAddress
+import akka.dispatch.Foreach
 
 case object FeedPushMessage
 case class TickQuote(wSock: WebSocket)
 case class KafkaNewMessage(message: String)
 case class KafkaProducerMessage(id: String)
-case class KafkaConsumerMessage(ws: WebSocket)
-case class KafkaReceivedMessage(ws: WebSocket, message: String)
+case class KafkaConsumerMessage()
+case class KafkaReceivedMessage(key: String, message: String)
 
 object FeedActor {
   sealed trait FeedMessage
@@ -41,18 +42,24 @@ class FeedActor extends Actor with ActorLogging {
   
   
   val clients = mutable.ListBuffer[WebSocket]()
+  val sockets = mutable.Map[String, WebSocket]()
+  
   override def receive = {
     case Open(ws, hs) => {
-      val xsock = ws
-      clients += xsock
-      log.debug("@@@@@@@@@@@@@@@@@ registered monitor for url {}", ws.getResourceDescriptor)
+      clients += ws
+      sockets += (ws.getRemoteSocketAddress().toString() -> ws)
+      log.debug("@@@@@@@@@@@@@@@@@ registered monitor for url {}; key {}", ws.getResourceDescriptor, ws.getRemoteSocketAddress())
 //      kafkaConsumerActor ! KafkaConsumerMessage(xsock)
       
     }
     case Unregister(ws) => {
       if (null != ws) {
-        log.debug("@@@@@@@@@@@@@@@@@ unregister monitor for url {}", ws.getResourceDescriptor)
+        log.debug("@@@@@@@@@@@@@@@@@ unregister monitor for url {}; key {}", ws.getResourceDescriptor, ws.getRemoteSocketAddress())
         clients -= ws
+        sockets.foreach { case (key, value) => log.debug("zzz key: {} ==> value: {}", key, value) }
+        if(null != ws.getRemoteSocketAddress()) {
+        	sockets -= ws.getRemoteSocketAddress().toString()
+        }
       }
     }
     case Close(ws, code, reason, ext) => {
@@ -64,6 +71,18 @@ class FeedActor extends Actor with ActorLogging {
 //      log.error("4 FeedActor error @@@@@@@@@@@@@@@@@", ex.getMessage())
       self ! Unregister(ws)
     }
+    case KafkaReceivedMessage(key, msg) => {
+      
+//      log.debug(s"TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT FeedActor received KafkaReceivedMessage: $msg")
+        sockets.get(key) match {
+		  case Some(wsk) => {
+		    if(null != wsk && wsk.isOpen()) {
+		    	wsk.send(msg)
+		    }
+		  }
+		  case None => //log.debug("@@@@@@@@@@@@@@@@@ no such key {}", key)
+		}
+    }
     case Message(ws, msg) => {
       
       val wsock = ws
@@ -72,40 +91,8 @@ class FeedActor extends Actor with ActorLogging {
       log.debug("@@@@@@@@@@@@@@@@@ url {} received msg '{}'", ws.getResourceDescriptor, msg.toString())
       val str = wsock.getRemoteSocketAddress().toString()
       wsock.send(s"Beginning ... - $str" )
-//      val feedPushActor = context.actorOf(Props[FeedPushActor])
-	  // after zero seconds, send a Greet message every second to the greeter with a sender of the greetPrinter
-//	  context.system.scheduler.schedule(0.seconds, 1.second, feedPushActor, TickQuote(ws))(context.dispatcher, self)
-//      log.debug("6 @@@@@@@@@@@@@@@@@ u")
 	  sendMessages(webSocketId)
-//      log.debug("7 @@@@@@@@@@@@@@@@@ u")
-	  receiveMessages(wsock)
-//        	val kafkaConsumerActor = context.actorOf(KafkaConsumerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
-//        	kafkaConsumerActor ! KafkaConsumerMessage(ws)
-	  
-//      log.debug("8 @@@@@@@@@@@@@@@@@ u")
-	  
-//	  val kafkaConsumerActor = context.actorOf(KafkaConsumerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
-	  //kafkaConsumerActor.tell(KafkaConsumerMessage(), self)
-
-      
-//      if(ws.isOpen()) {
-//        ws.send(msg)
-//      } else {
-//        log.debug(s"**** FeedActor is Unregistering self")
-//        context.stop(self)
-//      }
-	  
-//	  self ! Unregister(ws)
     }
-      
-//    case KafkaConsumerMessage(str) => {
-//      if(ws.isOpen()) {
-//        ws.send(str)
-//      } else {
-//        log.debug(s"**** Unregistering self")
-//        context.stop(self)
-//      }
-//    }
       
   }
   
@@ -115,37 +102,5 @@ class FeedActor extends Actor with ActorLogging {
 	kafkaProducerActor ! StopMessage
 
   }
-
-  
-  def receiveMessages(ws: WebSocket) = {
-//        for (client <- clients) {
-	val kafkaConsumerActor = context.actorOf(KafkaConsumerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
-	kafkaConsumerActor ! KafkaConsumerMessage(ws)
-	kafkaConsumerActor ! StopMessage
-        	
-//	kafkaConsumerActor ! KafkaNewMessage("%%%%%%%%%%% Lets roll %%%%%%%%%")
-
-//          client.send(msg)
-//        }
-
-  }
-
   
 }
-
-
-//class FeedPushActor extends Actor with ActorLogging {
-//  def receive = {
-//    case TickQuote(ws) => {
-//      val rand = Seq.fill(5)(scala.util.Random.nextInt(100))
-//      val msg = s"Dummy quote: $rand"
-//      //log.debug(s"##### Sending message: $msg")
-//      if(ws.isOpen()) {
-//        ws.send(msg)
-//      } else {
-//        log.debug(s"**** Unregistering self")
-//        context.stop(self)
-//      }
-//    }
-//  }
-//}

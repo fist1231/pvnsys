@@ -8,33 +8,43 @@ Follow these steps to get started:
 
 3. Have git installed (http://git-scm.com/downloads)
 
-4. Git-clone this repository.
+4. Have Kafka installed (tested version bundled with kafka_2.10-0.8.1.1). Comes with Zookeeper.
+
+5. Git-clone this repository.
 
         $ git clone https://github.com/fist1231/pvnsys.git
 
-5. Change directory into your clone:
+6. Change directory into your clone:
 
         $ cd pvnsys/tttsFacadeMS
 
-6. Edit JAVA_HOME and PATH in setEnv.cmd
+7. Edit JAVA_HOME and PATH in setEnv.cmd
 
-7. Run setEnv.cmd
+8. Run setEnv.cmd
 
-8.	Launch SBT:
+9. Start Zookeeper on localhost:2181, or adjust resources/application.conf accordingly :
+	zookeeper-server-start.bat ..\..\config\zookeeper.properties
+	(see instructions in help.me for details)
+
+10. Start Kafka server on localhost:9092, or adjust resources/application.conf accordingly :
+	kafka-server-start.bat ..\..\config\server.properties
+	(see instructions in help.me for details)
+
+11.	Launch SBT:
 
         $ sbt clean compile
 
-9. Start the application:
+12. Start the application:
 
         $ sbt run
 
-10. Browse to http://localhost:9696/
+13. Browse to http://localhost:9696/
 
-11. Stop the application:
+14. Stop the application:
 
         $ Ctrl + C
         
-12. Generate eclipse project files: $sbt elipse        
+15. Generate eclipse project files: $sbt elipse        
 
-13. Learn more at https://www.pvnsys.com/
+16. Learn more at https://www.pvnsys.com/
 

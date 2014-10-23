@@ -7,6 +7,9 @@ import akka.io.{IO, Tcp}
 import java.net.InetSocketAddress
 import spray.can.Http
 
+import com.pvnsys.ttts.facade.mq.KafkaConsumerActor
+import com.pvnsys.ttts.facade.feed.KafkaConsumerMessage
+
 object TttsFacadeMS extends App with MainActors with TttsFacadeApi {
   implicit lazy val system = ActorSystem("ttts-facade-service")
   private val rs = new TttsFacadeMSServer(Configuration.portWs)
@@ -14,6 +17,10 @@ object TttsFacadeMS extends App with MainActors with TttsFacadeApi {
   rs.start
   sys.addShutdownHook({system.shutdown;rs.stop})
   IO(Http) ! Http.Bind(rootService, Configuration.host, port = Configuration.portHttp)
+  
+	val kafkaConsumerActor = system.actorOf(KafkaConsumerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
+//	kafkaConsumerActor ! KafkaConsumerMessage
+  
 }  
 
 object Configuration {
