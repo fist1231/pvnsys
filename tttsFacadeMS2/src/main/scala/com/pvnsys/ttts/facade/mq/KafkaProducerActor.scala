@@ -9,6 +9,9 @@ import kafka.producer.ProducerConfig
 import kafka.javaapi.producer.Producer
 import java.util.Properties
 import com.pvnsys.ttts.facade.feed.KafkaProducerMessage
+import com.pvnsys.ttts.facade.Configuration
+import com.pvnsys.ttts.facade.feed.FeedActor
+
 
 object KafkaProducerActor {
 
@@ -26,22 +29,21 @@ object KafkaProducerActor {
 class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLogging {
 
   import KafkaProducerActor._
+  import FeedActor._
   
-	val props = new Properties();
-	props.put("serializer.class", "kafka.serializer.StringEncoder");
-	// server.properties file
-	props.put("metadata.broker.list", "localhost:9092");
 	
-	val producer = new Producer[Integer, String](new ProducerConfig(props));
-	val topic = "test"
-
   override def receive = {
-    case KafkaProducerMessage() => {
-      log.debug("+++++++++ Creatiing Kafka Message")
-      produceKafkaMsg()
-      log.info(s"Connected to Kafka server on localhost:9092")
+    case KafkaProducerMessage(socketId) => {
+      produceKafkaMsg(socketId)
     }
+
+    case StopMessage => {
+      self ! PoisonPill
+    }
+    
     case msg => log.error(s"+++++ Received unknown message $msg")
+    
+    
   }
   
   override def postStop() = {
@@ -50,14 +52,29 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
 //      conn.close() 
     }
   
-  def produceKafkaMsg() = {
+  def produceKafkaMsg(sid: String) = {
+	val props = new Properties();
+//	props.put("serializer.class", "kafka.serializer.StringEncoder");
+//	// server.properties file
+//	props.put("metadata.broker.list", "localhost:9092");
+
+	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
+	props.put("serializer.class", Configuration.serializerClassProducer);
+//	props.put("group.id", Configuration.groupIdProducer);
+
+	val producer = new Producer[Integer, String](new ProducerConfig(props));
+
+    val topic = Configuration.topicProducer
+
     var messageNo = 1
-    while(messageNo < 10) {
-    	val messageStr = s"+++++ KAFKA Message: $messageNo"
+    while(messageNo < 6) {
+    	val messageStr = s"+++++ $sid ==> KAFKA Message: $messageNo"
+    	log.info(s"###### KafkaProducerActor sending message $messageStr")
     	producer.send(new KeyedMessage[Integer, String](topic, messageStr));
     	messageNo += 1
     	Thread.sleep(1000)
   	}
+    producer.close
   }
   
 }

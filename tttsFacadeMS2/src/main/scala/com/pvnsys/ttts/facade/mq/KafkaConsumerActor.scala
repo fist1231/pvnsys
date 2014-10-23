@@ -19,7 +19,8 @@ import org.java_websocket.WebSocket
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import kafka.message.Message
-
+import com.pvnsys.ttts.facade.Configuration
+import com.pvnsys.ttts.facade.feed.FeedActor
 
 
 object KafkaConsumerActor {
@@ -34,13 +35,16 @@ object KafkaConsumerActor {
 class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLogging {
   
 	import KafkaConsumerActor._
+	import FeedActor._
     
+//	var client :WebSocket = _
+	
 	   override def receive = {
 	    case KafkaNewMessage(messaga) => 
-	      log.debug(s"111#######*****########## Gettin message: $messaga")
+	      log.debug(s"!!!!!!!!!!!!!!! Rolling KafkaConsumerActor, Gettin message: $messaga")
 	      val rand = Seq.fill(5)(scala.util.Random.nextInt(100))
 	      val msg = s"Dummy quote: $rand"
-	      log.debug(s"222#######*****########## Gettin message: $msg")
+//	      log.debug(s"222#######*****########## Gettin message: $msg")
 //	      val feedActor = context.actorOf(Props[FeedActor])
 //	      feedActor ! KafkaConsumerMessage(messaga)
 //              if(Some(webSock).asInstanceOf[WebSocket].isOpen()) {
@@ -50,75 +54,88 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 ////		        context.stop(self)
 //		      }
 
-	    case KafkaConsumerMessage(ws: WebSocket) => 
-	      log.debug(s"##@@@@@@@### Trying to Kafka Consume message")
-	      startConsumation(ws)
-//	      webSock = Option(ws)
+	    case KafkaConsumerMessage(ws) => {
+//	      startConsumation(ws)
+	      val client = ws
+	      if(client != null) {
+		      val addrId = client.getRemoteSocketAddress().toString()
+		      log.debug(s"!!!!!!!!!!!!!!! KafkaConsumerActor, Gettin WebSocket: $addrId")
+	      } else {
+	        self ! PoisonPill
+	      }
+	      startConsumation(client)
+	    }
+
+	    case StopMessage => {
+          self ! PoisonPill
+        }
 	    
-	    case mmm => log.error(s"##@@@@@@@## Received unknown message $mmm")
+	    case mmm => log.error(s"^^^^^ KafkaConsumerActor Received unknown message $mmm")
+
+
 	  }
 
 	
 	
-	def startConsumation(ws: WebSocket) = {
+	def startConsumation(client: WebSocket) = {
+	  
+	  val did = scala.util.Random.nextInt(100).toString
+	  val suff = Configuration.groupIdConsumer
+	  val groupId = s"GROUP_ID_$did-$suff"
+	  
+	  log.debug(s"oooooooooooooooooooooooooooo KafkaConsumerActor, GroupID is: $groupId")
+	  
+	  
 		val prps = new Properties()
-	    prps.put("group.id", "group1")
-	    prps.put("socket.buffer.size", "65536")
-	    prps.put("fetch.size", "1048576")
-	    prps.put("auto.commit", "true")
-	    prps.put("autocommit.interval.ms", "10000")
-	    prps.put("autooffset.reset", "smallest")
-	    prps.put("zookeeper.connect", "127.0.0.1:2181")
+	    prps.put("group.id", groupId)
+	    prps.put("socket.buffer.size", Configuration.socketBufferSizeConsumer)
+	    prps.put("fetch.size", Configuration.fetchSizeConsumer)
+	    prps.put("auto.commit", Configuration.autoCommitConsumer)
+	    prps.put("autocommit.interval.ms", Configuration.autocommitIntervalConsumer)
+	    prps.put("autooffset.reset", Configuration.autooffsetResetConsumer)
+	    prps.put("zookeeper.connect", Configuration.zookeeperConnectionConsumer)
 	    val config = new ConsumerConfig(prps)
 	  
 	    val connector = Consumer.create(config)
 	   
-	    val topic = "test"
+	    val topic = Configuration.topicConsumer
 	
-	    log.debug(s"************ Gettin Topic")
-	    
-	    val topicCountMap = new HashMap[String, Integer]();
-	    topicCountMap.put(topic, new Integer(1));
+//	    val topicCountMap = new HashMap[String, Integer]();
+//	    topicCountMap.put(topic, new Integer(1));
 	
-	    log.debug(s"************ Gettin Stream")
-	    var stream = connector.createMessageStreams(Map(topic -> 1)).get(topic).get.get(0)
+	    val stream = connector.createMessageStreams(Map(topic -> 1)).get(topic).get.get(0)
+//	    val stream = connector.createMessageStreams(Map(topic -> 1)).get(topic).get(0)
 	    
 	    val maxMessages = -1 //no limit 
 	    
-	    var webSock: Option[WebSocket] = None
 	    
-	    log.debug(s"************ Gettin Iterator")
-	    
-	    val iter =
-	      if(maxMessages >= 0)
-	        stream.slice(0, maxMessages)
-	      else
-	        stream
+//	    val iter =
+//	      if(maxMessages >= 0)
+//	        stream.slice(0, maxMessages)
+//	      else
+//	        stream
 	 
 	    try {
-	      for(message <- iter) {
+	      for(message <- stream) {
 	        try {
 	          
 			    val arr = message.message
 			    val mess = new String(arr, "UTF-8")
- 
-	          
-	//          formatter.writeTo(message, System.out)
-	        	log.debug(s"************ Gettin message: $message.toString")
-//	        	context.self ! KafkaNewMessage(message.toString)
-	        	
-	    val feedPushActor = context.actorOf(Props[FeedPushActor])
-	    feedPushActor ! KafkaReceivedMessage(ws, mess)
-	        	
-	        	
-	        	log.debug(s"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
+			    
+	      val addrId = client.getRemoteSocketAddress().toString()
+	      log.debug(s"xxxxxxxxxxxxxxxxxxx KafkaConsumerActor, Gettin WebSocket: $addrId")
+			    
+			    
+			    feedPushActor ! KafkaReceivedMessage(client, mess)
+			    feedPushActor ! StopMessage
 	        } catch {
 	          case e: Throwable =>
 	            if (false) { // skipMessageOnError = true|false
 	              log.error("~~~~ error processing message, skipping and resume consumption: " + e)
 	            }
 	            else {
-	              log.error("~~~~ ******* error processing message, failing " + e)
+	              log.error("~~~~ error processing message, failing " + e)
 	              throw e
 	            }
 	        }
@@ -126,29 +143,50 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 	    } catch {
 	      case e: Throwable => log.error("~~~~ error processing message, stop consuming: " + e)
 	    }
+	    
+//	    feedPushActor ! Stop
 	
-	//    System.out.flush()
+	//    System.out.flush(
 	//    formatter.close()
-	//    connector.shutdown()
-	        
+	    connector.shutdown()
+	    
+//	    client.close()
+	    
 	}
 
     override def postStop() = {}
 }
 
 class FeedPushActor extends Actor with ActorLogging {
+	import KafkaConsumerActor._
+	import FeedActor._
+  
+  
   def receive = {
     case KafkaReceivedMessage(ws, messg) => {
-      val rand = Seq.fill(5)(scala.util.Random.nextInt(100))
-      val msg = s"Dummy quote: $rand"
-      log.debug(s"###*******^^^^###### Sending message: $messg")
-      if(ws.isOpen()) {
+      
+      
+//      val rand = Seq.fill(5)(scala.util.Random.nextInt(100))
+//      val msg = s"Dummy quote: $rand"
+    	  
+      if(null != ws) { //ws.isOpen()) {
+    	  if(ws.isOpen()) {
+    		  log.info(s"^^^^^ FeedPush Actor Websocket is OPEN !!")
+    	  } else {
+    		  log.info(s"^^^^^ FeedPush Actor Websocket is CLOSED  :((")
+    	  }
+    	log.info(s"^^^^^ FeedPush Actor sending message: $messg")
+    	
         ws.send(messg)
       } else {
-        log.debug(s"**** Unregistering self")
+        log.error(s"^^^^^ FeedPushActor is not unregistering self due to WebSocket closure. Skipping the message $messg")
         context.stop(self)
       }
     }
+    case StopMessage => {
+	  self ! PoisonPill
+    }
+    
   }
   
 }

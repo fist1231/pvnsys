@@ -12,6 +12,13 @@ $(document).ready(function() {
 	var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
     var feedSocket = new WS("ws://"+window.location.hostname+":6969/feed/ws")
 	
+	feedSocket.onopen = function(event) {
+		var msg = "UI Client says: Omg, wtf ?"
+		feedSocket.send(msg)
+		log(msg)
+	}
+
+	
 	feedSocket.onmessage = function(event) {
 		log(event.data)
     }
@@ -21,6 +28,6 @@ $(document).ready(function() {
         $("#map").addClass("hide")
         log("websocket connection closed or lost")
     }
-	mapSocket.onerror = onalert
-	mapSocket.onclose = onalert
+	feedSocket.onerror = onalert
+	feedSocket.onclose = onalert
 })
