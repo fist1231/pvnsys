@@ -44,7 +44,11 @@ Follow these steps to get started:
 
         $ Ctrl + C
         
-15. Generate eclipse project files: $sbt elipse        
+15. Generate eclipse project files: $sbt elipse    
 
-16. Learn more at https://www.pvnsys.com/
+16. Packaging: sbt assembly
+
+17. Run packaged jar: tttsFacadeMS2/target/scala-{VERSION}/java -jar ttts-facade-microservice-assembly-1.0.jar        
+    
+18. Learn more at https://www.pvnsys.com/
 

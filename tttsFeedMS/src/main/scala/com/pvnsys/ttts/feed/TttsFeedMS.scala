@@ -15,6 +15,11 @@ object TttsFeedMS extends App {
   }
 
   val kafkaConsumerActor = system.actorOf(KafkaConsumerActor.props(new InetSocketAddress("127.0.0.1", 5672),  groupId ))
+  
+  system.registerOnTermination {
+    system.log.info("TttsFeedMS shutdown.")
+  }
+  
 }  
 
 object Configuration {

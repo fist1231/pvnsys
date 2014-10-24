@@ -18,9 +18,13 @@ object TttsFacadeMS extends App with MainActors with TttsFacadeApi {
   sys.addShutdownHook({system.shutdown;rs.stop})
   IO(Http) ! Http.Bind(rootService, Configuration.host, port = Configuration.portHttp)
   
-	val kafkaConsumerActor = system.actorOf(KafkaConsumerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
+  val kafkaConsumerActor = system.actorOf(KafkaConsumerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
 //	kafkaConsumerActor ! KafkaConsumerMessage
   
+  system.registerOnTermination {
+    system.log.info("TttsFacadeMS shutdown.")
+  }
+
 }  
 
 object Configuration {

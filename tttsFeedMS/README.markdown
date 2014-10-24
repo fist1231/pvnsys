@@ -42,7 +42,11 @@ Follow these steps to get started:
 
         $ Ctrl + C
         
-14. Generate eclipse project files: $sbt elipse        
+14. Generate eclipse project files: $sbt elipse
 
-15. Learn more at https://www.pvnsys.com/
+15. Packaging: sbt assembly
+
+16. Run packaged jar: tttsFeedMS/target/scala-{VERSION}/java -jar ttts-feed-microservice-assembly-1.0.jar        
+
+17. Learn more at https://www.pvnsys.com/
 
