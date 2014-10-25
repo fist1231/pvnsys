@@ -14,3 +14,22 @@
 
 4. Receive messages:
 -kafka-console-consumer.bat --zookeeper localhost:2181 --topic test --from-beginning
+
+======================================================================================
+!!! After Scala upgrade to 2.11.2, Kafka must be built from sources against scala 2.11
+
+1. Get kafka sources 0.8.2 (https://github.com/apache/kafka/tree/0.8.2) from Github:
+git clone https://github.com/apache/kafka.git
+
+2. Have gradle 2.1 installed.
+
+3. cd kafka_source_dir
+   gradle
+   
+4. ./gradlew -PscalaVersion=2.11.2 jar
+
+5. Copy 
+	- kafka\core\build\libs\kafka_2.11-0.8.3-SNAPSHOT.jar to pvnsys\tttsFacadeMS2\lib
+	- kafka\clients\build\libs\kafka-clients-0.8.3-SNAPSHOT.jar to pvnsys\tttsFacadeMS2\lib
+
+6. Follow the instructions above.

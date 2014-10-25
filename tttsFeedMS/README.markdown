@@ -8,7 +8,7 @@ Follow these steps to get started:
 
 3. Have git installed (http://git-scm.com/downloads)
 
-4. Have Kafka installed (tested version bundled with kafka_2.10-0.8.1.1). Comes with Zookeeper.
+4. !!! Do p.9 instead (Have Kafka installed (tested version bundled with kafka_2.10-0.8.1.1). Comes with Zookeeper.)
 
 5. Git-clone this repository.
 
@@ -22,31 +22,33 @@ Follow these steps to get started:
 
 8. Run setEnv.cmd
 
-9. Start Zookeeper on localhost:2181, or adjust resources/application.conf accordingly :
+9. Build Kafka from sources against Scala 2.11.2. See tttsFacadeMS2/read.me for instructions
+
+10. Start Zookeeper on localhost:2181, or adjust resources/application.conf accordingly :
 	zookeeper-server-start.bat ..\..\config\zookeeper.properties
 	(see instructions in help.me for details)
 
-10. Start Kafka server on localhost:9092, or adjust resources/application.conf accordingly :
+11. Start Kafka server on localhost:9092, or adjust resources/application.conf accordingly :
 	kafka-server-start.bat ..\..\config\server.properties
 	(see instructions in help.me for details)
 
-11.	Launch SBT:
+12.	Launch SBT:
 
         $ sbt clean compile
 
-12. Start the application:
+13. Start the application:
 
         $ sbt run
 
-13. Stop the application:
+14. Stop the application:
 
         $ Ctrl + C
         
-14. Generate eclipse project files: $sbt elipse
+15. Generate eclipse project files: $sbt elipse
 
-15. Packaging: sbt assembly
+16. Packaging: sbt assembly
 
-16. Run packaged jar: tttsFeedMS/target/scala-{VERSION}/java -jar ttts-feed-microservice-assembly-1.0.jar        
+17. Run packaged jar: tttsFeedMS/target/scala-{VERSION}/java -jar ttts-feed-microservice-assembly-1.0.jar        
 
-17. Learn more at https://www.pvnsys.com/
+18. Learn more at https://www.pvnsys.com/
 
