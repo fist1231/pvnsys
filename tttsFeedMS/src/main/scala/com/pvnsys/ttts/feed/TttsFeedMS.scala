@@ -4,20 +4,85 @@ import akka.actor.ActorSystem
 import akka.io.{IO, Tcp}
 import java.net.InetSocketAddress
 import spray.can.Http
-
 import com.pvnsys.ttts.feed.mq.KafkaConsumerActor
+import akka.actor.Props
+import com.typesafe.scalalogging.slf4j.LazyLogging
+import akka.util.Timeout
+import akka.stream.actor.ActorProducer
+import akka.stream.scaladsl.{Duct, Flow}
+import akka.stream.{FlowMaterializer, MaterializerSettings}
+import scala.concurrent.duration._
 
-object TttsFeedMS extends App {
-  implicit lazy val system = ActorSystem("ttts-feed-service")
+
+object MyDomainProcessing extends LazyLogging {
+
+  def apply(): Duct[KafkaReceivedMessage, String] = { Duct[KafkaReceivedMessage].
+  
+    // acknowledge and pass on
+    map { msg =>
+      val z = msg.message.toUpperCase
+      logger.debug("------- In da duck 1: {}", z)
+      msg
+    }.
+    
+    map { msg =>
+      val x = msg.key
+      x
+    }
+  }
+  
+}
+
+
+object TttsFeedMS extends App with LazyLogging {
+  
+  implicit val tttsFeedActorSystem = ActorSystem("ttts-feed-service")
   
   val groupId: Option[String] = {
     if(args.length > 0) Some(args(0)) else None
   }
 
-  val kafkaConsumerActor = system.actorOf(KafkaConsumerActor.props(new InetSocketAddress("127.0.0.1", 5672),  groupId ))
   
-  system.registerOnTermination {
-    system.log.info("TttsFeedMS shutdown.")
+  implicit val timeout = Timeout(2 seconds)
+  implicit val executor = tttsFeedActorSystem.dispatcher
+  
+  val materializer = FlowMaterializer(MaterializerSettings())
+  
+  
+  val feedActor = tttsFeedActorSystem.actorOf(Props(classOf[FeedActor]), "feedConsumer")
+  logger.debug("+++++++ feedActor is: {}", feedActor)
+  val feedConsumer = ActorProducer(feedActor)
+
+  val kafkaConsumerActor = tttsFeedActorSystem.actorOf(KafkaConsumerActor.props(feedActor), "kafkaConsumer")
+  logger.debug("+++++++ KafkaConsumerActor tttsFeedActorSystem is: {}", kafkaConsumerActor)
+  kafkaConsumerActor ! KafkaStartListeningMessage
+  
+  
+  val domainProcessingDuct = MyDomainProcessing()
+
+      Flow(feedConsumer) append domainProcessingDuct map { msg =>
+
+	  	logger.debug("~~~~~~~ And inside the main Flow is: {}", msg)
+    
+//        // start a new flow for each message type
+//        Flow(producer)
+//        
+//          // extract the message
+//          .map(_.message) 
+//          
+//          // add the outbound publishing duct
+//          .append(publisherDuct(exchange))
+//          
+//          // and start the flow
+//          .consume(materializer)
+        
+    } consume(materializer)
+
+  
+  
+  
+  tttsFeedActorSystem.registerOnTermination {
+    tttsFeedActorSystem.log.info("TttsFeedMS shutdown.")
   }
   
 }  

@@ -11,6 +11,8 @@ import com.pvnsys.ttts.feed.mq.KafkaProducerActor
 import com.pvnsys.ttts.feed.mq.KafkaConsumerActor
 import java.net.InetSocketAddress
 import akka.dispatch.Foreach
+import akka.stream.actor.ActorProducer
+import akka.stream.actor.ActorProducer._
 
 case object FeedPushMessage
 case class TickQuote(wSock: WebSocket)
@@ -18,6 +20,7 @@ case class KafkaNewMessage(message: String)
 case class KafkaProducerMessage(id: String)
 case class KafkaConsumerMessage()
 case class KafkaReceivedMessage(key: String, message: String)
+case class KafkaStartListeningMessage()
 
 object FeedActor {
   sealed trait FeedMessage
@@ -26,52 +29,29 @@ object FeedActor {
 
 }
 
-class FeedActor extends Actor with ActorLogging {
+class FeedActor extends ActorProducer[KafkaReceivedMessage] with ActorLogging {
   import FeedActor._
-  import TttsFeedMS._
 
-//  override val supervisorStrategy = OneForOneStrategy(loggingEnabled = true) {
-//    case e =>
-//      log.error("0 @@@@@@@@@@@@@@@ And here we have an Unexpected failure: {}", e.getMessage)
-//      //Restart
-//      Stop
-//  }
-  
-  
-  val clients = mutable.ListBuffer[WebSocket]()
-  val sockets = mutable.Map[String, WebSocket]()
-  
-  override def receive = {
-    case Unregister(ws) => {
-      if (null != ws) {
-        log.debug("@@@@@@@@@@@@@@@@@ unregister monitor for url {}; key {}", ws.getResourceDescriptor, ws.getRemoteSocketAddress())
-        clients -= ws
-        sockets.foreach { case (key, value) => log.debug("zzz key: {} ==> value: {}", key, value) }
-        if(null != ws.getRemoteSocketAddress()) {
-        	sockets -= ws.getRemoteSocketAddress().toString()
-        }
-      }
-    }
-    case KafkaReceivedMessage(key, msg) => {
-      
-//      log.debug(s"TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT FeedActor received KafkaReceivedMessage: $msg")
-        sockets.get(key) match {
-		  case Some(wsk) => {
-		    if(null != wsk && wsk.isOpen()) {
-		    	wsk.send(msg)
-		    }
-		  }
-		  case None => //log.debug("@@@@@@@@@@@@@@@@@ no such key {}", key)
+	override def receive = {
+		case KafkaReceivedMessage(key, mess) => 
+			  log.debug(s"xoxoxoxoxoxoxo FeedActor, Gettin message: {} - {}", key, mess)
+		      if (isActive && totalDemand > 0) {
+		        onNext(KafkaReceivedMessage(key, mess))
+		      } else {
+		        //requeue the message
+		        //message ordering might not be preserved
+		      }
+		
+		case StopMessage => {
+			log.debug("^^^^^ FeedActor StopMessage")
 		}
-    }
-      
-  }
-  
-  def sendMessages(wid: String) = {
-    val kafkaProducerActor = context.actorOf(KafkaProducerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
-    kafkaProducerActor ! KafkaProducerMessage(wid)
-	kafkaProducerActor ! StopMessage
-
-  }
+	    case Request(elements) =>
+	      // nothing to do - we're waiting for the messages to come from RabbitMQ
+			log.debug("^^^^^ FeedActor Request received")
+	    case Cancel =>
+		  log.debug("^^^^^ FeedActor Cancel")
+	      context.stop(self)
+		case _ => log.error("^^^^^ FeedActor Received unknown message")
+	}
   
 }
