@@ -1,21 +1,29 @@
+PART-1:
+~~~~~~
+
 1. Kafka (kafka_2.10-0.8.1.1):
-- Windows config. Go to C:\frp\kafka_2.10-0.8.1.1\bin\windows\kafka-run-class.bat and change 'set BASE_DIR=%CD%\..' to 'set BASE_DIR=%CD%\..\..'
-- Start zookeeper server; run $kafka_2.10-0.8.1.1\bin\windows>zookeeper-server-start.bat ..\..\config\zookeeper.properties
-- start kafka server; run $kafka_2.10-0.8.1.1\bin\windows>kafka-server-start.bat ..\..\config\server.properties
+# No need for Kafka in trunk (- Windows config. Go to kafka_home\bin\windows\kafka-run-class.bat and change 'set BASE_DIR=%CD%\..' to 'set BASE_DIR=%CD%\..\..')
+- modify scala version in kafka_home\bin\windows\kafka-run-class.bat to the Scala version Kafka was built with in PART-2/p.4 (-PscalaVersion=...)
+- Start zookeeper server; run $kafka_home\bin\windows>zookeeper-server-start.bat ..\..\config\zookeeper.properties
+- start kafka server; run $kafka_home\bin\windows>kafka-server-start.bat ..\..\config\server.properties
 
 2. Create test topic:
 - Copy bin/kafka-topics.sh to bin/windows/kafka-topics.bat
 - modify to: kafka-run-class.bat kafka.admin.TopicCommand %*
-- kafka_2.10-0.8.1.1\bin\windows>kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
-- verify: kafka_2.10-0.8.1.1\bin\windows>kafka-topics.bat --list --zookeeper localhost:2181
+- kafka_home\bin\windows>kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+- verify: kafka_home\bin\windows>kafka-topics.bat --list --zookeeper localhost:2181
 
 3. Send messages:
 - kafka-console-producer.bat --broker-list localhost:9092 --topic test 
 
 4. Receive messages:
--kafka-console-consumer.bat --zookeeper localhost:2181 --topic test --from-beginning
+- kafka-console-consumer.bat --zookeeper localhost:2181 --topic test --from-beginning
 
 ======================================================================================
+
+PART-2:
+~~~~~~
+
 !!! After Scala upgrade to 2.11.2, Kafka must be built from sources against scala 2.11
 
 1. Get kafka sources 0.8.2 (https://github.com/apache/kafka/tree/0.8.2) from Github:
@@ -32,4 +40,4 @@ git clone https://github.com/apache/kafka.git
 	- kafka\core\build\libs\kafka_2.11-0.8.3-SNAPSHOT.jar to pvnsys\tttsFacadeMS2\lib
 	- kafka\clients\build\libs\kafka-clients-0.8.3-SNAPSHOT.jar to pvnsys\tttsFacadeMS2\lib
 
-6. Follow the instructions above.
+6. Follow the instructions in PART-1 above.
