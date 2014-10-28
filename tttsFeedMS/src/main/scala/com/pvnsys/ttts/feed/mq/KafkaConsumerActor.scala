@@ -23,6 +23,8 @@ import com.pvnsys.ttts.feed.Configuration
 import com.pvnsys.ttts.feed.FeedActor
 import com.pvnsys.ttts.feed.KafkaStartListeningMessage
 import org.reactivestreams.api.Producer
+import akka.actor.SupervisorStrategy.{Restart, Stop}
+
 
 
 object KafkaConsumerActor {
@@ -38,6 +40,13 @@ class KafkaConsumerActor(toWhom: ActorRef) extends Actor with ActorLogging {
 	import KafkaConsumerActor._
 	import FeedActor._
 	import context._
+	
+    override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
+    case e: Exception =>
+      log.error("@@@@@@@@@@@@@@@ KafkaConsumerActor Unexpected failure: {}", e.getMessage)
+      Restart
+  	}
+	
 	
 	var groupId = "feed-ms-group-1"
 	

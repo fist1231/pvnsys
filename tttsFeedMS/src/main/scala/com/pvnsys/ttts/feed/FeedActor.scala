@@ -29,12 +29,25 @@ object FeedActor {
 
 }
 
+case class CustomException(smth:String)  extends Exception
+
+
+
 class FeedActor extends ActorProducer[KafkaReceivedMessage] with ActorLogging {
   import FeedActor._
 
+  
+    override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
+    case e: Exception =>
+      log.error("@@@@@@@@@@@@@@@ FeedActor Unexpected failure: {}", e.getMessage)
+      Restart
+  	}
+  
+  
 	override def receive = {
 		case KafkaReceivedMessage(key, mess) => 
 			  log.debug(s"xoxoxoxoxoxoxo FeedActor, Gettin message: {} - {}", key, mess)
+//			  throw new CustomException("WTFWTFWTFWTF????????????")
 		      if (isActive && totalDemand > 0) {
 		        onNext(KafkaReceivedMessage(key, mess))
 		      } else {

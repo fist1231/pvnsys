@@ -1,6 +1,6 @@
 package com.pvnsys.ttts.feed
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, AllForOneStrategy}
 import akka.io.{IO, Tcp}
 import java.net.InetSocketAddress
 import spray.can.Http
@@ -12,6 +12,7 @@ import akka.stream.actor.ActorProducer
 import akka.stream.scaladsl.{Duct, Flow}
 import akka.stream.{FlowMaterializer, MaterializerSettings}
 import scala.concurrent.duration._
+import akka.actor.SupervisorStrategy.{Restart, Stop}
 
 
 object MyDomainProcessing extends LazyLogging {
@@ -42,44 +43,8 @@ object TttsFeedMS extends App with LazyLogging {
     if(args.length > 0) Some(args(0)) else None
   }
 
-  
-  implicit val timeout = Timeout(2 seconds)
-  implicit val executor = tttsFeedActorSystem.dispatcher
-  
-  val materializer = FlowMaterializer(MaterializerSettings())
-  
-  
-  val feedActor = tttsFeedActorSystem.actorOf(Props(classOf[FeedActor]), "feedConsumer")
-  logger.debug("+++++++ feedActor is: {}", feedActor)
-  val feedConsumer = ActorProducer(feedActor)
-
-  val kafkaConsumerActor = tttsFeedActorSystem.actorOf(KafkaConsumerActor.props(feedActor), "kafkaConsumer")
-  logger.debug("+++++++ KafkaConsumerActor tttsFeedActorSystem is: {}", kafkaConsumerActor)
-  kafkaConsumerActor ! KafkaStartListeningMessage
-  
-  
-  val domainProcessingDuct = MyDomainProcessing()
-
-      Flow(feedConsumer) append domainProcessingDuct map { msg =>
-
-	  	logger.debug("~~~~~~~ And inside the main Flow is: {}", msg)
-    
-//        // start a new flow for each message type
-//        Flow(producer)
-//        
-//          // extract the message
-//          .map(_.message) 
-//          
-//          // add the outbound publishing duct
-//          .append(publisherDuct(exchange))
-//          
-//          // and start the flow
-//          .consume(materializer)
-        
-    } consume(materializer)
-
-  
-  
+  val feedService = tttsFeedActorSystem.actorOf(Props(classOf[TttsFeedService]), "kafkaConsumer")
+  feedService ! StartFeedServiceMessage
   
   tttsFeedActorSystem.registerOnTermination {
     tttsFeedActorSystem.log.info("TttsFeedMS shutdown.")
