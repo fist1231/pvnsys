@@ -54,7 +54,7 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
 	val producer = new Producer[Integer, String](new ProducerConfig(props));
     val topic = Configuration.topicProducer
     var messageNo = 1
-    while(messageNo < 1000000) {
+    while(messageNo <= 100) {
     	val messageStr = s"$sid ==> KAFKA Message: $messageNo"
     	log.info(s"###### KafkaProducerActor sending message $messageStr")
     	producer.send(new KeyedMessage[Integer, String](topic, messageStr));

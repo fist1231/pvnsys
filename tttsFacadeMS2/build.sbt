@@ -13,6 +13,8 @@ crossPaths := false
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
+test in assembly := {}
+
 resolvers ++= Seq(
 //  "snapshots"           at "http://oss.sonatype.org/content/repositories/snapshots",
 //  "releases"            at "http://oss.sonatype.org/content/repositories/releases",
