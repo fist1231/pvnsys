@@ -13,7 +13,10 @@ $(document).ready(function() {
     var feedSocket = new WS("ws://"+window.location.hostname+":6969/feed/ws")
 	
 	feedSocket.onopen = function(event) {
-		var msg = "UI Client says: Omg, wtf ?"
+		
+		var msg = '{ "id":"ID-1" , "msgType":"FEED" , "payload":"Omg, wtf, WTF ???" }';
+//		var msgJson = JSON.parse(msg);
+		
 		feedSocket.send(msg)
 		log(msg)
 	}

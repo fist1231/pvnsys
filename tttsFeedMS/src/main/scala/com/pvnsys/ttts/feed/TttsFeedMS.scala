@@ -61,7 +61,10 @@ object Configuration {
   val host = config.getString("ttts-feed-ms.host")
   val portHttp = config.getInt("ttts-feed-ms.ports.http")
   val portWs   = config.getInt("ttts-feed-ms.ports.ws")
-  
+
+  val facadeTopic = config.getString("ttts-feed-ms.facade-topic")
+  val servicesTopic = config.getString("ttts-feed-ms.services-topic")
+
   val metadataBrokerListProducer = config.getString("kafka-producer.metadata-broker-list")
   val serializerClassProducer = config.getString("kafka-producer.serializer-class")
   val topicProducer = config.getString("kafka-producer.topic")

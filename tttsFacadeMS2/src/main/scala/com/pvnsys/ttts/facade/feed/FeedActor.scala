@@ -1,43 +1,44 @@
 package com.pvnsys.ttts.facade.feed
 
 import com.pvnsys.ttts.facade.server.TttsFacadeMSServer
-import com.pvnsys.ttts.facade.TttsFacadeMS
 import akka.actor.{Actor, ActorLogging, ActorContext, Props, OneForOneStrategy, AllForOneStrategy}
 import akka.actor.SupervisorStrategy.{Restart, Stop}
-import scala.collection._
+import scala.collection.mutable
+import scala.collection.mutable.{ListBuffer, Map}
 import org.java_websocket.WebSocket
-import scala.concurrent.duration._
-import scala.concurrent.duration.TimeUnit
-import scala.concurrent.ExecutionContext
 import com.pvnsys.ttts.facade.mq.KafkaProducerActor
-import com.pvnsys.ttts.facade.mq.KafkaConsumerActor
 import java.net.InetSocketAddress
-import akka.dispatch.Foreach
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeIncomingMessage
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeClientFeedRequestMessage
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeOutgoingFeedRequestMessage
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeIncomingFeedResponseMessage
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.TttsFacadeMessage
+import spray.json._
 
-case object FeedPushMessage
-case class TickQuote(wSock: WebSocket)
-case class KafkaNewMessage(message: String)
-case class KafkaProducerMessage(id: String)
-case class KafkaConsumerMessage()
-case class KafkaReceivedMessage(key: String, message: String)
 
 object FeedActor {
-  sealed trait FeedMessage
-  case class Unregister(webSock : WebSocket) extends FeedMessage
-  case object StopMessage extends FeedMessage
-
+  sealed trait FeedActorMessage
+  case object FeedActorStopMessage extends FeedActorMessage
+  case class FeedActorUnregisterWebSocketMessage(webSocket : WebSocket) extends FeedActorMessage
 }
+
+object FeedActorJsonProtocol extends DefaultJsonProtocol {
+  implicit val facadeOutgoingFeedRequestMessageFormat = jsonFormat2(FacadeOutgoingFeedRequestMessage)
+  implicit val facadeClientFeedRequestMessageFormat = jsonFormat3(FacadeClientFeedRequestMessage)
+  implicit val facadeIncomingFeedResponseMessageFormat = jsonFormat3(FacadeIncomingFeedResponseMessage)
+}
+
 
 class FeedActor extends Actor with ActorLogging {
   import FeedActor._
   import TttsFacadeMSServer._
-  import TttsFacadeMS._
+  import FeedActorJsonProtocol._
 
-//  override val supervisorStrategy = OneForOneStrategy(loggingEnabled = true) {
+//  override val supervisorStrategy = OneForOneStrategy(loggingEnabled = false) {
 //    case e =>
-//      log.error("0 @@@@@@@@@@@@@@@ And here we have an Unexpected failure: {}", e.getMessage)
-//      //Restart
-//      Stop
+//      log.error("Unexpected failure in FeedActor: {}", e.getMessage)
+//      Restart
+////      Stop
 //  }
   
   
@@ -48,13 +49,13 @@ class FeedActor extends Actor with ActorLogging {
     case Open(ws, hs) => {
       clients += ws
       sockets += (ws.getRemoteSocketAddress().toString() -> ws)
-      log.debug("@@@@@@@@@@@@@@@@@ registered monitor for url {}; key {}", ws.getResourceDescriptor, ws.getRemoteSocketAddress())
+      log.debug("FeedActor Registered monitor for url {}; key {}", ws.getResourceDescriptor, ws.getRemoteSocketAddress())
 //      kafkaConsumerActor ! KafkaConsumerMessage(xsock)
       
     }
-    case Unregister(ws) => {
+    case FeedActorUnregisterWebSocketMessage(ws) => {
       if (null != ws) {
-        log.debug("@@@@@@@@@@@@@@@@@ unregister monitor for url {}; key {}", ws.getResourceDescriptor, ws.getRemoteSocketAddress())
+        log.debug("FeedActor Unregister monitor for url {}; key {}", ws.getResourceDescriptor, ws.getRemoteSocketAddress())
         clients -= ws
         sockets.foreach { case (key, value) => log.debug("zzz key: {} ==> value: {}", key, value) }
         if(null != ws.getRemoteSocketAddress()) {
@@ -64,20 +65,20 @@ class FeedActor extends Actor with ActorLogging {
     }
     case Close(ws, code, reason, ext) => {
 //      log.error("3 FeedActor closed for this reason @@@@@@@@@@@@@@@@@", reason)
-      self ! Unregister(ws)
+      self ! FeedActorUnregisterWebSocketMessage(ws)
     }
     case Error(ws, ex) => {
       ex.printStackTrace()
 //      log.error("4 FeedActor error @@@@@@@@@@@@@@@@@", ex.getMessage())
-      self ! Unregister(ws)
+      self ! FeedActorUnregisterWebSocketMessage(ws)
     }
-    case KafkaReceivedMessage(key, msg) => {
+    case msg: FacadeIncomingFeedResponseMessage => {
       
 //      log.debug(s"TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT FeedActor received KafkaReceivedMessage: $msg")
-        sockets.get(key) match {
+        sockets.get(msg.client) match {
 		  case Some(wsk) => {
 		    if(null != wsk && wsk.isOpen()) {
-		    	wsk.send(msg)
+		    	wsk.send(msg.toJson.compactPrint)
 		    }
 		  }
 		  case None => //log.debug("@@@@@@@@@@@@@@@@@ no such key {}", key)
@@ -88,18 +89,35 @@ class FeedActor extends Actor with ActorLogging {
       val wsock = ws
       val webSocketId = wsock.getRemoteSocketAddress().toString()
       
-      log.debug("@@@@@@@@@@@@@@@@@ url {} received msg '{}'", ws.getResourceDescriptor, msg.toString())
-      val str = wsock.getRemoteSocketAddress().toString()
-      wsock.send(s"Beginning ... - $str" )
-	  sendMessages(webSocketId)
+      val msgStr = msg.parseJson.prettyPrint
+      log.debug("~~~~ FeedActor url {} received msg '{}'", ws.getResourceDescriptor, msgStr)
+      
+      // Do parse messages to determine request type. Uses custom FeedActorJsonProtocol Format converter for spray json objects
+//      val jsonMsg = msg.toJson
+//      log.debug("~~~~ FeedActor JSON version of the message: {}", jsonMsg)
+      
+//      val facadeClientFeedRequestMessage = msg.toJson.convertTo[FacadeClientFeedRequestMessage]
+      val facadeClientFeedRequestMessage = msg.parseJson.convertTo[FacadeClientFeedRequestMessage]
+      log.debug("~~~~ FeedActor FacadeOutgoingFeedRequestMessage version of the message: {}", facadeClientFeedRequestMessage)
+      
+      
+      val client = wsock.getRemoteSocketAddress().toString()
+      val facadeOutgoingFeedRequestMessage = FacadeOutgoingFeedRequestMessage(facadeClientFeedRequestMessage.id, client)
+      log.debug("~~~~ FeedActor FacadeOutgoingFeedRequestMessage version of the message: {}", facadeOutgoingFeedRequestMessage)
+
+      wsock.send(s"Beginning ... - $client" )
+	  sendMessages(webSocketId, facadeOutgoingFeedRequestMessage)
     }
       
   }
   
-  def sendMessages(wid: String) = {
+  def sendMessages(wid: String, msg: TttsFacadeMessage) = {
+    
+    // Creating Producer Actor to post outgoing message to facade topic MQ. Creating new Actor for every message
     val kafkaProducerActor = context.actorOf(KafkaProducerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
-    kafkaProducerActor ! KafkaProducerMessage(wid)
-	kafkaProducerActor ! StopMessage
+    kafkaProducerActor ! msg
+//    kafkaProducerActor ! FacadeOutgoingMessage(wid)
+//	kafkaProducerActor ! FeedActorStopMessage
 
   }
   

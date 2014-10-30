@@ -9,18 +9,14 @@ import org.java_websocket.handshake.ClientHandshake
 import scala.collection.mutable.Map
 
 object TttsFacadeMSServer {
-  sealed trait ReactiveServerMessage
-  case class Message(ws : WebSocket, msg : String)
-  	extends ReactiveServerMessage
-  case class Open(ws : WebSocket, hs : ClientHandshake)
-  	extends ReactiveServerMessage
-  case class Close(ws : WebSocket, code : Int, reason : String, external : Boolean)
-  	extends ReactiveServerMessage
-  case class Error(ws : WebSocket, ex : Exception)
-  	extends ReactiveServerMessage
+  sealed trait TttsFacadeMSServerMessage
+  case class Message(ws : WebSocket, msg : String) extends TttsFacadeMSServerMessage
+  case class Open(ws : WebSocket, hs : ClientHandshake) extends TttsFacadeMSServerMessage
+  case class Close(ws : WebSocket, code : Int, reason : String, external : Boolean) extends TttsFacadeMSServerMessage
+  case class Error(ws : WebSocket, ex : Exception) extends TttsFacadeMSServerMessage
 }
-class TttsFacadeMSServer(val port : Int)
-    extends WebSocketServer(new InetSocketAddress(port)) {
+
+class TttsFacadeMSServer(val port : Int) extends WebSocketServer(new InetSocketAddress(port)) {
   private val reactors = Map[String, ActorRef]()
   final def forResource(descriptor : String, reactor : Option[ActorRef]) {
     reactor match {
