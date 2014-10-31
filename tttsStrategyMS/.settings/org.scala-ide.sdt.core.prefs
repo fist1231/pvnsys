@@ -1,0 +1,5 @@
+deprecation=true
+eclipse.preferences.version=1
+scala.compiler.additionalParams=-encoding utf8
+scala.compiler.useProjectSettings=true
+unchecked=true
