@@ -1,7 +1,7 @@
 package com.pvnsys.ttts.feed.mq
 
-import akka.actor.ActorRef
+import com.pvnsys.ttts.feed.messages.TttsFeedMessages.FacadeTopicMessage
 
 class DefaultKafkaConsumer {
-  def handleDelivery(key: String, mess: String) = {}
+  def handleDelivery(message: FacadeTopicMessage) = {}
 }

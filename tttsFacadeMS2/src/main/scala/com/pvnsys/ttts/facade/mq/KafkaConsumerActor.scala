@@ -11,7 +11,7 @@ import com.pvnsys.ttts.facade.Configuration
 import com.pvnsys.ttts.facade.feed.FeedActor
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
 import spray.json._
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeIncomingFeedResponseMessage
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.ResponseFacadeMessage
 
 object KafkaConsumerActor {
   sealed trait FacadeConsumerMessage
@@ -21,7 +21,7 @@ object KafkaConsumerActor {
 }
 
 object KafkaConsumerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val facadeIncomingFeedResponseMessageFormat = jsonFormat3(FacadeIncomingFeedResponseMessage)
+  implicit val responseFacadeMessageFormat = jsonFormat4(ResponseFacadeMessage)
 }
 
 /**
@@ -67,9 +67,16 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 //			    val key = mess.substring(0, idx)
 			    log.debug("***** KafkaConsumerActor received JSON message from Kafka: {}", msgStr)
 			    
-			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
-			    feedPushActor ! msgJsonObj.convertTo[FacadeIncomingFeedResponseMessage]
-			    feedPushActor ! StopMessage
+			    val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
+			    matchRequest(responseFacadeMessage) match {
+			      case Some(responseFacadeMessage) => {
+				    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
+				    feedPushActor ! responseFacadeMessage
+				    feedPushActor ! StopMessage
+			      }
+			      case None => "Lets do nothing"
+			    }
+			    
 		    } catch {
 		      case e: Throwable =>
 		        if (false) { // skipMessageOnError = true|false
@@ -101,14 +108,25 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
   }
 	
   override def postStop() = {}
+  
+  private def matchRequest(message: ResponseFacadeMessage): Option[ResponseFacadeMessage] = message.msgType match {
+  	  case "FEED_RSP" => Some(message)
+  	  case _ => {
+  	    log.debug("^^^^^ KafkaConsumerActor - not Facade MQ Response, skipping Kafka message") 
+  	    None
+  	  }
+  }
+  
+  
 }
+
 
 class FeedPushActor extends Actor with ActorLogging {
 	import KafkaConsumerActor._
 	import FeedActor._
   
   def receive = {
-    case msg: FacadeIncomingFeedResponseMessage => {
+    case msg: ResponseFacadeMessage => {
 //	      log.debug(s"***************************** KafkaConsumerActor received KafkaReceivedMessage: $msg")
 	      context.actorSelection("/user/feed") ! msg
 	      self ! StopMessage

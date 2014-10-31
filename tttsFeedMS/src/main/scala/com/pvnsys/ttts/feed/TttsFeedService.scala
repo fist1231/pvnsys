@@ -1,23 +1,63 @@
 package com.pvnsys.ttts.feed
 
-import akka.actor.{Actor, ActorLogging, ActorContext, Props, OneForOneStrategy, AllForOneStrategy}
+import akka.actor.{Actor, ActorLogging, ActorContext, Props, OneForOneStrategy, AllForOneStrategy, PoisonPill}
 import akka.actor.SupervisorStrategy.{Restart, Stop, Escalate}
 import akka.util.Timeout
 import akka.stream.actor.ActorProducer
 import akka.stream.scaladsl.{Duct, Flow}
 import akka.stream.{FlowMaterializer, MaterializerSettings}
 import scala.concurrent.duration._
-import com.pvnsys.ttts.feed.mq.KafkaConsumerActor
+import com.pvnsys.ttts.feed.mq.KafkaFacadeTopicConsumerActor
+import com.typesafe.scalalogging.slf4j.LazyLogging
+import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartFeedServiceMessage, StopFeedServiceMessage, StartListeningFacadeTopicMessage, FacadeTopicMessage, RequestFeedFacadeTopicMessage, TttsFeedMessage}
+import spray.json._
+import org.reactivestreams.api.Producer
+import com.pvnsys.ttts.feed.mq.KafkaFacadeTopicConsumerActor
+import com.pvnsys.ttts.feed.generator.FeedGeneratorActor
+import com.pvnsys.ttts.feed.generator.FeedService
 
-case object FeedServiceMessage
-case class StartFeedServiceMessage()
-case class StopFeedServiceMessage()
+object FeedServiceJsonProtocol extends DefaultJsonProtocol {
+  implicit val facadeTopicMessageFormat = jsonFormat4(FacadeTopicMessage)
+  implicit val requestFeedFacadeTopicMessageFormat = jsonFormat4(RequestFeedFacadeTopicMessage)
+}
 
-object TttsFeedService {
+object TttsFeedService extends LazyLogging {
+
+  case class CustomException(smth:String) extends Exception
+
+  import FeedServiceJsonProtocol._
+  
+  type TsaM = (String, Producer[RequestFeedFacadeTopicMessage])
+  
+  def apply(): Duct[FacadeTopicMessage, TsaM] = Duct[FacadeTopicMessage].
+    // acknowledge and pass on
+    map { msg =>
+      val z = msg.msgType 
+      logger.debug("------- duck 1; message Type is: {}", z)
+      msg
+    }.
+    
+    map { msg =>
+      val x = msg.client 
+      logger.debug("------- duck 2; converting FacadeTopicMessage to RequestFeedFacadeTopicMessage for Client is: {}", x)
+      msg
+    }.
+
+    map { //msg =>
+        logger.debug("------- duck 3; starting feed")
+        FeedService.startFeed
+//      RequestFeedFacadeTopicMessage(msg.id, msg.msgType, msg.client, msg.payload)
+    }.
+    
+    groupBy {
+      case msg: TttsFeedMessage => "Outloop"
+    }
+    
 }
 
 class TttsFeedService extends Actor with ActorLogging {
-
+  
+  import TttsFeedService._
   
     override val supervisorStrategy = OneForOneStrategy(loggingEnabled = true) {
 	    case e: Exception =>
@@ -39,28 +79,45 @@ class TttsFeedService extends Actor with ActorLogging {
 	  log.debug("+++++++ feedActor is: {}", feedActor)
 	  val feedConsumer = ActorProducer(feedActor)
 	
-	  val kafkaConsumerActor = context.actorOf(KafkaConsumerActor.props(feedActor), "kafkaConsumer")
-	  log.debug("+++++++ KafkaConsumerActor tttsFeedActorSystem is: {}", kafkaConsumerActor)
-	  kafkaConsumerActor ! KafkaStartListeningMessage
+	  val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(feedActor), "kafkaConsumer")
+	  log.debug("+++++++ KafkaFacadeTopicConsumerActor tttsFeedActorSystem is: {}", kafkaFacadeTopicConsumerActor)
+	  kafkaFacadeTopicConsumerActor ! StartListeningFacadeTopicMessage
 	  
 	  
-	  val domainProcessingDuct = MyDomainProcessing()
+//	  val feedPublisherDuct = new FeedKafkaPublisher.flow
+	  
+      val feedPublisherDuct: Duct[RequestFeedFacadeTopicMessage, Unit] = 
+	    Duct[RequestFeedFacadeTopicMessage] foreach {msg => 
+		    val feedGeneratorActor = context.actorOf(Props(classOf[FeedGeneratorActor]))
+		    feedGeneratorActor ! msg
+	    }
+
+	  
+	  val feedServiceDuct = TttsFeedService()
 	
-	      Flow(feedConsumer) append domainProcessingDuct map { msg =>
+	      Flow(feedConsumer) append feedServiceDuct map {
 	
-		  	log.debug("~~~~~~~ And inside the main Flow is: {}", msg)
+	        case (str, producer) => 
+//		  	log.debug("~~~~~~~ And inside the main Flow is: {}", producer)
+		  	
+		  	// For every message start new Flow that produces feed
+		  	
+		  	
+//		  	val kafkaProducerActor = context.actorOf(KafkaProducerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
+//		  	kafkaProducerActor ! msg
+
 	    
-	//        // start a new flow for each message type
-	//        Flow(producer)
-	//        
-	//          // extract the message
-	//          .map(_.message) 
-	//          
-	//          // add the outbound publishing duct
-	//          .append(publisherDuct(exchange))
-	//          
-	//          // and start the flow
-	//          .consume(materializer)
+	        // start a new flow for each message type
+	        Flow(producer)
+	        
+	          // extract the client
+//	          .map(_.client) 
+	        
+	          // add the outbound publishing duct
+	          .append(feedPublisherDuct)
+	          
+	          // and start the flow
+	          .consume(materializer)
 	        
 	    } consume(materializer)
       

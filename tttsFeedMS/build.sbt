@@ -27,7 +27,7 @@ libraryDependencies ++= {
   Seq(
     "com.typesafe.akka"   %%  "akka-stream-experimental" % "0.4",
     "com.typesafe.scala-logging" %%  "scala-logging-slf4j"      % "2.1.2",
-    "io.spray"            %%  "spray-json"     % "1.3.0",
+    "io.spray"            %%  "spray-json"     % "1.3.1",
     "io.spray"            %%   "spray-can"     % sprayVersion,
     "io.spray"            %%   "spray-routing" % sprayVersion,
 //	"org.apache.kafka" % "kafka_2.10" % "0.8.1.1"

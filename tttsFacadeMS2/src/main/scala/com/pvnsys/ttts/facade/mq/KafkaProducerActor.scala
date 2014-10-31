@@ -8,12 +8,12 @@ import kafka.javaapi.producer.Producer
 import java.util.Properties
 import com.pvnsys.ttts.facade.Configuration
 import com.pvnsys.ttts.facade.feed.FeedActor
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeOutgoingMessage
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{RequestFacadeMessage, ResponseFacadeMessage}
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.TttsFacadeMessage
 import spray.json._
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeOutgoingFeedRequestMessage
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeIncomingFeedResponseMessage
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeIncomingFeedResponseMessage
+//import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeOutgoingFeedRequestMessage
+//import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeIncomingFeedResponseMessage
+//import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.FacadeIncomingFeedResponseMessage
 import scala.util.Random
 
 
@@ -26,8 +26,8 @@ object KafkaProducerActor {
 }
 
 object KafkaProducerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val facadeOutgoingFeedRequestMessageFormat = jsonFormat2(FacadeOutgoingFeedRequestMessage)
-  implicit val facadeIncomingFeedResponseMessageFormat = jsonFormat3(FacadeIncomingFeedResponseMessage)
+  implicit val requestFacadeMessageFormat = jsonFormat4(RequestFacadeMessage)
+  implicit val responseFacadeMessageForman = jsonFormat4(ResponseFacadeMessage)
 }
 
 /**
@@ -47,9 +47,9 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
 //      self ! StopMessage
 //    }
     
-    case msg: FacadeOutgoingFeedRequestMessage => {
+    case msg: RequestFacadeMessage => {
 
-      log.debug("###### KafkaProducerActor received FacadeOutgoingFeedRequestMessage: {}", msg)
+      log.debug("###### KafkaProducerActor received RequestFacadeMessage: {}", msg)
 
       produceKafkaMsg(msg)
       self ! StopMessage
@@ -86,7 +86,7 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
     producer.close
   }
 
-  def produceKafkaMsg(msg: TttsFacadeMessage) = {
+  def produceKafkaMsg(msg: RequestFacadeMessage) = {
 	val props = new Properties();
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
 	props.put("serializer.class", Configuration.serializerClassProducer);
@@ -94,32 +94,34 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
 	val producer = new Producer[Integer, String](new ProducerConfig(props));
     val topic = Configuration.facadeTopic 
 
-/*
- *    This is for a real life future.
- *    But for now, for testing purposes only, we will convert feedRequestOutgoing message to feedResponseIncoming one
- *    and receive it in KafkaConsumerActor.
-     
-    // Convert FacadeOutgoingFeedRequestMessage back to JsValue
-    val jsonMessage = msg.asInstanceOf[FacadeOutgoingFeedRequestMessage].toJson
-*/
+    // Convert RequestFacadeMessage back to JsValue
+    //val jsonMessage = msg.asInstanceOf[RequestFacadeMessage].toJson.compactPrint
+    val jsonStrMessage = msg.toJson.compactPrint
+    // Send it to Kafka facadeTopic
+   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+
   
+/*
+ *    For testing purposes only, we will convert RequestFacadeMessage message to ResponseFacadeMessage one
+ *    and receive it in KafkaConsumerActor.
+*/     
+//    emulateFeedServiseResponse(msg, producer, topic)
+    
+    producer.close
+  }
+  
+  private def emulateFeedServiseResponse(msg: RequestFacadeMessage, producer: Producer[Integer, String], topic: String) = {
     // Emulating Quotes feed stream.
     var messageNo = 1
     while(messageNo <= 10) {
     	val fakeQuote = "%.2f".format(Random.nextFloat()+7)
-//	    val fakeMessage = FacadeIncomingFeedResponseMessage(msg.asInstanceOf[FacadeOutgoingFeedRequestMessage].id, msg.asInstanceOf[FacadeOutgoingFeedRequestMessage].client, s"$$$fakeQuote" )
-	    val fakeMessage = FacadeIncomingFeedResponseMessage(s"$messageNo", msg.asInstanceOf[FacadeOutgoingFeedRequestMessage].client, s"$fakeQuote" )
+	    val fakeMessage = ResponseFacadeMessage(s"$messageNo", msg.asInstanceOf[RequestFacadeMessage].msgType, msg.asInstanceOf[RequestFacadeMessage].client, s"$fakeQuote" )
 	    val jsonStrMessage = fakeMessage.toJson.compactPrint
 //	    log.debug("###### KafkaProducerActor converted FacadeOutgoingFeedRequestMessage to JSON: {}", jsonStrMessage)
     	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
     	Thread.sleep(500)
     	messageNo += 1
     }    
- 
-    
-    // Send it to Kafka facadeTopic
-//   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
-    producer.close
   }
   
   

@@ -14,7 +14,7 @@ $(document).ready(function() {
 	
 	feedSocket.onopen = function(event) {
 		
-		var msg = '{ "id":"ID-1" , "msgType":"FEED" , "payload":"Omg, wtf, WTF ???" }';
+		var msg = '{ "id":"ID-1" , "msgType":"FEED_REQ" , "client" : "TBD_ON_SERVER" , "payload":"Omg, wtf, WTF ???" }';
 //		var msgJson = JSON.parse(msg);
 		
 		feedSocket.send(msg)
