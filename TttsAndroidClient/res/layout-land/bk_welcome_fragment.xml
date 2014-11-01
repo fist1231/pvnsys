@@ -1,0 +1,61 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/welcome_bkg"
+    android:gravity="center_vertical"
+    android:orientation="vertical" >
+
+	    <LinearLayout
+	        android:id="@+id/leftColumn"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        android:gravity="center_vertical"
+	        android:orientation="vertical" >
+	        
+ 	    <ImageButton
+  	        android:id="@+id/begin_button_button"
+  	        android:layout_width="wrap_content"
+  	        android:layout_height="wrap_content"
+  	        android:layout_gravity="center_horizontal"
+  	        android:layout_marginBottom="20dp"
+  	        android:layout_marginLeft="50dp"
+  	        android:layout_marginRight="50dp"
+  	        android:background="@android:color/transparent"
+  	        android:contentDescription="@string/begin"
+  	        android:src="@drawable/begin_button" />
+  	    
+  	    </LinearLayout>
+
+	    <LinearLayout
+	        android:id="@+id/rightColumn"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        android:gravity="center_vertical"
+	        android:orientation="vertical" >
+	    	    
+  	    <ImageButton
+  	        android:id="@+id/help_button_button"
+  	        android:layout_width="wrap_content"
+  	        android:layout_height="wrap_content"
+  	        android:layout_gravity="center_horizontal"
+  	        android:layout_marginBottom="20dp"
+  	        android:layout_marginLeft="50dp"
+  	        android:layout_marginRight="50dp"
+  	        android:background="@android:color/transparent"
+  	        android:contentDescription="@string/help"
+  	        android:src="@drawable/help_button" />
+  	    
+  	    <ImageButton
+  	        android:id="@+id/exit_button_button"
+	        android:contentDescription="@string/exit"
+	        android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+  	        android:layout_gravity="center_horizontal"
+  	        android:layout_marginBottom="10dp"
+  	        android:layout_marginLeft="50dp"
+  	        android:layout_marginRight="50dp"
+  	        android:background="@android:color/transparent"
+  	        android:src="@drawable/exit_button" />
+
+  	    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,75 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/action_fragment_layout"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    android:layout_margin="3dp"
+    android:background="@drawable/welcome_bkg"
+    android:orientation="vertical" >
+
+    <Chronometer
+        android:id="@+id/chronometer1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:format="@string/chronometer_initial_format"
+        android:gravity="center"
+        android:text="@string/chronometer"
+        android:textColor="@color/white" />
+
+    <ImageButton
+        android:id="@+id/start_feed_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/start_feed"
+        android:cropToPadding="false"
+        android:src="@drawable/start_button" />
+    
+    <ImageButton
+        android:id="@+id/stop_feed_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/stop_feed"
+        android:cropToPadding="false"
+        android:src="@drawable/stop_button"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:background="@color/white" />
+
+    <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="5dp"
+        android:layout_weight="0.77"
+        android:animateLayoutChanges="true"
+        android:fillViewport="false" >
+
+        <LinearLayout
+            android:id="@+id/quotes"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
