@@ -123,6 +123,7 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 	
   private def matchRequest(message: FacadeTopicMessage): Option[FacadeTopicMessage] = message.msgType match {
   	  case "FEED_REQ" => Some(message)
+  	  case "FEED_STOP_REQ" => Some(message)
   	  case _ => {
   	    log.debug("^^^^^ KafkaFacadeTopicConsumerActorJsonProtocol - not Feed Service request, skipping Kafka message") 
   	    None

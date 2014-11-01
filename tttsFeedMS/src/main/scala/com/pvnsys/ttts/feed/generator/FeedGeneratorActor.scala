@@ -5,18 +5,24 @@ import java.net.InetSocketAddress
 import kafka.producer.ProducerConfig
 import kafka.javaapi.producer.Producer
 import java.util.Properties
-//import com.pvnsys.ttts.feed.KafkaProducerMessage
 import com.pvnsys.ttts.feed.Configuration
 import com.pvnsys.ttts.feed.FeedActor
 import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{RequestFeedFacadeTopicMessage, ResponseFeedFacadeTopicMessage}
 import com.pvnsys.ttts.feed.mq.KafkaFacadeTopicProducerActor
 import scala.util.Random
+import akka.actor.ActorRef
+import scala.concurrent.duration._
+
 
 
 object FeedGeneratorActor {
   sealed trait FeedGeneratorMessage
   case class StartFeedGeneratorMessage(req: RequestFeedFacadeTopicMessage) extends FeedGeneratorMessage
   case object StopFeedGeneratorMessage extends FeedGeneratorMessage
+  
+  case class StartFakeFeedGeneratorMessage(client: String) extends FeedGeneratorMessage
+  case object StopFakeFeedGeneratorMessage extends FeedGeneratorMessage
+  
 }
 
 /**
@@ -26,14 +32,19 @@ object FeedGeneratorActor {
 class FeedGeneratorActor extends Actor with ActorLogging {
 
   import FeedGeneratorActor._
+  
+  var isActive = false
 	
   override def receive = {
     case req: RequestFeedFacadeTopicMessage => {
       log.debug("+++++ FeedGeneratorActor Received RequestFeedFacadeTopicMessage: {}", req)
+      isActive = true
       startFeed(req)
     }
 
     case StopFeedGeneratorMessage => {
+      log.debug("+++++ FeedGeneratorActor Received StopFeedGeneratorMessage. Terminating feed")
+      isActive = false
       self ! PoisonPill
     }
     
@@ -54,17 +65,46 @@ class FeedGeneratorActor extends Actor with ActorLogging {
   }
   
   private def getFakeFeed(msg: RequestFeedFacadeTopicMessage) = {
-    var messageNo = 1
-    while(true) { //(messageNo <= 10) {
-    	val fakeQuote = "%.2f".format(Random.nextFloat()+22)
-	    val fakeMessage = ResponseFeedFacadeTopicMessage(s"$messageNo", "FEED_RSP", msg.asInstanceOf[RequestFeedFacadeTopicMessage].client, s"$fakeQuote" )
-	    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
-	    kafkaFacadeTopicProducerActor ! fakeMessage
-    	Thread.sleep(1000)
-    	messageNo += 1
-    }    
+    
+	val fakeFeedActor = context.actorOf(Props(classOf[FakeFeedActor]))
+    context.system.scheduler.schedule(0.seconds, 1.second, fakeFeedActor, StartFakeFeedGeneratorMessage(msg.client))(context.system.dispatcher, self)
+
+    // Change to Scheduler
+//    var messageNo = 1
+//    while(isActive) { //(messageNo <= 10) {
+//    	val fakeQuote = "%.2f".format(Random.nextFloat()+22)
+//	    val fakeMessage = ResponseFeedFacadeTopicMessage(s"$messageNo", "FEED_RSP", msg.asInstanceOf[RequestFeedFacadeTopicMessage].client, s"$fakeQuote" )
+//	    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+//	    kafkaFacadeTopicProducerActor ! fakeMessage
+//    	Thread.sleep(1000)
+//    	messageNo += 1
+//    }    
     
   }
   
+  
+}
+
+
+
+class FakeFeedActor extends Actor with ActorLogging {
+	import FeedGeneratorActor._
+    
+	var counter = 0
+	
+	override def receive = {
+		case StartFakeFeedGeneratorMessage(client) => 
+  		    log.debug(s"~~~~~~ FakeFeedActor, Gettin message: {}", client)
+  		    counter += 1
+	    	val fakeQuote = "%.2f".format(Random.nextFloat()+22)
+		    val fakeMessage = ResponseFeedFacadeTopicMessage(s"$counter", "FEED_RSP", client, s"$fakeQuote" )
+		    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+		    kafkaFacadeTopicProducerActor ! fakeMessage
+		
+	    case StopFakeFeedGeneratorMessage =>
+		  log.debug("~~~~ FakeFeedActor Cancel")
+	      context.stop(self)
+		case _ => log.error("^^^^^ FakeFeedActor Received unknown message")
+	}
   
 }

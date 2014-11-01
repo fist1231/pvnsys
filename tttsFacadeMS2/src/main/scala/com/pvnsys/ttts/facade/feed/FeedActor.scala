@@ -53,11 +53,18 @@ class FeedActor extends Actor with ActorLogging {
     case FeedActorUnregisterWebSocketMessage(ws) => {
       if (null != ws) {
         log.debug("FeedActor Unregister monitor for url {}; key {}", ws.getResourceDescriptor, ws.getRemoteSocketAddress())
+        sockets.foreach { case (key, value) => log.debug("wwwww key: {} ==> value: {}", key, value) }
         clients -= ws
-        sockets.foreach { case (key, value) => log.debug("zzz key: {} ==> value: {}", key, value) }
-        if(null != ws.getRemoteSocketAddress()) {
-        	sockets -= ws.getRemoteSocketAddress().toString()
+        val keyToKill = sockets.find(_._2 == ws).get._1 
+        log.debug("xxxxx keyToKill: {}", keyToKill)
+            
+        if(null != keyToKill) {
+//        	sockets -= ws.getRemoteSocketAddress().toString()
+        	sockets -= keyToKill
+	        val feedStopRequestMessage = RequestFacadeMessage("mo_id", "FEED_STOP_REQ", keyToKill, "")
+		    sendMessages(feedStopRequestMessage)
         }
+        sockets.foreach { case (key, value) => log.debug("zzzzz key: {} ==> value: {}", key, value) }
       }
     }
     case Close(ws, code, reason, ext) => {
@@ -72,6 +79,7 @@ class FeedActor extends Actor with ActorLogging {
     case msg: ResponseFacadeMessage => {
       
 //      log.debug(s"TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT FeedActor received KafkaReceivedMessage: $msg")
+//        sockets.get(msg.client) match {
         sockets.get(msg.client) match {
 		  case Some(wsk) => {
 		    if(null != wsk && wsk.isOpen()) {
@@ -121,6 +129,7 @@ class FeedActor extends Actor with ActorLogging {
   
   def matchRequest(clientReq: FacadeClientMessage, webSocketId: String): Option[TttsFacadeMessage] = clientReq.msgType match {
   	  case "FEED_REQ" => Some(RequestFacadeMessage(clientReq.id, clientReq.msgType, webSocketId, clientReq.payload))
+  	  case "FEED_STOP_REQ" => Some(RequestFacadeMessage(clientReq.id, clientReq.msgType, webSocketId, clientReq.payload))
   	  case _ => {
   	    log.debug("~~~~ WTF?") 
   	    None

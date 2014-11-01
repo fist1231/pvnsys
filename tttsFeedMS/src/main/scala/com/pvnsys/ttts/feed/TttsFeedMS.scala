@@ -2,12 +2,6 @@ package com.pvnsys.ttts.feed
 
 import akka.actor.{ActorSystem, AllForOneStrategy, Props}
 import com.typesafe.scalalogging.slf4j.LazyLogging
-//import akka.util.Timeout
-//import akka.stream.actor.ActorProducer
-//import akka.stream.scaladsl.{Duct, Flow}
-//import akka.stream.{FlowMaterializer, MaterializerSettings}
-//import scala.concurrent.duration._
-//import akka.actor.SupervisorStrategy.{Restart, Stop}
 import com.pvnsys.ttts.feed.messages.TttsFeedMessages.StartFeedServiceMessage
 
 object MyDomainProcessing extends LazyLogging {
@@ -22,7 +16,7 @@ object TttsFeedMS extends App with LazyLogging {
     if(args.length > 0) Some(args(0)) else None
   }
 
-  val feedService = tttsFeedActorSystem.actorOf(Props(classOf[TttsFeedService]), "kafkaConsumer")
+  val feedService = tttsFeedActorSystem.actorOf(Props(classOf[TttsFeedService]), "feedService")
   feedService ! StartFeedServiceMessage
   
   tttsFeedActorSystem.registerOnTermination {

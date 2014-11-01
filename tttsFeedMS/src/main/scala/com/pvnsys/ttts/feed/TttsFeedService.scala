@@ -15,6 +15,10 @@ import org.reactivestreams.api.Producer
 import com.pvnsys.ttts.feed.mq.KafkaFacadeTopicConsumerActor
 import com.pvnsys.ttts.feed.generator.FeedGeneratorActor
 import com.pvnsys.ttts.feed.generator.FeedService
+import akka.actor.ActorRef
+import scala.collection.mutable
+import scala.collection.mutable.Map
+import com.pvnsys.ttts.feed.generator.FeedGeneratorActor.StopFeedGeneratorMessage
 
 object FeedServiceJsonProtocol extends DefaultJsonProtocol {
   implicit val facadeTopicMessageFormat = jsonFormat4(FacadeTopicMessage)
@@ -86,10 +90,38 @@ class TttsFeedService extends Actor with ActorLogging {
 	  
 //	  val feedPublisherDuct = new FeedKafkaPublisher.flow
 	  
+	  val feeds = mutable.Map[String, ActorRef]()
       val feedPublisherDuct: Duct[RequestFeedFacadeTopicMessage, Unit] = 
-	    Duct[RequestFeedFacadeTopicMessage] foreach {msg => 
-		    val feedGeneratorActor = context.actorOf(Props(classOf[FeedGeneratorActor]))
-		    feedGeneratorActor ! msg
+	    Duct[RequestFeedFacadeTopicMessage] foreach {msg =>
+
+	      /*
+	       * For every new feed request add client -> feedActor to the Map
+	       * For every feed termination request, find feedActor in the Map, stop it and remove entry from the Map 
+	       */
+	      msg.msgType match {
+	        case "FEED_REQ" => {
+	        	log.debug("kkkkk got FEED_REQ. Key {}", msg.client)	          
+			    val feedGeneratorActor = context.actorOf(Props(classOf[FeedGeneratorActor]))
+			    log.debug("kkkkk Starting Feed Generator Actor. Key {}; ActorRef {}", msg.client, feedGeneratorActor)
+			    feeds += (msg.client -> feedGeneratorActor)
+			    feedGeneratorActor ! msg
+	        }
+	        case "FEED_STOP_REQ" => {
+	        	log.debug("kkkkk got FEED_STOP_REQ. Key {}", msg.client)	
+	        	feeds.foreach { case (key, value) => log.debug("zzzzz key: {} ==> value: {}", key, value) }
+	        	
+		        feeds.get(msg.client) match {
+				  case Some(feedGenActor) => {
+				    log.debug("kkkkk Stopping Feed Generator Actor. Key {}; ActorRef {}", msg.client, feedGenActor)
+				    feedGenActor ! StopFeedGeneratorMessage
+				    feeds -= msg.client 
+				  }
+				  case None => log.debug("No such TttsFeedService feed to stop. Key {}", msg.client)
+				}
+	          
+	        }
+	      }
+	      
 	    }
 
 	  
