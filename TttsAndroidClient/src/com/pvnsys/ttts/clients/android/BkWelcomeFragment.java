@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 
-public class BkWelcomeFragment  extends Fragment {
+public class BkWelcomeFragment extends Fragment {
 	
 	private void showNameDialog() {
 	    FragmentManager fragmentManager = getFragmentManager();

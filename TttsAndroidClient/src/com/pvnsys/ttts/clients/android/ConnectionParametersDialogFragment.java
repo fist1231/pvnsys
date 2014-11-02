@@ -4,9 +4,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
 
 public class ConnectionParametersDialogFragment extends DialogFragment {
 	
@@ -36,8 +40,19 @@ public class ConnectionParametersDialogFragment extends DialogFragment {
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        
-        builder.setView(inflater.inflate(R.layout.bk_connection_dialog, null))
+       
+		// Read connectParam connection_parameter_file to search for existing connection string
+        SharedPreferences sp = this.getActivity().getSharedPreferences(getString(R.string.connection_param_file), Context.MODE_PRIVATE);
+		String extistingConnectionString = sp.getString(BkActionFragment.CONNECTION_STRING_KEY, "");
+		
+		View dialogView = inflater.inflate(R.layout.bk_connection_dialog, null);
+
+		if(extistingConnectionString != null && extistingConnectionString.trim().length() > 0) {
+			EditText et = (EditText)dialogView.findViewById(R.id.connection_parameter);
+			et.setText(extistingConnectionString);
+		}
+		
+        builder.setView(dialogView)
         	.setMessage(R.string.connection_string_message)
         	.setTitle(R.string.connection_dialog_title)
         	.setPositiveButton(R.string.ok_button, new DialogInterface.OnClickListener() {
@@ -46,6 +61,7 @@ public class ConnectionParametersDialogFragment extends DialogFragment {
                    }
                });
         
+
         // Create the AlertDialog object and return it
         return builder.create();
 	}

@@ -24,15 +24,6 @@
   	        android:contentDescription="@string/begin"
   	        android:src="@drawable/begin_button" />
   	    
-  	    </LinearLayout>
-
-	    <LinearLayout
-	        android:id="@+id/rightColumn"
-	        android:layout_width="fill_parent"
-	        android:layout_height="fill_parent"
-	        android:gravity="center_vertical"
-	        android:orientation="vertical" >
-	    	    
   	    <ImageButton
   	        android:id="@+id/help_button_button"
   	        android:layout_width="wrap_content"
@@ -56,6 +47,7 @@
   	        android:layout_marginRight="50dp"
   	        android:background="@android:color/transparent"
   	        android:src="@drawable/exit_button" />
+  	    
+    </LinearLayout>
 
-  	    </LinearLayout>
 </LinearLayout>

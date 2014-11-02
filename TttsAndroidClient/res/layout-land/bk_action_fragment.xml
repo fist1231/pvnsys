@@ -8,11 +8,23 @@
 
 	    <LinearLayout
 	        android:id="@+id/logsOuter"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
 	        android:layout_gravity="top"
 	        android:orientation="vertical" >
 
+    <TextView
+        android:id="@+id/connection_display_param"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="5dp"
+        android:gravity="center"
+        android:text="@string/connection_string" 
+        android:textColor="@color/yellow" />
+	        	        
 		<Chronometer
 		    android:id="@+id/chronometer1"
 		    android:layout_width="fill_parent"
@@ -48,8 +60,7 @@
   	        android:background="@android:color/transparent"
   	        android:contentDescription="@string/stop_feed"
   	        android:cropToPadding="false"
-  	        android:src="@drawable/stop_button"
-  	        android:visibility="gone" />
+  	        android:src="@drawable/stop_button" />
 					        
 	    <TextView
 	        android:id="@+id/textView1"

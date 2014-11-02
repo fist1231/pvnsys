@@ -3,13 +3,16 @@ package com.pvnsys.ttts.clients.android;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Chronometer;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.pvnsys.ttts.clients.android.ConnectionParametersDialogFragment.ConnectionParametersDialogListener;
 
@@ -87,12 +90,34 @@ public class TttsAndroidClient extends FragmentActivity implements ConnectionPar
 		if(chr != null) {
 			elapsedTime = chr.getText().toString().replace("Elapsed Time: ", "");
 		}
-		
-//		addToTopScores(elapsedTime, numberOfGuesses, name, true);
-		
-//		displayTopScores();
-		startMainActionFragment(connectionParameter);
+		if(connectionParameter == null || connectionParameter.trim().length() < 1) {
+			connectionParameter = retrieveStoredConnectionParmeter();
+			if(connectionParameter == null || connectionParameter.trim().length() < 1) {
+				String string = "Please enter a valid connection string.";
+				Toast toastWin = Toast.makeText(this.getApplicationContext(), string, Toast.LENGTH_SHORT);
+				toastWin.show();
+			} else {
+				startMainActionFragment(connectionParameter);
+			}
+		} else {
+			storeConnectionParmeter(connectionParameter);
+			startMainActionFragment(connectionParameter);
+		}
 
+	}
+	
+	private void storeConnectionParmeter(String connectionParameter) {
+		SharedPreferences sp = getSharedPreferences(getString(R.string.connection_param_file), Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putString(BkActionFragment.CONNECTION_STRING_KEY, connectionParameter);
+		editor.commit();
+		
+	}
+
+	private String retrieveStoredConnectionParmeter() {
+		SharedPreferences sp = getSharedPreferences(getString(R.string.connection_param_file), Context.MODE_PRIVATE);
+		String extistingConnectionString = sp.getString(BkActionFragment.CONNECTION_STRING_KEY, "");
+		return extistingConnectionString;
 	}
 	
 	void startMainActionFragment(String connectionParameter) {
