@@ -14,11 +14,13 @@ Follow these steps to get started:
 
 5. Run setEnv.cmd
 
-6. Start the application:
+6. INstall missing libs, see readme.tst in tttsGwtClient/missinLib directory
+
+7. Start the application:
 
         $ gradle clean runJettyWar
 
-7. Browse to http://localhost:8080/tttsGwtClient
+8. Browse to http://localhost:8080/tttsGwtClient
 
-8. Generate eclipse project files: $ gradle elipse    
+9. Generate eclipse project files: $ gradle elipse    
 
