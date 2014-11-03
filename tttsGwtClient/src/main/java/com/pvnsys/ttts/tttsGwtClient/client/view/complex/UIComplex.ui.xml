@@ -1,0 +1,64 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+	xmlns:g="urn:import:com.google.gwt.user.client.ui">
+	<ui:style>
+	/* Add CSS here. See the GWT docs on UI Binder for more details */
+	.important {
+		font-weight: bold;
+	}
+	</ui:style>
+	<g:HTMLPanel ui:field="hPan">
+		<!-- Add GWT widgets here. Enter < and hit Ctrl-Space to auto-complete 
+			widget names. The ui:field attribute binds an element to a field in the owner 
+			class. See the GWT docs on UI Binder for more details. -->
+		Hello,
+		<g:Button styleName="{style.important}" ui:field="button" />
+		<g:Grid width="449px" height="247px" borderWidth="1" ui:field="bGrid" cellPadding="10" cellSpacing="10">
+			<g:row>
+				<g:customCell>
+					<g:VerticalPanel>
+						<g:HorizontalPanel height="48px" borderWidth="1">
+							<g:Button ui:field="min">min</g:Button>
+							<g:Button ui:field="max" text="max"/>
+							<g:Button ui:field="close">close</g:Button>
+						</g:HorizontalPanel>
+						<g:HorizontalPanel borderWidth="1">
+							<g:RichTextArea width="204px" height="175px"/>
+						</g:HorizontalPanel>
+					</g:VerticalPanel>
+				</g:customCell>
+				<g:customCell>
+					<g:VerticalPanel>
+						<g:HorizontalPanel width="90%" height="90%" borderWidth="1"/>
+						<g:FlowPanel/>
+					</g:VerticalPanel>
+				</g:customCell>
+				<g:customCell>
+					<g:VerticalPanel>
+						<g:HorizontalPanel>
+							<g:HorizontalPanel/>
+						</g:HorizontalPanel>
+					</g:VerticalPanel>
+				</g:customCell>
+			</g:row>
+			<g:row>
+				<g:customCell>
+					<g:VerticalPanel>
+						<g:HorizontalPanel borderWidth="1" width="200px" height="33px"/>
+						<g:HorizontalPanel/>
+					</g:VerticalPanel>
+				</g:customCell>
+				<g:customCell>
+					<g:VerticalPanel>
+						<g:HorizontalPanel borderWidth="1"/>
+					</g:VerticalPanel>
+				</g:customCell>
+				<g:customCell>
+					<g:VerticalPanel>
+						<g:HorizontalPanel borderWidth="1"/>
+					</g:VerticalPanel>
+				</g:customCell>
+			</g:row>
+		</g:Grid>
+	</g:HTMLPanel>
+</ui:UiBinder> 

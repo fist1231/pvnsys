@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+              http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         version="2.5"
+         xmlns="http://java.sun.com/xml/ns/javaee">
+
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath*:applicationContext*.xml</param-value>
+  </context-param>
+
+  <filter>
+    <filter-name>springSecurityFilterChain</filter-name>
+    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>springSecurityFilterChain</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+
+  <servlet>
+    <servlet-name>authenticateServlet</servlet-name>
+    <servlet-class>com.pvnsys.ttts.tttsGwtClient.server.AuthenticationServiceImpl</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>taUtilServlet</servlet-name>
+    <servlet-class>com.pvnsys.ttts.tttsGwtClient.server.ta.TAServiceImpl</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>secureRequestFactoryServlet</servlet-name>
+    <servlet-class>com.pvnsys.ttts.tttsGwtClient.server.CustomRequestFactoryServlet</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>unsecureRequestFactoryServlet</servlet-name>
+    <servlet-class>com.pvnsys.ttts.tttsGwtClient.server.CustomRequestFactoryServlet</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>authenticateServlet</servlet-name>
+    <url-pattern>/tttsGwtClient/authenticate</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>taUtilServlet</servlet-name>
+    <url-pattern>/tttsGwtClient/taUtil</url-pattern>
+  </servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>secureRequestFactoryServlet</servlet-name>
+		<url-pattern>/secureRequest</url-pattern>
+	</servlet-mapping>  
+
+	<servlet-mapping>
+		<servlet-name>unsecureRequestFactoryServlet</servlet-name>
+		<url-pattern>/unsecureRequest</url-pattern>
+	</servlet-mapping>  
+  
+  <!-- Default page to serve -->
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+
+</web-app>

@@ -1,0 +1,140 @@
+/** Add css rules here for your application. */
+
+
+/** Set ids using widget.getElement().setId("idOfElement") */
+#closeButton {
+  margin: 15px 6px 6px;
+}
+.gwt-Label {
+	color: Black;
+}
+.errorLabel {
+	color: Red;
+}
+.loginLink {
+  font-size: 4em;
+  font-weight: bold;
+  color: #777777;
+  margin: 100px 10px 40px;
+  text-align: center;
+}
+
+.login-label-text {
+	font-style: italic;
+	color: gray;
+}
+
+body {
+    margin:50px 0px; padding:0px;
+    text-align:center;
+    height: 100%;
+}
+    
+#wrapper {
+	display: block;
+    width: 95%;
+    height: 500px;
+    margin:0px auto;
+    text-align:left;
+    padding:5px;
+    float: left;
+//    border: 1px solid blue;
+}
+
+#banner {
+	background-image: /img/banner.jpg;
+	display: block;
+    height: 500px;
+	width: 10%;
+	float: left;
+	padding: 10px;
+//    border: 1px solid red;
+}
+
+#content {
+//	background-color: yellow;
+	display: table-cell;
+	width: 95%;
+	float: left;
+//    border:1px dashed #333;
+}
+
+
+#summaryContainer {
+	float: left;
+	display: block;
+    width: 20%	;
+    height: 500px;
+	padding: 10px;
+//    border: 1px solid red;
+//    margin-right:10px;
+}
+
+#stocksContainer {
+    height: 500px;
+	display: block;
+	float: left;
+	padding: 10px;
+    vertical-align: top;
+    border: solid gray thin ;
+}
+
+#chartsContainer {
+	display: table-row;
+	float: left;
+	padding: 10px;
+	width: 95%;	
+//    border:1px dashed #333;
+}
+
+#complexContainer {
+	display: table-row;
+	float: left;
+	padding: 10px;
+	width: 95%;	
+//    border:1px dashed #333;
+}
+
+div#welcomeContainer {
+	visibility: hidden;
+}
+
+div#stocksContainer {
+    height: 450px;
+    position: relative;
+    width: 60%;
+    margin-top: 10px;
+    
+}
+
+div#stocksContainer p {
+//    margin: 0;
+    position: absolute;
+    text-align: center;
+    top: 40%;
+    left: 50%;
+    margin-right: -50%;
+    font-family: monospace;
+    font-size: 20px;
+    font-weight: bold;
+    
+    transform: translate(-50%, -50%) 
+}
+
+div.startPVN {
+    height: 30em;
+    position: relative }
+
+div.startPVN p.centerPVN {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    font-family: monospace;
+    font-size: 20px;
+    font-weight: normal;
+    
+    transform: translate(-50%, -50%) 
+}
+

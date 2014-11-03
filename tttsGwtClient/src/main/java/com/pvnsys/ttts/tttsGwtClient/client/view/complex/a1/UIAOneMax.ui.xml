@@ -1,0 +1,24 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+	xmlns:g="urn:import:com.google.gwt.user.client.ui">
+	<ui:style>
+	.important {
+		font-weight: bold;
+	}
+	.gwt-Button {
+		font-weight: bold;
+	}
+	</ui:style>
+	<g:HTMLPanel>
+		<g:VerticalPanel width="633px" height="493px" verticalAlignment="ALIGN_TOP" spacing="10" horizontalAlignment="ALIGN_CENTER">
+			<g:HorizontalPanel spacing="5" verticalAlignment="ALIGN_MIDDLE" borderWidth="1">
+				<g:Button ui:field="min">min</g:Button>
+				<g:Button ui:field="max">max</g:Button>
+				<g:Button ui:field="close">close</g:Button>
+			</g:HorizontalPanel>
+			<g:HorizontalPanel horizontalAlignment="ALIGN_RIGHT" spacing="5" verticalAlignment="ALIGN_MIDDLE" borderWidth="1">
+				<g:RichTextArea width="590px" height="424px"/>
+			</g:HorizontalPanel>
+		</g:VerticalPanel>
+	</g:HTMLPanel>
+</ui:UiBinder> 
