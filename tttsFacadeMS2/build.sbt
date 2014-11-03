@@ -42,6 +42,8 @@ libraryDependencies ++= {
     "log4j"   			  %   "log4j"     	   % "1.2.16",
     "com.101tec"   		  %   "zkclient"   	   % "0.3",
     "com.yammer.metrics"  %   "metrics-core"   % "2.2.0",
+    "ch.qos.logback"      %   "logback-core"             % "1.1.2",
+    "ch.qos.logback"      %   "logback-classic"          % "1.1.2",
 //    compile 'org.apache.zookeeper:zookeeper:3.4.6'
 //    compile 'com.101tec:zkclient:0.3'
 //    compile 'com.yammer.metrics:metrics-core:2.2.0'

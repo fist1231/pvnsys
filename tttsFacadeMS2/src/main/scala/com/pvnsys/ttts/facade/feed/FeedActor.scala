@@ -91,6 +91,12 @@ class FeedActor extends Actor with ActorLogging {
     }
     case Message(ws, msg) => {
       
+      /*
+       * This is a message received from UI clients.
+       * Message is in JSON format: { id:MESSAGE_ID , msgType:FEED_REQ , client:TBD_ON_SERVER, payload:MESSAGE }
+       * 
+       */ 
+      
       // TODO: Put all this processing into the Flow
       
       val wsock = ws
@@ -111,25 +117,29 @@ class FeedActor extends Actor with ActorLogging {
       
       // Convert FacadeClientFeedRequestMessage into specific TttsFacadeMessage based on the Request Type field of JSON: msgType
 //      val facadeOutMessage = matchRequest(facadeClientMessage, webSocketId)
+
+        // Generate unique message ID to be assigned to every incoming message.
+        val msgUuid = java.util.UUID.randomUUID.toString
       
-		matchRequest(facadeClientMessage, webSocketId) match {
+		matchRequest(facadeClientMessage, webSocketId, msgUuid) match {
 		  case Some(facadeClientMessage) => {
 		      wsock.send(s"Beginning ... - $webSocketId" )
+		      log.debug("TttsFacadeMS received client request message id=[{}]; message: {}", msgUuid, facadeClientMessage)
 			  sendMessages(facadeClientMessage)
 //		      consumer.handleDelivery(facadeTopicMessage)
 		  }
 		  case None => "Do nothing"
 		}
       
-      log.debug("~~~~ FeedActor FacadeOutgoingFeedRequestMessage version of the message: {}", facadeClientMessage)
+//      log.debug("~~~~ FeedActor FacadeOutgoingFeedRequestMessage version of the message: {}", facadeClientMessage)
 
     }
       
   }
   
-  def matchRequest(clientReq: FacadeClientMessage, webSocketId: String): Option[TttsFacadeMessage] = clientReq.msgType match {
-  	  case "FEED_REQ" => Some(RequestFacadeMessage(clientReq.id, clientReq.msgType, webSocketId, clientReq.payload))
-  	  case "FEED_STOP_REQ" => Some(RequestFacadeMessage(clientReq.id, clientReq.msgType, webSocketId, clientReq.payload))
+  def matchRequest(clientReq: FacadeClientMessage, webSocketId: String, msgUuid: String): Option[TttsFacadeMessage] = clientReq.msgType match {
+  	  case "FEED_REQ" => Some(RequestFacadeMessage(msgUuid, clientReq.msgType, webSocketId, clientReq.payload))
+  	  case "FEED_STOP_REQ" => Some(RequestFacadeMessage(msgUuid, clientReq.msgType, webSocketId, clientReq.payload))
   	  case _ => {
   	    log.debug("~~~~ WTF?") 
   	    None

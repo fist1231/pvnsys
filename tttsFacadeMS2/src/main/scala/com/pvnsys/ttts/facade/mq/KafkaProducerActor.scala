@@ -115,7 +115,7 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
     var messageNo = 1
     while(messageNo <= 10) {
     	val fakeQuote = "%.2f".format(Random.nextFloat()+7)
-	    val fakeMessage = ResponseFacadeMessage(s"$messageNo", msg.asInstanceOf[RequestFacadeMessage].msgType, msg.asInstanceOf[RequestFacadeMessage].client, s"$fakeQuote" )
+	    val fakeMessage = ResponseFacadeMessage(msg.asInstanceOf[RequestFacadeMessage].id, msg.asInstanceOf[RequestFacadeMessage].msgType, msg.asInstanceOf[RequestFacadeMessage].client, s"$fakeQuote" )
 	    val jsonStrMessage = fakeMessage.toJson.compactPrint
 //	    log.debug("###### KafkaProducerActor converted FacadeOutgoingFeedRequestMessage to JSON: {}", jsonStrMessage)
     	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
