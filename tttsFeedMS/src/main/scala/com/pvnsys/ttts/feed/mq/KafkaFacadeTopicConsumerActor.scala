@@ -1,7 +1,7 @@
 package com.pvnsys.ttts.feed.mq
 
 import akka.actor.{Actor, ActorRef, ActorLogging, Props, AllForOneStrategy}
-import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartListeningFacadeTopicMessage, FacadeTopicMessage, RequestFeedFacadeTopicMessage}
+import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartListeningFacadeTopicMessage, FacadeTopicMessage, RequestFeedFacadeTopicMessage, TttsFeedMessage}
 //import akka.util.ByteString
 import kafka.consumer.ConsumerConfig
 //import kafka.consumer.ConsumerIterator
@@ -59,7 +59,7 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 	private def startListening() = {
 		
 		val consumer = new DefaultKafkaConsumer {
-		    override def handleDelivery(message: FacadeTopicMessage) = {
+		    override def handleDelivery(message: TttsFeedMessage) = {
 		        toWhom ! message
 		    }
 		}

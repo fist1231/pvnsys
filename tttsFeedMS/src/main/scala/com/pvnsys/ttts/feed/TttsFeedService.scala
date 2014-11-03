@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
 import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartFeedServiceMessage, StopFeedServiceMessage, StartListeningFacadeTopicMessage, FacadeTopicMessage, RequestFeedFacadeTopicMessage, TttsFeedMessage}
 import spray.json._
 import org.reactivestreams.api.Producer
-import com.pvnsys.ttts.feed.mq.KafkaFacadeTopicConsumerActor
+import com.pvnsys.ttts.feed.mq.{KafkaFacadeTopicConsumerActor, KafkaServicesTopicConsumerActor}
 import com.pvnsys.ttts.feed.generator.FeedGeneratorActor
 import com.pvnsys.ttts.feed.generator.FeedService
 import akka.actor.ActorRef
@@ -64,12 +64,12 @@ class TttsFeedService extends Actor with ActorLogging {
   import TttsFeedService._
   
     override val supervisorStrategy = OneForOneStrategy(loggingEnabled = true) {
-	    case e: Exception =>
-	      log.error("@@@@@@@@@@@@@@@ TttsFeedService Unexpected failure: {}", e.getMessage)
-	      Restart
 	    case e: CustomException =>
 	      log.error("@@@@@@@@@@@@@@@ TttsFeedService Unexpected failure: {}", e.getMessage)
 	      Stop
+	    case e: Exception =>
+	      log.error("@@@@@@@@@@@@@@@ TttsFeedService Unexpected failure: {}", e.getMessage)
+	      Restart
   	}
   
     
@@ -79,13 +79,25 @@ class TttsFeedService extends Actor with ActorLogging {
 	  
 	  val materializer = FlowMaterializer(MaterializerSettings())
 	  
-	  val feedActor = context.actorOf(Props(classOf[FeedActor]), "feedConsumer")
-	  log.debug("+++++++ feedActor is: {}", feedActor)
-	  val feedConsumer = ActorProducer(feedActor)
+	  val feedFacadeActor = context.actorOf(Props(classOf[FeedActor]), "feedFacadeConsumer")
+	  log.debug("+++++++ feedFacadeActor is: {}", feedFacadeActor)
+	  val feedFacadeConsumer = ActorProducer(feedFacadeActor)
 	
-	  val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(feedActor), "kafkaConsumer")
+	  // Start Kafka consumer actor for incoming messages from Facade Topic
+	  val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(feedFacadeActor), "kafkaFacadeConsumer")
 	  log.debug("+++++++ KafkaFacadeTopicConsumerActor tttsFeedActorSystem is: {}", kafkaFacadeTopicConsumerActor)
 	  kafkaFacadeTopicConsumerActor ! StartListeningFacadeTopicMessage
+
+
+	  val feedServicesActor = context.actorOf(Props(classOf[FeedActor]), "feedServicesConsumer")
+	  log.debug("+++++++ feedServicesActor is: {}", feedServicesActor)
+	  val feedServicesConsumer = ActorProducer(feedServicesActor)
+	
+	  // Start Kafka consumer actor for incoming messages from Services Topic
+	  val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(feedServicesActor), "kafkaServicesConsumer")
+	  log.debug("+++++++ KafkaServicesTopicConsumerActor tttsFeedActorSystem is: {}", kafkaServicesTopicConsumerActor)
+	  kafkaServicesTopicConsumerActor ! StartListeningFacadeTopicMessage
+	  
 	  
 	  
 //	  val feedPublisherDuct = new FeedKafkaPublisher.flow
@@ -127,7 +139,7 @@ class TttsFeedService extends Actor with ActorLogging {
 	  
 	  val feedServiceDuct = TttsFeedService()
 	
-	      Flow(feedConsumer) append feedServiceDuct map {
+	      Flow(feedFacadeConsumer) append feedServiceDuct map {
 	
 	        case (str, producer) => 
 //		  	log.debug("~~~~~~~ And inside the main Flow is: {}", producer)
@@ -157,7 +169,6 @@ class TttsFeedService extends Actor with ActorLogging {
   
 	override def receive = {
 		case StartFeedServiceMessage => startService()
-		
 		case StopFeedServiceMessage => {
 			log.debug("%%%%% TttsFeedService StopMessage")
 		}

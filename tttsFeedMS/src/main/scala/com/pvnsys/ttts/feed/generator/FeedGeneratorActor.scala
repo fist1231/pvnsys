@@ -20,7 +20,7 @@ object FeedGeneratorActor {
   case class StartFeedGeneratorMessage(req: RequestFeedFacadeTopicMessage) extends FeedGeneratorMessage
   case object StopFeedGeneratorMessage extends FeedGeneratorMessage
   
-  case class StartFakeFeedGeneratorMessage(client: String) extends FeedGeneratorMessage
+  case class StartFakeFeedGeneratorMessage(msg: RequestFeedFacadeTopicMessage) extends FeedGeneratorMessage
   case object StopFakeFeedGeneratorMessage extends FeedGeneratorMessage
   
 }
@@ -67,7 +67,7 @@ class FeedGeneratorActor extends Actor with ActorLogging {
   private def getFakeFeed(msg: RequestFeedFacadeTopicMessage) = {
     
 	val fakeFeedActor = context.actorOf(Props(classOf[FakeFeedActor]))
-    context.system.scheduler.schedule(0.seconds, 1.second, fakeFeedActor, StartFakeFeedGeneratorMessage(msg.client))(context.system.dispatcher, self)
+    context.system.scheduler.schedule(0.seconds, 1.second, fakeFeedActor, StartFakeFeedGeneratorMessage(msg))(context.system.dispatcher, self)
 
     // Change to Scheduler
 //    var messageNo = 1
@@ -93,11 +93,11 @@ class FakeFeedActor extends Actor with ActorLogging {
 	var counter = 0
 	
 	override def receive = {
-		case StartFakeFeedGeneratorMessage(client) => 
-  		    log.debug(s"~~~~~~ FakeFeedActor, Gettin message: {}", client)
+		case StartFakeFeedGeneratorMessage(msg) => 
+  		    log.debug(s"~~~~~~ FakeFeedActor, Gettin message: {}", msg)
   		    counter += 1
 	    	val fakeQuote = "%.2f".format(Random.nextFloat()+22)
-		    val fakeMessage = ResponseFeedFacadeTopicMessage(s"$counter", "FEED_RSP", client, s"$fakeQuote" )
+		    val fakeMessage = ResponseFeedFacadeTopicMessage(msg.id, "FEED_RSP", msg.client , s"$fakeQuote" )
 		    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
 		    kafkaFacadeTopicProducerActor ! fakeMessage
 		

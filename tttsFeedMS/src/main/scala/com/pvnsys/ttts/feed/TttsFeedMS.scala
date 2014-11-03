@@ -36,7 +36,9 @@ object Configuration {
   val portWs   = config.getInt("ttts-feed-ms.ports.ws")
 
   val facadeTopic = config.getString("ttts-feed-ms.facade-topic")
+  val facadeGroupId = config.getString("ttts-feed-ms.facade-group-id")
   val servicesTopic = config.getString("ttts-feed-ms.services-topic")
+  val servicesGroupId = config.getString("ttts-feed-ms.services-group-id")
 
   val metadataBrokerListProducer = config.getString("kafka-producer.metadata-broker-list")
   val serializerClassProducer = config.getString("kafka-producer.serializer-class")
