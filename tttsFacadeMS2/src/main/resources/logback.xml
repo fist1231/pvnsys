@@ -1,15 +1,22 @@
 <configuration>
 
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>log/tttsFacadeMS.log</file>
-        <append>true</append>
-        <encoder>
-            <pattern>%date{yyyy-MM-dd} %X{akkaTimestamp} %-5level[%thread] %logger{1} - %msg%n</pattern>
-        </encoder>
-    </appender>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+	        <!-- rollover daily -->
+	        <fileNamePattern>tttsFacadeMS-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+	        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+	        <!-- or whenever the file size reaches 100MB -->
+	        	<maxFileSize>1MB</maxFileSize>
+	        </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+	    <encoder>
+	      <pattern>%msg%n</pattern>
+	    </encoder>
+	</appender>
 
-    <root level="DEBUG">
-        <appender-ref ref="FILE"/>
-    </root>
+	<root level="DEBUG">
+	  <appender-ref ref="ROLLING" />
+	</root>
 
 </configuration>

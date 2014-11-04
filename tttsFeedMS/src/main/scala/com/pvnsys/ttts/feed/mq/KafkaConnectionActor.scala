@@ -31,7 +31,7 @@ class KafkaConnectionActor(address: InetSocketAddress) extends Actor with ActorL
   
   def receive = {
     case Connect => {
-    	var groupId = "feed-ms-group-1"
+    	var groupId = Configuration.feedGroupId
 		val prps = new Properties()
 		prps.put("group.id", groupId)
 		prps.put("socket.buffer.size", Configuration.socketBufferSizeConsumer)

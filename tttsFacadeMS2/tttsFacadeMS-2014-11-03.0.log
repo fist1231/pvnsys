@@ -1,0 +1,846 @@
+2014-11-03  INFO [ttts-facade-service-akka.actor.default-dispatcher-3] a.e.s.Slf4jLogger - Slf4jLogger started
+2014-11-03 19:28:50.051UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] a.e.EventStream - logger log1-Slf4jLogger started
+2014-11-03 19:28:50.053UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] a.e.EventStream - Default Loggers started
+2014-11-03 19:28:51.428UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] s.c.s.HttpListener - Binding to /0.0.0.0:9696
+2014-11-03 19:28:51.496UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] a.i.TcpListener - Successfully bound to /0:0:0:0:0:0:0:0:9696
+2014-11-03 19:28:51.500UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-4] s.c.s.HttpListener - Bound to /0.0.0.0:9696
+2014-11-03 19:28:51.504UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-5] a.a.DeadLetterActorRef - Message [akka.io.Tcp$Bound] from Actor[akka://ttts-facade-service/user/IO-HTTP/listener-0#-556450600] to Actor[akka://ttts-facade-service/deadLetters] was not delivered. [1] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:29:41.236UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-5] a.i.TcpListener - New connection accepted
+2014-11-03 19:29:41.237UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] a.i.TcpListener - New connection accepted
+2014-11-03 19:29:41.237UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] a.i.TcpListener - New connection accepted
+2014-11-03 19:29:41.238UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] a.i.TcpListener - New connection accepted
+2014-11-03 19:29:41.361UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-10] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/ to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/1#-19584706]
+2014-11-03 19:29:41.371UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-4] a.a.ActorSystemImpl - http://127.0.0.1:9696/
+2014-11-03 19:29:41.554UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-10] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/feed/index.html to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/1#-19584706]
+2014-11-03 19:29:41.554UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-10] a.a.ActorSystemImpl - http://127.0.0.1:9696/feed/index.html
+2014-11-03 19:29:41.654UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] c.p.t.f.f.FeedActor - FeedActor Registered monitor for url /feed/ws; key /127.0.0.1:58473
+2014-11-03 19:29:41.683UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-11] c.p.t.f.f.FeedActor - ~~~~ FeedActor url /feed/ws received msg '{
+  "id": "ID-1",
+  "msgType": "FEED_REQ",
+  "client": "TBD_ON_SERVER",
+  "payload": "Omg, wtf, WTF ???"
+}'
+2014-11-03 19:29:41.725UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-11] c.p.t.f.f.FeedActor - ~~~~ FeedActor FacadeOutgoingFeedRequestMessage version of the message: FacadeClientMessage(ID-1,FEED_REQ,TBD_ON_SERVER,Omg, wtf, WTF ???)
+2014-11-03 19:29:41.725UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-11] c.p.t.f.f.FeedActor - TttsFacadeMS received client request message id=[d23b9b34-2f35-448e-ae59-05c1916a3840]; message: RequestFacadeMessage(d23b9b34-2f35-448e-ae59-05c1916a3840,FEED_REQ,/127.0.0.1:58473,Omg, wtf, WTF ???)
+2014-11-03 19:29:41.883UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] c.p.t.f.m.KafkaProducerActor - ###### KafkaProducerActor received RequestFacadeMessage: RequestFacadeMessage(d23b9b34-2f35-448e-ae59-05c1916a3840,FEED_REQ,/127.0.0.1:58473,Omg, wtf, WTF ???)
+2014-11-03 19:29:42.364UTC ERROR[ttts-facade-service-akka.actor.default-dispatcher-16] a.a.OneForOneStrategy - Failed to send messages after 3 tries.
+kafka.common.FailedToSendMessageException: Failed to send messages after 3 tries.
+	at kafka.producer.async.DefaultEventHandler.handle(DefaultEventHandler.scala:90) ~[kafka_2.11-0.8.3-SNAPSHOT.jar:na]
+	at kafka.producer.Producer.send(Producer.scala:76) ~[kafka_2.11-0.8.3-SNAPSHOT.jar:na]
+	at kafka.javaapi.producer.Producer.send(Producer.scala:33) ~[kafka_2.11-0.8.3-SNAPSHOT.jar:na]
+	at com.pvnsys.ttts.facade.mq.KafkaProducerActor.produceKafkaMsg(KafkaProducerActor.scala:101) ~[classes/:na]
+	at com.pvnsys.ttts.facade.mq.KafkaProducerActor$$anonfun$receive$1.applyOrElse(KafkaProducerActor.scala:54) ~[classes/:na]
+	at akka.actor.Actor$class.aroundReceive(Actor.scala:465) ~[akka-actor_2.11-2.3.6.jar:na]
+	at com.pvnsys.ttts.facade.mq.KafkaProducerActor.aroundReceive(KafkaProducerActor.scala:39) ~[classes/:na]
+	at akka.actor.ActorCell.receiveMessage(ActorCell.scala:516) [akka-actor_2.11-2.3.6.jar:na]
+	at akka.actor.ActorCell.invoke(ActorCell.scala:487) [akka-actor_2.11-2.3.6.jar:na]
+	at akka.dispatch.Mailbox.processMailbox(Mailbox.scala:238) [akka-actor_2.11-2.3.6.jar:na]
+	at akka.dispatch.Mailbox.run(Mailbox.scala:220) [akka-actor_2.11-2.3.6.jar:na]
+	at akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(AbstractDispatcher.scala:393) [akka-actor_2.11-2.3.6.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260) [scala-library-2.11.2.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339) [scala-library-2.11.2.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979) [scala-library-2.11.2.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107) [scala-library-2.11.2.jar:na]
+2014-11-03 19:30:01.248UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-16] s.c.s.HttpServerConnection - Connection was PeerClosed, awaiting TcpConnection termination...
+2014-11-03 19:30:01.248UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-16] s.c.s.HttpServerConnection - Connection was PeerClosed, awaiting TcpConnection termination...
+2014-11-03 19:30:01.248UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-7] s.c.s.HttpServerConnection - Connection was PeerClosed, awaiting TcpConnection termination...
+2014-11-03 19:30:01.250UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-8] s.c.s.HttpServerConnection - TcpConnection terminated, stopping
+2014-11-03 19:30:01.250UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-8] s.c.s.HttpServerConnection - TcpConnection terminated, stopping
+2014-11-03 19:30:01.250UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-8] s.c.s.HttpServerConnection - TcpConnection terminated, stopping
+2014-11-03 19:31:41.832UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-16] s.c.s.HttpServerConnection - Closing connection due to idle timeout...
+2014-11-03 19:31:41.832UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] s.c.s.HttpServerConnection - Connection was Aborted, awaiting TcpConnection termination...
+2014-11-03 19:31:41.832UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] s.c.s.HttpServerConnection - TcpConnection terminated, stopping
+2014-11-03 19:34:36.920UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] a.i.TcpListener - New connection accepted
+2014-11-03 19:34:36.920UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] a.i.TcpListener - New connection accepted
+2014-11-03 19:34:36.920UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] a.i.TcpListener - New connection accepted
+2014-11-03 19:34:36.928UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/ to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/5#1520058324]
+2014-11-03 19:34:36.928UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.ActorSystemImpl - http://127.0.0.1:9696/
+2014-11-03 19:34:36.932UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] c.p.t.f.f.FeedActor - FeedActor Unregister monitor for url /feed/ws; key null
+2014-11-03 19:34:36.934UTC ERROR[ttts-facade-service-akka.actor.default-dispatcher-14] a.a.ActorSystemImpl - Uncaught error from thread [ttts-facade-service-akka.actor.default-dispatcher-19] shutting down JVM since 'akka.jvm-exit-on-fatal-error' is enabled
+java.lang.NoClassDefFoundError: com/pvnsys/ttts/facade/feed/FeedActor$$anonfun$receive$1$$anonfun$applyOrElse$1
+	at com.pvnsys.ttts.facade.feed.FeedActor$$anonfun$receive$1.applyOrElse(FeedActor.scala:56) ~[classes/:na]
+	at akka.actor.Actor$class.aroundReceive(Actor.scala:465) ~[akka-actor_2.11-2.3.6.jar:na]
+	at com.pvnsys.ttts.facade.feed.FeedActor.aroundReceive(FeedActor.scala:29) ~[classes/:na]
+	at akka.actor.ActorCell.receiveMessage(ActorCell.scala:516) [akka-actor_2.11-2.3.6.jar:na]
+	at akka.actor.ActorCell.invoke(ActorCell.scala:487) [akka-actor_2.11-2.3.6.jar:na]
+	at akka.dispatch.Mailbox.processMailbox(Mailbox.scala:238) [akka-actor_2.11-2.3.6.jar:na]
+	at akka.dispatch.Mailbox.run(Mailbox.scala:220) [akka-actor_2.11-2.3.6.jar:na]
+	at akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(AbstractDispatcher.scala:393) [akka-actor_2.11-2.3.6.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260) [scala-library-2.11.2.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339) [scala-library-2.11.2.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979) [scala-library-2.11.2.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107) [scala-library-2.11.2.jar:na]
+Caused by: java.lang.ClassNotFoundException: com.pvnsys.ttts.facade.feed.FeedActor$$anonfun$receive$1$$anonfun$applyOrElse$1
+	at java.net.URLClassLoader$1.run(Unknown Source) ~[na:1.7.0_51]
+	at java.net.URLClassLoader$1.run(Unknown Source) ~[na:1.7.0_51]
+	at java.security.AccessController.doPrivileged(Native Method) ~[na:1.7.0_51]
+	at java.net.URLClassLoader.findClass(Unknown Source) ~[na:1.7.0_51]
+	at java.lang.ClassLoader.loadClass(Unknown Source) ~[na:1.7.0_51]
+	at java.lang.ClassLoader.loadClass(Unknown Source) ~[na:1.7.0_51]
+	... 12 common frames omitted
+2014-11-03 19:34:37.003UTC ERROR[ttts-facade-service-akka.actor.default-dispatcher-18] c.p.t.f.m.KafkaConsumerActor - ~~~~ error processing message, stop consuming: java.lang.InterruptedException
+2014-11-03 19:34:37.059UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-17] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/feed/index.html to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/5#1520058324]
+2014-11-03 19:34:37.060UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.ActorSystemImpl - http://127.0.0.1:9696/feed/index.html
+2014-11-03 19:34:37.061UTC ERROR[ttts-facade-service-akka.actor.default-dispatcher-14] a.a.ActorSystemImpl - Uncaught error from thread [ttts-facade-service-akka.actor.default-dispatcher-2] shutting down JVM since 'akka.jvm-exit-on-fatal-error' is enabled
+java.lang.NoClassDefFoundError: com/pvnsys/ttts/facade/mq/KafkaConsumerActor$$anonfun$receive$1
+	at com.pvnsys.ttts.facade.mq.KafkaConsumerActor.receive(KafkaConsumerActor.scala:98) ~[classes/:na]
+	at akka.actor.ActorCell.newActor(ActorCell.scala:558) ~[akka-actor_2.11-2.3.6.jar:na]
+	at akka.actor.ActorCell.create(ActorCell.scala:578) ~[akka-actor_2.11-2.3.6.jar:na]
+	at akka.actor.ActorCell.invokeAll$1(ActorCell.scala:456) ~[akka-actor_2.11-2.3.6.jar:na]
+	at akka.actor.ActorCell.systemInvoke(ActorCell.scala:478) ~[akka-actor_2.11-2.3.6.jar:na]
+	at akka.dispatch.Mailbox.processAllSystemMessages(Mailbox.scala:263) ~[akka-actor_2.11-2.3.6.jar:na]
+	at akka.dispatch.Mailbox.run(Mailbox.scala:219) ~[akka-actor_2.11-2.3.6.jar:na]
+	at akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(AbstractDispatcher.scala:393) [akka-actor_2.11-2.3.6.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260) [scala-library-2.11.2.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339) [scala-library-2.11.2.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979) [scala-library-2.11.2.jar:na]
+	at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107) [scala-library-2.11.2.jar:na]
+Caused by: java.lang.ClassNotFoundException: com.pvnsys.ttts.facade.mq.KafkaConsumerActor$$anonfun$receive$1
+	at java.net.URLClassLoader$1.run(Unknown Source) ~[na:1.7.0_51]
+	at java.net.URLClassLoader$1.run(Unknown Source) ~[na:1.7.0_51]
+	at java.security.AccessController.doPrivileged(Native Method) ~[na:1.7.0_51]
+	at java.net.URLClassLoader.findClass(Unknown Source) ~[na:1.7.0_51]
+	at java.lang.ClassLoader.loadClass(Unknown Source) ~[na:1.7.0_51]
+	at java.lang.ClassLoader.loadClass(Unknown Source) ~[na:1.7.0_51]
+	... 12 common frames omitted
+2014-11-03 19:34:51.249UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] s.c.s.HttpServerConnection - Connection was PeerClosed, awaiting TcpConnection termination...
+2014-11-03 19:34:51.250UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] s.c.s.HttpServerConnection - TcpConnection terminated, stopping
+2014-11-03 19:34:51.250UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] s.c.s.HttpServerConnection - Connection was PeerClosed, awaiting TcpConnection termination...
+2014-11-03 19:34:51.250UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] s.c.s.HttpServerConnection - TcpConnection terminated, stopping
+2014-11-03 19:35:58.313UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] a.i.TcpListener - New connection accepted
+2014-11-03 19:35:58.313UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] a.i.TcpListener - New connection accepted
+2014-11-03 19:35:58.317UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/ to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/5#1520058324]
+2014-11-03 19:35:58.317UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-8] a.a.ActorSystemImpl - http://127.0.0.1:9696/
+2014-11-03 19:35:58.574UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-7] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/feed/index.html to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/5#1520058324]
+2014-11-03 19:35:58.575UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-7] a.a.ActorSystemImpl - http://127.0.0.1:9696/feed/index.html
+2014-11-03 19:35:58.590UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-7] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/css/panel.css to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/5#1520058324]
+2014-11-03 19:35:58.590UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-7] a.a.ActorSystemImpl - http://127.0.0.1:9696/css/panel.css
+2014-11-03 19:35:58.594UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-15] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/feed/feed.js to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/8#-234271385]
+2014-11-03 19:35:58.594UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-15] a.a.ActorSystemImpl - http://127.0.0.1:9696/feed/feed.js
+2014-11-03 19:35:58.822UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/favicon.ico to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/8#-234271385]
+2014-11-03 19:35:58.822UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-3] a.a.ActorSystemImpl - http://127.0.0.1:9696/favicon.ico
+2014-11-03 19:36:11.253UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - Connection was PeerClosed, awaiting TcpConnection termination...
+2014-11-03 19:36:11.253UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - TcpConnection terminated, stopping
+2014-11-03 19:36:38.911UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - User-level connection handler died, closing connection
+2014-11-03 19:36:38.913UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-15] a.a.LocalActorRef - Message [akka.io.Tcp$Closed$] from Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/8#-234271385] to Actor[akka://ttts-facade-service/user/IO-HTTP/listener-0/7#-1016320918] was not delivered. [2] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:36:38.913UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-15] a.a.LocalActorRef - Message [akka.actor.Terminated] from Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/8#-234271385] to Actor[akka://ttts-facade-service/user/IO-HTTP/listener-0/7#-1016320918] was not delivered. [3] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:36:38.913UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-15] s.c.s.HttpServerConnection - User-level connection handler died, closing connection
+2014-11-03 19:36:38.913UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-4] a.a.LocalActorRef - Message [spray.io.TickGenerator$Tick$] from Actor[akka://ttts-facade-service/deadLetters] to Actor[akka://ttts-facade-service/user/IO-HTTP/listener-0/4#-1134478075] was not delivered. [4] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:36:38.914UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.io.Tcp$Closed$] from Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/5#1520058324] to Actor[akka://ttts-facade-service/user/IO-HTTP/listener-0/4#-1134478075] was not delivered. [5] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:36:38.914UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.Terminated] from Actor[akka://ttts-facade-service/user/IO-HTTP/listener-0/4#-1134478075] to Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/5#1520058324] was not delivered. [6] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:36:38.918UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] a.i.SelectionHandler - Monitored actor [Actor[akka://ttts-facade-service/user/IO-HTTP/listener-0#-556450600]] terminated
+2014-11-03 19:36:38.918UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] a.i.TcpListener - Closing serverSocketChannel after being stopped
+2014-11-03 19:36:38.919UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] a.e.EventStream - shutting down: StandardOutLogger started
+2014-11-03  INFO [ttts-facade-service-akka.actor.default-dispatcher-3] a.e.s.Slf4jLogger - Slf4jLogger started
+2014-11-03 19:37:07.658UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] a.e.EventStream - logger log1-Slf4jLogger started
+2014-11-03 19:37:07.784UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] a.e.EventStream - Default Loggers started
+2014-11-03 19:37:09.728UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] s.c.s.HttpListener - Binding to /0.0.0.0:9696
+2014-11-03 19:37:09.728UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "5c42021b-c736-4b3d-9158-935c6cfbc5ce",
+  "msgType": "FEED_REQ",
+  "client": "/127.0.0.1:55406",
+  "payload": "Omg, wtf, WTF ???"
+}
+2014-11-03 19:37:09.785UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] c.p.t.f.m.KafkaConsumerActor - ^^^^^ KafkaConsumerActor - not Facade MQ Response, skipping Kafka message
+2014-11-03 19:37:09.785UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-3] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "1",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.67"
+}
+2014-11-03 19:37:09.788UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-5] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "2",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.68"
+}
+2014-11-03 19:37:09.790UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "3",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.45"
+}
+2014-11-03 19:37:09.791UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-7] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "4",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.91"
+}
+2014-11-03 19:37:09.792UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-8] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "5",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.48"
+}
+2014-11-03 19:37:09.793UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "6",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.00"
+}
+2014-11-03 19:37:09.795UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "7",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.61"
+}
+2014-11-03 19:37:09.796UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-11] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "8",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.15"
+}
+2014-11-03 19:37:09.797UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-12] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "9",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.44"
+}
+2014-11-03 19:37:09.798UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-13] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "10",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.21"
+}
+2014-11-03 19:37:09.798UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "11",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.48"
+}
+2014-11-03 19:37:09.799UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-15] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "12",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.04"
+}
+2014-11-03 19:37:09.800UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-16] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "13",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.97"
+}
+2014-11-03 19:37:09.801UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-17] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "14",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.99"
+}
+2014-11-03 19:37:09.802UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-18] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "15",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.35"
+}
+2014-11-03 19:37:09.803UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "16",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.75"
+}
+2014-11-03 19:37:09.804UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-20] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "17",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.89"
+}
+2014-11-03 19:37:09.805UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-21] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "18",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.04"
+}
+2014-11-03 19:37:09.806UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "19",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.42"
+}
+2014-11-03 19:37:09.808UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "20",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:55406",
+  "payload": "22.20"
+}
+2014-11-03 19:37:09.808UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-25] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "mo_id",
+  "msgType": "FEED_STOP_REQ",
+  "client": "/127.0.0.1:55406",
+  "payload": ""
+}
+2014-11-03 19:37:09.809UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-25] c.p.t.f.m.KafkaConsumerActor - ^^^^^ KafkaConsumerActor - not Facade MQ Response, skipping Kafka message
+2014-11-03 19:37:09.840UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$f#473374135] to Actor[akka://ttts-facade-service/user/$b/$f#473374135] was not delivered. [1] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.840UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$i#-1446340285] to Actor[akka://ttts-facade-service/user/$b/$i#-1446340285] was not delivered. [2] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.840UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$r#1090216621] to Actor[akka://ttts-facade-service/user/$b/$r#1090216621] was not delivered. [3] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.840UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$d#-438055054] to Actor[akka://ttts-facade-service/user/$b/$d#-438055054] was not delivered. [4] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.840UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$s#-528757342] to Actor[akka://ttts-facade-service/user/$b/$s#-528757342] was not delivered. [5] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.840UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$k#-550780868] to Actor[akka://ttts-facade-service/user/$b/$k#-550780868] was not delivered. [6] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.840UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$a#1975194649] to Actor[akka://ttts-facade-service/user/$b/$a#1975194649] was not delivered. [7] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.840UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$o#1401541306] to Actor[akka://ttts-facade-service/user/$b/$o#1401541306] was not delivered. [8] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.840UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$n#1609419266] to Actor[akka://ttts-facade-service/user/$b/$n#1609419266] was not delivered. [9] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.841UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$h#-105207265] to Actor[akka://ttts-facade-service/user/$b/$h#-105207265] was not delivered. [10] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.841UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$b#-1442208601] to Actor[akka://ttts-facade-service/user/$b/$b#-1442208601] was not delivered. [11] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.841UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$m#1676533273] to Actor[akka://ttts-facade-service/user/$b/$m#1676533273] was not delivered. [12] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.841UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$l#1358698899] to Actor[akka://ttts-facade-service/user/$b/$l#1358698899] was not delivered. [13] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.841UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$j#1946660643] to Actor[akka://ttts-facade-service/user/$b/$j#1946660643] was not delivered. [14] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.841UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$e#1747289880] to Actor[akka://ttts-facade-service/user/$b/$e#1747289880] was not delivered. [15] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.842UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$g#-509640446] to Actor[akka://ttts-facade-service/user/$b/$g#-509640446] was not delivered. [16] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.842UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$p#86693744] to Actor[akka://ttts-facade-service/user/$b/$p#86693744] was not delivered. [17] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.842UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$t#-1722865344] to Actor[akka://ttts-facade-service/user/$b/$t#-1722865344] was not delivered. [18] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.842UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$c#1750408166] to Actor[akka://ttts-facade-service/user/$b/$c#1750408166] was not delivered. [19] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.844UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-14] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$q#-987130067] to Actor[akka://ttts-facade-service/user/$b/$q#-987130067] was not delivered. [20] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:09.873UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] a.i.TcpListener - Successfully bound to /0:0:0:0:0:0:0:0:9696
+2014-11-03 19:37:09.877UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-4] s.c.s.HttpListener - Bound to /0.0.0.0:9696
+2014-11-03 19:37:09.877UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-4] a.a.DeadLetterActorRef - Message [akka.io.Tcp$Bound] from Actor[akka://ttts-facade-service/user/IO-HTTP/listener-0#-186093035] to Actor[akka://ttts-facade-service/deadLetters] was not delivered. [21] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:20.118UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] a.i.TcpListener - New connection accepted
+2014-11-03 19:37:20.120UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] a.i.TcpListener - New connection accepted
+2014-11-03 19:37:20.120UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] a.i.TcpListener - New connection accepted
+2014-11-03 19:37:20.120UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] a.i.TcpListener - New connection accepted
+2014-11-03 19:37:20.241UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-23] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/ to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/1#734923894]
+2014-11-03 19:37:20.251UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-4] a.a.ActorSystemImpl - http://127.0.0.1:9696/
+2014-11-03 19:37:20.434UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-23] s.c.s.HttpServerConnection - Dispatching GET request to http://127.0.0.1:9696/feed/index.html to handler Actor[akka://ttts-facade-service/system/IO-TCP/selectors/$a/1#734923894]
+2014-11-03 19:37:20.434UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-23] a.a.ActorSystemImpl - http://127.0.0.1:9696/feed/index.html
+2014-11-03 19:37:20.527UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-23] c.p.t.f.f.FeedActor - FeedActor Registered monitor for url /feed/ws; key /127.0.0.1:61083
+2014-11-03 19:37:20.530UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] c.p.t.f.f.FeedActor - ~~~~ FeedActor url /feed/ws received msg '{
+  "id": "ID-1",
+  "msgType": "FEED_REQ",
+  "client": "TBD_ON_SERVER",
+  "payload": "Omg, wtf, WTF ???"
+}'
+2014-11-03 19:37:20.536UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] c.p.t.f.f.FeedActor - ~~~~ FeedActor FacadeOutgoingFeedRequestMessage version of the message: FacadeClientMessage(ID-1,FEED_REQ,TBD_ON_SERVER,Omg, wtf, WTF ???)
+2014-11-03 19:37:20.537UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] c.p.t.f.f.FeedActor - TttsFacadeMS received client request message id=[fb1602e7-2281-47a1-bb14-76cfeb74a920]; message: RequestFacadeMessage(fb1602e7-2281-47a1-bb14-76cfeb74a920,FEED_REQ,/127.0.0.1:61083,Omg, wtf, WTF ???)
+2014-11-03 19:37:20.539UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-23] c.p.t.f.m.KafkaProducerActor - ###### KafkaProducerActor received RequestFacadeMessage: RequestFacadeMessage(fb1602e7-2281-47a1-bb14-76cfeb74a920,FEED_REQ,/127.0.0.1:61083,Omg, wtf, WTF ???)
+2014-11-03 19:37:20.663UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-23] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_REQ",
+  "client": "/127.0.0.1:61083",
+  "payload": "Omg, wtf, WTF ???"
+}
+2014-11-03 19:37:20.663UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-23] c.p.t.f.m.KafkaConsumerActor - ^^^^^ KafkaConsumerActor - not Facade MQ Response, skipping Kafka message
+2014-11-03 19:37:21.251UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.42"
+}
+2014-11-03 19:37:21.251UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-19] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$u#-1470801147] to Actor[akka://ttts-facade-service/user/$b/$u#-1470801147] was not delivered. [22] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:21.958UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.41"
+}
+2014-11-03 19:37:21.959UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-9] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$v#121100250] to Actor[akka://ttts-facade-service/user/$b/$v#121100250] was not delivered. [23] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:22.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-20] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.07"
+}
+2014-11-03 19:37:22.969UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-22] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$w#865418648] to Actor[akka://ttts-facade-service/user/$b/$w#865418648] was not delivered. [24] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:23.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.51"
+}
+2014-11-03 19:37:23.970UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-9] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$x#1807314854] to Actor[akka://ttts-facade-service/user/$b/$x#1807314854] was not delivered. [25] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:24.967UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-14] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.06"
+}
+2014-11-03 19:37:24.967UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-8] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$y#-319437243] to Actor[akka://ttts-facade-service/user/$b/$y#-319437243] was not delivered. [26] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:25.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.39"
+}
+2014-11-03 19:37:25.969UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-19] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$z#-1216039191] to Actor[akka://ttts-facade-service/user/$b/$z#-1216039191] was not delivered. [27] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:26.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-4] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.54"
+}
+2014-11-03 19:37:26.969UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-4] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$A#1719023237] to Actor[akka://ttts-facade-service/user/$b/$A#1719023237] was not delivered. [28] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:27.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-20] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.12"
+}
+2014-11-03 19:37:27.969UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-22] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$B#1073870037] to Actor[akka://ttts-facade-service/user/$b/$B#1073870037] was not delivered. [29] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:28.967UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.98"
+}
+2014-11-03 19:37:28.967UTC INFO [ttts-facade-service-akka.actor.default-dispatcher-13] a.a.LocalActorRef - Message [akka.actor.PoisonPill$] from Actor[akka://ttts-facade-service/user/$b/$C#-141321459] to Actor[akka://ttts-facade-service/user/$b/$C#-141321459] was not delivered. [30] dead letters encountered, no more dead letters will be logged. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2014-11-03 19:37:29.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.37"
+}
+2014-11-03 19:37:30.128UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - Connection was PeerClosed, awaiting TcpConnection termination...
+2014-11-03 19:37:30.128UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - Connection was PeerClosed, awaiting TcpConnection termination...
+2014-11-03 19:37:30.128UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - Connection was PeerClosed, awaiting TcpConnection termination...
+2014-11-03 19:37:30.129UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - TcpConnection terminated, stopping
+2014-11-03 19:37:30.129UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - TcpConnection terminated, stopping
+2014-11-03 19:37:30.129UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - TcpConnection terminated, stopping
+2014-11-03 19:37:30.967UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.85"
+}
+2014-11-03 19:37:31.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.61"
+}
+2014-11-03 19:37:32.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.61"
+}
+2014-11-03 19:37:33.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.31"
+}
+2014-11-03 19:37:34.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.89"
+}
+2014-11-03 19:37:35.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.03"
+}
+2014-11-03 19:37:36.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.50"
+}
+2014-11-03 19:37:37.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.53"
+}
+2014-11-03 19:37:38.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.62"
+}
+2014-11-03 19:37:39.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.12"
+}
+2014-11-03 19:37:40.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.37"
+}
+2014-11-03 19:37:41.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.62"
+}
+2014-11-03 19:37:42.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.64"
+}
+2014-11-03 19:37:44.034UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.55"
+}
+2014-11-03 19:37:44.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.69"
+}
+2014-11-03 19:37:45.959UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.63"
+}
+2014-11-03 19:37:46.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.46"
+}
+2014-11-03 19:37:47.971UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.38"
+}
+2014-11-03 19:37:48.967UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.76"
+}
+2014-11-03 19:37:49.958UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.43"
+}
+2014-11-03 19:37:50.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.79"
+}
+2014-11-03 19:37:51.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.96"
+}
+2014-11-03 19:37:52.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.07"
+}
+2014-11-03 19:37:53.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.19"
+}
+2014-11-03 19:37:54.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.96"
+}
+2014-11-03 19:37:55.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.61"
+}
+2014-11-03 19:37:56.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.84"
+}
+2014-11-03 19:37:57.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.18"
+}
+2014-11-03 19:37:58.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.40"
+}
+2014-11-03 19:37:59.968UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.99"
+}
+2014-11-03 19:38:00.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.29"
+}
+2014-11-03 19:38:01.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.40"
+}
+2014-11-03 19:38:02.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.09"
+}
+2014-11-03 19:38:03.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.26"
+}
+2014-11-03 19:38:04.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.20"
+}
+2014-11-03 19:38:05.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.10"
+}
+2014-11-03 19:38:06.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.33"
+}
+2014-11-03 19:38:07.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.94"
+}
+2014-11-03 19:38:08.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.37"
+}
+2014-11-03 19:38:09.969UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.25"
+}
+2014-11-03 19:38:10.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.22"
+}
+2014-11-03 19:38:11.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.03"
+}
+2014-11-03 19:38:12.971UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.16"
+}
+2014-11-03 19:38:13.971UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.27"
+}
+2014-11-03 19:38:14.971UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.74"
+}
+2014-11-03 19:38:15.971UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.27"
+}
+2014-11-03 19:38:16.971UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.26"
+}
+2014-11-03 19:38:17.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.17"
+}
+2014-11-03 19:38:18.971UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.39"
+}
+2014-11-03 19:38:19.970UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.64"
+}
+2014-11-03 19:38:20.971UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.12"
+}
+2014-11-03 19:38:21.972UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.49"
+}
+2014-11-03 19:38:22.971UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.61"
+}
+2014-11-03 19:38:23.971UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.81"
+}
+2014-11-03 19:38:24.989UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.38"
+}
+2014-11-03 19:38:25.959UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.87"
+}
+2014-11-03 19:38:26.958UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.46"
+}
+2014-11-03 19:38:27.959UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.04"
+}
+2014-11-03 19:38:28.959UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.51"
+}
+2014-11-03 19:38:29.959UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-6] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.16"
+}
+2014-11-03 19:38:30.960UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.17"
+}
+2014-11-03 19:38:31.959UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.36"
+}
+2014-11-03 19:38:32.959UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.02"
+}
+2014-11-03 19:38:33.959UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.41"
+}
+2014-11-03 19:38:34.965UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.48"
+}
+2014-11-03 19:38:35.973UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.65"
+}
+2014-11-03 19:38:36.972UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.67"
+}
+2014-11-03 19:38:37.972UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.74"
+}
+2014-11-03 19:38:38.972UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.70"
+}
+2014-11-03 19:38:39.972UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.30"
+}
+2014-11-03 19:38:40.973UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.74"
+}
+2014-11-03 19:38:41.974UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.52"
+}
+2014-11-03 19:38:42.975UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "fb1602e7-2281-47a1-bb14-76cfeb74a920",
+  "msgType": "FEED_RSP",
+  "client": "/127.0.0.1:61083",
+  "payload": "22.84"
+}
+2014-11-03 19:38:43.348UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.f.FeedActor - FeedActor Unregister monitor for url /feed/ws; key null
+2014-11-03 19:38:43.351UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.f.FeedActor - wwwww key: /127.0.0.1:61083 ==> value: org.java_websocket.WebSocketImpl@5cbe5690
+2014-11-03 19:38:43.354UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-19] c.p.t.f.f.FeedActor - xxxxx keyToKill: /127.0.0.1:61083
+2014-11-03 19:38:43.355UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-24] c.p.t.f.m.KafkaProducerActor - ###### KafkaProducerActor received RequestFacadeMessage: RequestFacadeMessage(mo_id,FEED_STOP_REQ,/127.0.0.1:61083,)
+2014-11-03 19:38:43.365UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ***** KafkaConsumerActor received JSON message from Kafka: {
+  "id": "mo_id",
+  "msgType": "FEED_STOP_REQ",
+  "client": "/127.0.0.1:61083",
+  "payload": ""
+}
+2014-11-03 19:38:43.365UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] c.p.t.f.m.KafkaConsumerActor - ^^^^^ KafkaConsumerActor - not Facade MQ Response, skipping Kafka message
+2014-11-03 19:39:03.919UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-22] s.c.s.HttpServerConnection - User-level connection handler died, closing connection
+2014-11-03 19:39:03.920UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - Connection was Closed, awaiting TcpConnection termination...
+2014-11-03 19:39:03.920UTC DEBUG[ttts-facade-service-akka.actor.default-dispatcher-9] s.c.s.HttpServerConnection - TcpConnection terminated, stopping

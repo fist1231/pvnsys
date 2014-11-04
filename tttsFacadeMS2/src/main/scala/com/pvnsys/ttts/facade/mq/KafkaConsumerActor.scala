@@ -11,6 +11,7 @@ import com.pvnsys.ttts.facade.Configuration
 import com.pvnsys.ttts.facade.feed.FeedActor
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
 import spray.json._
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.ResponseFacadeMessage
 
 object KafkaConsumerActor {
@@ -21,7 +22,7 @@ object KafkaConsumerActor {
 }
 
 object KafkaConsumerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val responseFacadeMessageFormat = jsonFormat4(ResponseFacadeMessage)
+  implicit val responseFacadeMessageFormat = jsonFormat6(ResponseFacadeMessage)
 }
 
 /**
@@ -32,6 +33,7 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
   
 	import KafkaConsumerActor._
 	import KafkaConsumerActorJsonProtocol._
+	import TttsFacadeMessages._
 	
 	val did = scala.util.Random.nextInt(100).toString
 	val suff = Configuration.groupIdConsumer
@@ -49,52 +51,53 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 	prps.put("autocommit.interval.ms", Configuration.autocommitIntervalConsumer)
 	prps.put("autooffset.reset", Configuration.autooffsetResetConsumer)
 	prps.put("zookeeper.connect", Configuration.zookeeperConnectionConsumer)
-	    val config = new ConsumerConfig(prps)
-	  
-	    val connector = Consumer.create(config)
-	    val stream = connector.createMessageStreams(Map(topic -> 1)).get(topic).get.get(0)
-	    val maxMessages = -1 //no limit 
-	 
-	    try {
-	      val it = stream.iterator()
-	      while(it.hasNext) {
-	        try {
-			    val arr = it.next.message
-			    val mess = new String(arr, "UTF-8")
-			    val msgJsonObj = mess.parseJson
-		        val msgStr = msgJsonObj.prettyPrint
-			    
+    val config = new ConsumerConfig(prps)
+  
+    val connector = Consumer.create(config)
+    val stream = connector.createMessageStreams(Map(topic -> 1)).get(topic).get.get(0)
+    val maxMessages = -1 //no limit 
+ 
+    try {
+      val it = stream.iterator()
+      while(it.hasNext) {
+        try {
+		    val arr = it.next.message
+		    val mess = new String(arr, "UTF-8")
+		    val msgJsonObj = mess.parseJson
+	        val msgStr = msgJsonObj.compactPrint
+		    
 //			    val idx = mess.indexOf(" ==> ")
 //			    val key = mess.substring(0, idx)
-			    log.debug("***** KafkaConsumerActor received JSON message from Kafka: {}", msgStr)
-			    
-			    val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
-			    matchRequest(responseFacadeMessage) match {
-			      case Some(responseFacadeMessage) => {
-				    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
-				    feedPushActor ! responseFacadeMessage
-				    feedPushActor ! StopMessage
-			      }
-			      case None => "Lets do nothing"
-			    }
-			    
-		    } catch {
-		      case e: Throwable =>
-		        if (false) { // skipMessageOnError = true|false
-		          log.error("~~~~ error processing message, skipping and resume consumption: " + e)
-		        }
-		        else {
-		          log.error("~~~~ error processing message, failing " + e)
-		          throw e
-		        }
+	        log.debug("KafkaConsumerActor received JSON from Facade Topic: {}", msgStr)
+//		    log.debug("KafkaConsumerActor received JSON message from Kafka: {}", msgStr)
+		    
+		    val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
+		    matchRequest(responseFacadeMessage) match {
+		      case Some(responseFacadeMessage) => {
+			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
+			    feedPushActor ! responseFacadeMessage
+			    feedPushActor ! StopMessage
+		      }
+		      case None => "Lets do nothing"
 		    }
 		    
-		  }
-		  for(message <- stream) {
-		  }
-		} catch {
-		  case e: Throwable => log.error("~~~~ error processing message, stop consuming: " + e)
-		}
+	    } catch {
+	      case e: Throwable =>
+	        if (false) { // skipMessageOnError = true|false
+	          log.error("Error processing message, skipping and resume consumption: " + e)
+	        }
+	        else {
+	          log.error("Error processing message, failing " + e)
+	          throw e
+	        }
+	    }
+	    
+	  }
+	  for(message <- stream) {
+	  }
+	} catch {
+	  case e: Throwable => log.error("Error processing message, stop consuming: " + e)
+	}
 	    
    override def receive = {
 //    case KafkaNewMessage(msg) => 
@@ -105,15 +108,15 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 	case StopMessage => {
 	  self ! PoisonPill
 	}
-	case mmm => log.error(s"^^^^^ KafkaConsumerActor Received unknown message $mmm")
+	case mmm => log.error("KafkaConsumerActor Received unknown message: {}", mmm)
   }
 	
   override def postStop() = {}
   
   private def matchRequest(message: ResponseFacadeMessage): Option[ResponseFacadeMessage] = message.msgType match {
-  	  case "FEED_RSP" => Some(message)
+  	  case FEED_RESPONSE_MESSAGE_TYPE => Some(message)
   	  case _ => {
-  	    log.debug("^^^^^ KafkaConsumerActor - not Facade MQ Response, skipping Kafka message") 
+  	    log.info("KafkaConsumerActor - not Facade MQ Response, skipping Kafka message") 
   	    None
   	  }
   }
@@ -128,7 +131,6 @@ class FeedPushActor extends Actor with ActorLogging {
   
   def receive = {
     case msg: ResponseFacadeMessage => {
-//	      log.debug(s"***************************** KafkaConsumerActor received KafkaReceivedMessage: $msg")
 	      context.actorSelection("/user/feed") ! msg
 	      self ! StopMessage
     }

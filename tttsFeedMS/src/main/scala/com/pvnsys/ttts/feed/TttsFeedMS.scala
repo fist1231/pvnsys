@@ -3,6 +3,7 @@ package com.pvnsys.ttts.feed
 import akka.actor.{ActorSystem, AllForOneStrategy, Props}
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import com.pvnsys.ttts.feed.messages.TttsFeedMessages.StartFeedServiceMessage
+import com.pvnsys.ttts.feed.service.TttsFeedService
 
 object MyDomainProcessing extends LazyLogging {
 }

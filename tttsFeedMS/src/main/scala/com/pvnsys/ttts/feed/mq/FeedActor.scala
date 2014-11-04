@@ -1,4 +1,4 @@
-package com.pvnsys.ttts.feed
+package com.pvnsys.ttts.feed.mq
 
 import akka.actor.{ActorLogging, OneForOneStrategy, AllForOneStrategy}
 import com.pvnsys.ttts.feed.messages.TttsFeedMessages.FacadeTopicMessage
@@ -31,14 +31,14 @@ class FeedActor extends ActorProducer[FacadeTopicMessage] with ActorLogging {
 
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
-      log.error("@@@@@@@@@@@@@@@ FeedActor Unexpected failure: {}", e.getMessage)
+      log.error("FeedActor Unexpected failure: {}", e.getMessage)
       Restart
   	}
   
   
 	override def receive = {
 		case msg: FacadeTopicMessage => 
-			  log.debug(s"xoxoxoxoxoxoxo FeedActor, Gettin message: {} - {}", msg.client, msg.msgType)
+			  log.debug(s"FeedActor, Gettin message: {} - {}", msg.client, msg.msgType)
 //			  throw new CustomException("WTFWTFWTFWTF????????????")
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
@@ -48,15 +48,15 @@ class FeedActor extends ActorProducer[FacadeTopicMessage] with ActorLogging {
 		      }
 		
 		case StopMessage => {
-			log.debug("^^^^^ FeedActor StopMessage")
+			log.debug("FeedActor StopMessage")
 		}
 	    case Request(elements) =>
 	      // nothing to do - we're waiting for the messages to come from RabbitMQ
-			log.debug("^^^^^ FeedActor Request received")
+			log.debug("FeedActor Request received")
 	    case Cancel =>
-		  log.debug("^^^^^ FeedActor Cancel")
+		  log.debug("FeedActor Cancel request received")
 	      context.stop(self)
-		case _ => log.error("^^^^^ FeedActor Received unknown message")
+		case _ => log.error("FeedActor Received unknown message")
 	}
   
 }

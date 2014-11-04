@@ -1,4 +1,4 @@
-package com.pvnsys.ttts.feed
+package com.pvnsys.ttts.feed.service
 
 import akka.actor.{Actor, ActorLogging, ActorContext, Props, OneForOneStrategy, AllForOneStrategy, PoisonPill}
 import akka.actor.SupervisorStrategy.{Restart, Stop, Escalate}
@@ -19,10 +19,12 @@ import akka.actor.ActorRef
 import scala.collection.mutable
 import scala.collection.mutable.Map
 import com.pvnsys.ttts.feed.generator.FeedGeneratorActor.StopFeedGeneratorMessage
+import com.pvnsys.ttts.feed.mq.FeedActor
+
 
 object FeedServiceJsonProtocol extends DefaultJsonProtocol {
-  implicit val facadeTopicMessageFormat = jsonFormat4(FacadeTopicMessage)
-  implicit val requestFeedFacadeTopicMessageFormat = jsonFormat4(RequestFeedFacadeTopicMessage)
+  implicit val facadeTopicMessageFormat = jsonFormat6(FacadeTopicMessage)
+  implicit val requestFeedFacadeTopicMessageFormat = jsonFormat6(RequestFeedFacadeTopicMessage)
 }
 
 object TttsFeedService extends LazyLogging {
@@ -65,10 +67,10 @@ class TttsFeedService extends Actor with ActorLogging {
   
     override val supervisorStrategy = OneForOneStrategy(loggingEnabled = true) {
 	    case e: CustomException =>
-	      log.error("@@@@@@@@@@@@@@@ TttsFeedService Unexpected failure: {}", e.getMessage)
+	      log.error("TttsFeedService Unexpected failure: {}", e.getMessage)
 	      Stop
 	    case e: Exception =>
-	      log.error("@@@@@@@@@@@@@@@ TttsFeedService Unexpected failure: {}", e.getMessage)
+	      log.error("TttsFeedService Unexpected failure: {}", e.getMessage)
 	      Restart
   	}
   

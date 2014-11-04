@@ -1,19 +1,19 @@
 package com.pvnsys.ttts.feed.mq
 
 import akka.actor.{Actor, ActorRef, ActorLogging, Props, AllForOneStrategy}
+import com.pvnsys.ttts.feed.messages.TttsFeedMessages
 import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartListeningServicesTopicMessage, ServicesTopicMessage, RequestFeedServicesTopicMessage, TttsFeedMessage}
 import kafka.consumer.ConsumerConfig
 import java.util.Properties
 import kafka.consumer.Consumer
 import scala.collection.JavaConversions._
 import com.pvnsys.ttts.feed.Configuration
-import com.pvnsys.ttts.feed.FeedActor
 import akka.actor.SupervisorStrategy.{Restart, Stop}
 import spray.json._
 
 
 object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val servicesTopicMessageFormat = jsonFormat4(ServicesTopicMessage)
+  implicit val servicesTopicMessageFormat = jsonFormat6(ServicesTopicMessage)
 }
 
 object KafkaServicesTopicConsumerActor {
@@ -28,8 +28,8 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
   
 	import KafkaServicesTopicConsumerActor._
 	import FeedActor._
-//	import context._
 	import KafkaServicesTopicConsumerActorJsonProtocol._
+	import TttsFeedMessages._
 	
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
@@ -51,14 +51,13 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 	
 	override def receive = {
 		case StopMessage => {
-			log.debug("******* KafkaServicesTopicConsumerActor StopMessage")
+			log.debug("KafkaServicesTopicConsumerActor StopMessage")
 		}
 		case StartListeningServicesTopicMessage => {
-			log.debug(s"******* Start Listening in KafkaServicesTopicConsumerActor")
+			log.debug(s"Start Listening in KafkaServicesTopicConsumerActor")
 			startListening()
 		}
-
-		case _ => log.error("******* KafkaServicesTopicConsumerActor Received unknown message")
+		case _ => log.error("KafkaServicesTopicConsumerActor Received unknown message")
 	}
 	
 	
@@ -85,8 +84,8 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 		      stream map {arr =>
 				    val mess = new String(arr.message, "UTF-8")
 				    val msgJsonObj = mess.parseJson
-			        val msgStr = msgJsonObj.prettyPrint
-				    log.debug("***** KafkaServicesTopicConsumerActor received JSON message from Kafka: {}", msgStr)
+			        val msgStr = msgJsonObj.compactPrint
+				    log.debug("KafkaServicesTopicConsumerActor received JSON message from Kafka Services Topic: {}", msgStr)
 				    
 				    val servicesTopicMessage = msgJsonObj.convertTo[ServicesTopicMessage]
 				    matchRequest(servicesTopicMessage) match {
@@ -95,16 +94,16 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 				    }
 		      }
 		} catch {
-		  case e: Throwable => log.error("~~~~ error processing message, stop consuming: " + e)
+		  case e: Throwable => log.error("Error processing message, stop consuming: " + e)
 		}
 	  
 	}
 	
   private def matchRequest(message: ServicesTopicMessage): Option[ServicesTopicMessage] = message.msgType match {
-  	  case "FEED_REQ" => Some(message)
-  	  case "FEED_STOP_REQ" => Some(message)
+  	  case FEED_REQUEST_MESSAGE_TYPE => Some(message)
+  	  case FEED_STOP_REQUEST_MESSAGE_TYPE => Some(message)
   	  case _ => {
-  	    log.debug("^^^^^ KafkaServicesTopicConsumerActorJsonProtocol - not Feed Service request, skipping Kafka message") 
+  	    log.debug("KafkaServicesTopicConsumerActorJsonProtocol - not Feed Service request, skipping Kafka message") 
   	    None
   	  }
   }

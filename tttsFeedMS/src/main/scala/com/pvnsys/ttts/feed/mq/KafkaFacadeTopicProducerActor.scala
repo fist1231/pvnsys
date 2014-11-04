@@ -5,9 +5,7 @@ import kafka.producer.KeyedMessage
 import kafka.producer.ProducerConfig
 import kafka.javaapi.producer.Producer
 import java.util.Properties
-//import com.pvnsys.ttts.feed.KafkaProducerMessage
 import com.pvnsys.ttts.feed.Configuration
-import com.pvnsys.ttts.feed.FeedActor
 import com.pvnsys.ttts.feed.messages.TttsFeedMessages.ResponseFeedFacadeTopicMessage
 import spray.json._
 
@@ -16,7 +14,7 @@ object KafkaFacadeTopicProducerActor {
 }
 
 object KafkaFacadeTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val responseFeedFacadeTopicMessageFormat = jsonFormat4(ResponseFeedFacadeTopicMessage)
+  implicit val responseFeedFacadeTopicMessageFormat = jsonFormat6(ResponseFeedFacadeTopicMessage)
 }
 
 /**
@@ -37,13 +35,10 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
       produceKafkaMsg(msg)
       self ! StopMessage
     }
-
     case StopMessage => {
       self ! PoisonPill
     }
-    
-    case msg => log.error(s"+++++ Received unknown message $msg")
-    
+    case msg => log.error(s"Received unknown message $msg")
   }
   
   override def postStop() = {
@@ -61,6 +56,7 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
     // Convert RequestFacadeMessage back to JsValue
     val jsonStrMessage = msg.toJson.compactPrint
     // Send it to Kafka facadeTopic
+    log.debug("KafkaFacadeTopicProducerActor publishing message to Kafka Facade Topic: {}", jsonStrMessage)
    	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
 
     producer.close

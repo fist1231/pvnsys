@@ -8,7 +8,7 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
 object FeedService {
   
   def startFeed(msg: FacadeTopicMessage): RequestFeedFacadeTopicMessage = {
-     RequestFeedFacadeTopicMessage(msg.id, msg.msgType, msg.client, msg.payload)
+     RequestFeedFacadeTopicMessage(msg.id, msg.msgType, msg.client, msg.payload, msg.timestamp, msg.sequenceNum)
   }
   
 }
