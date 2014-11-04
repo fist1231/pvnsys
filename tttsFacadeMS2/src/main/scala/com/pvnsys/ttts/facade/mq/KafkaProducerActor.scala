@@ -67,24 +67,24 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
   override def postStop() = {
   }
   
-  def produceKafkaMsg(sid: String) = {
-	val props = new Properties();
-	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
-	props.put("serializer.class", Configuration.serializerClassProducer);
-
-	val producer = new Producer[Integer, String](new ProducerConfig(props));
-    val topic = Configuration.facadeTopic 
-    var messageNo = 1
-   	producer.send(new KeyedMessage[Integer, String](topic, sid));
-//    while(messageNo <= 100) {
-//    	val messageStr = s"$sid ==> KAFKA Message: $messageNo"
-//    	log.info(s"###### KafkaProducerActor sending message $messageStr")
-//    	producer.send(new KeyedMessage[Integer, String](topic, messageStr));
-//    	messageNo += 1
-//    	Thread.sleep(100)
-//  	}
-    producer.close
-  }
+//  def produceKafkaMsg(sid: String) = {
+//	val props = new Properties();
+//	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
+//	props.put("serializer.class", Configuration.serializerClassProducer);
+//
+//	val producer = new Producer[Integer, String](new ProducerConfig(props));
+//    val topic = Configuration.facadeTopic 
+//    var messageNo = 1
+//   	producer.send(new KeyedMessage[Integer, String](topic, sid));
+////    while(messageNo <= 100) {
+////    	val messageStr = s"$sid ==> KAFKA Message: $messageNo"
+////    	log.info(s"###### KafkaProducerActor sending message $messageStr")
+////    	producer.send(new KeyedMessage[Integer, String](topic, messageStr));
+////    	messageNo += 1
+////    	Thread.sleep(100)
+////  	}
+//    producer.close
+//  }
 
   def produceKafkaMsg(msg: RequestFacadeMessage) = {
 	val props = new Properties();

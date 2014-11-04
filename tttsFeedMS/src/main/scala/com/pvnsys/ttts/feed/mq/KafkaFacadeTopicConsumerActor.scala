@@ -54,8 +54,6 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
   	}
 	
 	
-	var groupId = "feed-ms-group-1"
-	
 	private def startListening() = {
 		
 		val consumer = new DefaultKafkaConsumer {
@@ -87,6 +85,7 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 	
 	private def register(consumer: DefaultKafkaConsumer): Unit = {
 
+		val groupId = Configuration.feedGroupId
 		val prps = new Properties()
 		prps.put("group.id", groupId)
 		prps.put("socket.buffer.size", Configuration.socketBufferSizeConsumer)

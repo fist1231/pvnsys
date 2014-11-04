@@ -35,7 +35,9 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 	
 	val did = scala.util.Random.nextInt(100).toString
 	val suff = Configuration.groupIdConsumer
-	val groupId = s"GROUP_ID_$did-$suff"
+//	val groupId = s"GROUP_ID_$did-$suff"
+	val groupId = Configuration.facadeGroupId
+    val topic = Configuration.facadeTopic
 	  
 //	log.debug(s"oooooooooooooooooooooooooooo KafkaConsumerActor, GroupID is: $groupId")
 	  
@@ -50,7 +52,6 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 	    val config = new ConsumerConfig(prps)
 	  
 	    val connector = Consumer.create(config)
-	    val topic = Configuration.facadeTopic
 	    val stream = connector.createMessageStreams(Map(topic -> 1)).get(topic).get.get(0)
 	    val maxMessages = -1 //no limit 
 	 

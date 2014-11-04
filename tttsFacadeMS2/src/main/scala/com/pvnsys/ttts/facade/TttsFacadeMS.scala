@@ -44,6 +44,7 @@ object Configuration {
   val portWs   = config.getInt("ttts-facade-ms.ports.ws")
 
   val facadeTopic = config.getString("ttts-facade-ms.facade-topic")
+  val facadeGroupId = config.getString("ttts-facade-ms.facade-group-id")
 
   val metadataBrokerListProducer = config.getString("kafka-producer.metadata-broker-list")
   val serializerClassProducer = config.getString("kafka-producer.serializer-class")
