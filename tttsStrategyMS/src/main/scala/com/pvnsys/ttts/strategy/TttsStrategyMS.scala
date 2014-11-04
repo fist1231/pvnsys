@@ -37,7 +37,7 @@ object Configuration {
   val portWs   = config.getInt("ttts-strategy-ms.ports.ws")
 
   val facadeTopic = config.getString("ttts-strategy-ms.facade-topic")
-  val strategyGroupId = config.getString("ttts-strategy-ms.strategy-group-id")
+  val facadeGroupId = config.getString("ttts-strategy-ms.facade-group-id")
   val servicesTopic = config.getString("ttts-strategy-ms.services-topic")
   val servicesGroupId = config.getString("ttts-strategy-ms.services-group-id")
 
