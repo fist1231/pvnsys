@@ -46,6 +46,7 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
   
   
   def produceKafkaMsg(msg: ResponseFeedFacadeTopicMessage) = {
+    log.debug("KafkaFacadeTopicProducerActor publishing message to Kafka Facade Topic: {}", msg)
 	val props = new Properties();
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
 	props.put("serializer.class", Configuration.serializerClassProducer);
@@ -56,7 +57,6 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
     // Convert RequestFacadeMessage back to JsValue
     val jsonStrMessage = msg.toJson.compactPrint
     // Send it to Kafka facadeTopic
-    log.debug("KafkaFacadeTopicProducerActor publishing message to Kafka Facade Topic: {}", jsonStrMessage)
    	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
 
     producer.close

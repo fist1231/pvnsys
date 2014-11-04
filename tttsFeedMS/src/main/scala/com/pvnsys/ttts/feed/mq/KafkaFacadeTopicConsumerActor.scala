@@ -89,9 +89,9 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 				    val mess = new String(arr.message, "UTF-8")
 				    val msgJsonObj = mess.parseJson
 			        val msgStr = msgJsonObj.compactPrint
-				    log.debug("KafkaFacadeTopicConsumerActor received JSON message from Kafka Facade Topic: {}", msgStr)
 				    
 				    val facadeTopicMessage = msgJsonObj.convertTo[FacadeTopicMessage]
+				    log.debug("KafkaFacadeTopicConsumerActor received message from Kafka Facade Topic: {}", facadeTopicMessage)
 				    matchRequest(facadeTopicMessage) match {
 				      case Some(facadeTopicMessage) => consumer.handleDelivery(facadeTopicMessage)
 				      case None => "Lets do nothing"

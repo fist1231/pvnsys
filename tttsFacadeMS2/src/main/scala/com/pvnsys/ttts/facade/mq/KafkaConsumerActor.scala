@@ -66,12 +66,8 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 		    val msgJsonObj = mess.parseJson
 	        val msgStr = msgJsonObj.compactPrint
 		    
-//			    val idx = mess.indexOf(" ==> ")
-//			    val key = mess.substring(0, idx)
-	        log.debug("KafkaConsumerActor received JSON from Facade Topic: {}", msgStr)
-//		    log.debug("KafkaConsumerActor received JSON message from Kafka: {}", msgStr)
-		    
 		    val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
+	        log.debug("KafkaConsumerActor received message from Facade Topic: {}", responseFacadeMessage)
 		    matchRequest(responseFacadeMessage) match {
 		      case Some(responseFacadeMessage) => {
 			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))

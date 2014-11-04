@@ -1,13 +1,13 @@
 <configuration>
 
     <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>log/tttsFacadeMS.log</file>
+        <!-- <file>log/tttsFacadeMS.log</file>-->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 	        <!-- rollover daily -->
-	        <fileNamePattern>tttsFacadeMS-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+	        <fileNamePattern>log/tttsFacadeMS-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
 	        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 	        <!-- or whenever the file size reaches 100MB -->
-	        	<maxFileSize>1MB</maxFileSize>
+	        	<maxFileSize>5MB</maxFileSize>
 	        </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
 	    <encoder>

@@ -85,9 +85,9 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 				    val mess = new String(arr.message, "UTF-8")
 				    val msgJsonObj = mess.parseJson
 			        val msgStr = msgJsonObj.compactPrint
-				    log.debug("KafkaServicesTopicConsumerActor received JSON message from Kafka Services Topic: {}", msgStr)
 				    
 				    val servicesTopicMessage = msgJsonObj.convertTo[ServicesTopicMessage]
+				    log.debug("KafkaServicesTopicConsumerActor received message from Kafka Services Topic: {}", servicesTopicMessage)
 				    matchRequest(servicesTopicMessage) match {
 				      case Some(servicesTopicMessage) => consumer.handleDelivery(servicesTopicMessage)
 				      case None => "Lets do nothing"

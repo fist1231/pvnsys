@@ -58,6 +58,7 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
   }
   
   def produceKafkaMsg(msg: RequestFacadeMessage) = {
+    log.debug("KafkaProducerActor publishing message into Facade Topic: {}", msg)
 	val props = new Properties();
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
 	props.put("serializer.class", Configuration.serializerClassProducer);
@@ -69,7 +70,6 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
     //val jsonMessage = msg.asInstanceOf[RequestFacadeMessage].toJson.compactPrint
     val jsonStrMessage = msg.toJson.compactPrint
     // Send it to Kafka facadeTopic
-    log.debug("KafkaProducerActor publishing RequestFacadeMessage into Facade Topic: {}", msg)
    	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
 
   
