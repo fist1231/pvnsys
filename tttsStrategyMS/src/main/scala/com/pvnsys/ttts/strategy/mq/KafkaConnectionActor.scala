@@ -1,9 +1,9 @@
-package com.pvnsys.ttts.feed.mq
+package com.pvnsys.ttts.strategy.mq
 
 import akka.actor._
 import java.net.InetSocketAddress
 import java.util.Properties
-import com.pvnsys.ttts.feed.Configuration
+import com.pvnsys.ttts.strategy.Configuration
 import kafka.consumer.ConsumerConfig
 import kafka.consumer.Consumer
 import kafka.consumer.ConsumerConnector
@@ -31,7 +31,7 @@ class KafkaConnectionActor(address: InetSocketAddress) extends Actor with ActorL
   
   def receive = {
     case Connect => {
-    	var groupId = "feed-ms-group-1"
+    	var groupId = Configuration.strategyGroupId
 		val prps = new Properties()
 		prps.put("group.id", groupId)
 		prps.put("socket.buffer.size", Configuration.socketBufferSizeConsumer)

@@ -1,35 +1,19 @@
-package com.pvnsys.ttts.feed.mq
+package com.pvnsys.ttts.strategy.mq
 
 import akka.actor.{Actor, ActorRef, ActorLogging, Props, AllForOneStrategy}
-import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartListeningFacadeTopicMessage, FacadeTopicMessage, RequestFeedFacadeTopicMessage}
-//import akka.util.ByteString
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.{StartListeningFacadeTopicMessage, FacadeTopicMessage, RequestStrategyFacadeTopicMessage, TttsStrategyMessage}
 import kafka.consumer.ConsumerConfig
-//import kafka.consumer.ConsumerIterator
-//import kafka.consumer.KafkaStream
-//import kafka.javaapi.consumer.ConsumerConnector
 import java.util.Properties
-//import java.util.Random
 import kafka.consumer.Consumer
-//import java.util.HashMap
-//import scala.collection.mutable._
 import scala.collection.JavaConversions._
-//import com.pvnsys.ttts.feed.KafkaConsumerMessage
-//import com.pvnsys.ttts.feed.KafkaReceivedMessage
-//import com.pvnsys.ttts.feed.KafkaNewMessage
-//import org.java_websocket.WebSocket
-//import java.net.InetSocketAddress
-//import java.nio.ByteBuffer
-//import kafka.message.Message
-import com.pvnsys.ttts.feed.Configuration
-import com.pvnsys.ttts.feed.FeedActor
-//import com.pvnsys.ttts.feed.KafkaStartListeningMessage
-//import org.reactivestreams.api.Producer
+import com.pvnsys.ttts.strategy.Configuration
 import akka.actor.SupervisorStrategy.{Restart, Stop}
 import spray.json._
 
 
 object KafkaFacadeTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val facadeTopicMessageFormat = jsonFormat4(FacadeTopicMessage)
+  implicit val facadeTopicMessageFormat = jsonFormat7(FacadeTopicMessage)
 }
 
 object KafkaFacadeTopicConsumerActor {
@@ -38,14 +22,15 @@ object KafkaFacadeTopicConsumerActor {
 }
 
 /**
- * This actor will register itself to consume messages from the AkkaMQ server. 
+ * This actor will register itself to consume messages from the Kafka server. 
  */
 class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLogging {
   
 	import KafkaFacadeTopicConsumerActor._
-	import FeedActor._
+	import StrategyActor._
 	import context._
 	import KafkaFacadeTopicConsumerActorJsonProtocol._
+	import TttsStrategyMessages._
 	
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
@@ -54,12 +39,10 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
   	}
 	
 	
-	var groupId = "feed-ms-group-1"
-	
 	private def startListening() = {
 		
 		val consumer = new DefaultKafkaConsumer {
-		    override def handleDelivery(message: FacadeTopicMessage) = {
+		    override def handleDelivery(message: TttsStrategyMessage) = {
 		        toWhom ! message
 		    }
 		}
@@ -70,23 +53,22 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 	
 	override def receive = {
 		case StopMessage => {
-			log.debug("******* KafkaConsumerActor StopMessage")
+			log.debug("KafkaFacadeTopicConsumerActor StopMessage")
 			//self ! PoisonPill
 		}
 		case StartListeningFacadeTopicMessage => {
-			log.debug(s"******* Start Listening in KafkaConsumerActor")
-//	        log.info("******* KafkaStartListeningMessage send self {}", self)
-//			self ! KafkaReceivedMessage("uno", "dos")
+			log.debug(s"Start Listening in KafkaFacadeTopicConsumerActor")
 
 			startListening()
 		}
 
-		case _ => log.error("******* KafkaConsumerActor Received unknown message")
+		case _ => log.error("KafkaFacadeTopicConsumerActor Received unknown message")
 	}
 	
 	
 	private def register(consumer: DefaultKafkaConsumer): Unit = {
 
+		val groupId = Configuration.strategyGroupId
 		val prps = new Properties()
 		prps.put("group.id", groupId)
 		prps.put("socket.buffer.size", Configuration.socketBufferSizeConsumer)
@@ -106,28 +88,29 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 		      stream map {arr =>
 				    val mess = new String(arr.message, "UTF-8")
 				    val msgJsonObj = mess.parseJson
-			        val msgStr = msgJsonObj.prettyPrint
-				    log.debug("***** KafkaFacadeTopicConsumerActor received JSON message from Kafka: {}", msgStr)
+			        val msgStr = msgJsonObj.compactPrint
 				    
 				    val facadeTopicMessage = msgJsonObj.convertTo[FacadeTopicMessage]
+				    log.debug("KafkaFacadeTopicConsumerActor received message from Kafka Facade Topic: {}", facadeTopicMessage)
 				    matchRequest(facadeTopicMessage) match {
 				      case Some(facadeTopicMessage) => consumer.handleDelivery(facadeTopicMessage)
 				      case None => "Lets do nothing"
 				    }
 		      }
 		} catch {
-		  case e: Throwable => log.error("~~~~ error processing message, stop consuming: " + e)
+		  case e: Throwable => log.error("Error processing message, stop consuming: " + e)
 		}
 	  
 	}
 	
-  private def matchRequest(message: FacadeTopicMessage): Option[FacadeTopicMessage] = message.msgType match {
-  	  case "FEED_REQ" => Some(message)
-  	  case _ => {
-  	    log.debug("^^^^^ KafkaFacadeTopicConsumerActorJsonProtocol - not Feed Service request, skipping Kafka message") 
-  	    None
-  	  }
-  }
+	private def matchRequest(message: FacadeTopicMessage): Option[FacadeTopicMessage] = message.msgType match {
+		case STRATEGY_REQUEST_MESSAGE_TYPE => Some(message)
+		case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => Some(message)
+		case _ => {
+			log.debug("KafkaFacadeTopicConsumerActorJsonProtocol - not Strategy Service request, skipping Kafka message") 
+			None
+		}
+	}
 	
    
 	override def postStop() = {}

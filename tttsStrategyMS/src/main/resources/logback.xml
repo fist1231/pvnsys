@@ -1,0 +1,22 @@
+<configuration>
+
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- <file>log/tttsStrategyMS.log</file>-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+	        <!-- rollover daily -->
+	        <fileNamePattern>log/tttsStrategyMS-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+	        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+	        <!-- or whenever the file size reaches 100MB -->
+	        	<maxFileSize>5MB</maxFileSize>
+	        </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+	    <encoder>
+	      <pattern>%msg%n</pattern>
+	    </encoder>
+	</appender>
+
+	<root level="DEBUG">
+	  <appender-ref ref="ROLLING" />
+	</root>
+
+</configuration>

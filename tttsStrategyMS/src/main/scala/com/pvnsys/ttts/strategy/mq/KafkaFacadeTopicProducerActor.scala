@@ -1,14 +1,12 @@
-package com.pvnsys.ttts.feed.mq
+package com.pvnsys.ttts.strategy.mq
 
 import akka.actor._
 import kafka.producer.KeyedMessage
 import kafka.producer.ProducerConfig
 import kafka.javaapi.producer.Producer
 import java.util.Properties
-//import com.pvnsys.ttts.feed.KafkaProducerMessage
-import com.pvnsys.ttts.feed.Configuration
-import com.pvnsys.ttts.feed.FeedActor
-import com.pvnsys.ttts.feed.messages.TttsFeedMessages.ResponseFeedFacadeTopicMessage
+import com.pvnsys.ttts.strategy.Configuration
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.ResponseStrategyFacadeTopicMessage
 import spray.json._
 
 
@@ -16,7 +14,7 @@ object KafkaFacadeTopicProducerActor {
 }
 
 object KafkaFacadeTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val responseFeedFacadeTopicMessageFormat = jsonFormat4(ResponseFeedFacadeTopicMessage)
+  implicit val responseStrategyFacadeTopicMessageFormat = jsonFormat7(ResponseStrategyFacadeTopicMessage)
 }
 
 /**
@@ -28,29 +26,27 @@ object KafkaFacadeTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
 class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
 
   import KafkaFacadeTopicProducerActor._
-  import FeedActor._
+  import StrategyActor._
   import KafkaFacadeTopicProducerActorJsonProtocol._
   
 	
   override def receive = {
-    case msg: ResponseFeedFacadeTopicMessage => {
+    case msg: ResponseStrategyFacadeTopicMessage => {
       produceKafkaMsg(msg)
       self ! StopMessage
     }
-
     case StopMessage => {
       self ! PoisonPill
     }
-    
-    case msg => log.error(s"+++++ Received unknown message $msg")
-    
+    case msg => log.error(s"Received unknown message $msg")
   }
   
   override def postStop() = {
   }
   
   
-  def produceKafkaMsg(msg: ResponseFeedFacadeTopicMessage) = {
+  def produceKafkaMsg(msg: ResponseStrategyFacadeTopicMessage) = {
+    log.debug("KafkaFacadeTopicProducerActor publishing message to Kafka Facade Topic: {}", msg)
 	val props = new Properties();
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
 	props.put("serializer.class", Configuration.serializerClassProducer);
