@@ -12,7 +12,7 @@ import com.pvnsys.ttts.facade.feed.FeedActor
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
 import spray.json._
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.ResponseFacadeMessage
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{ResponseFacadeMessage, ResponseStrategyFacadeMessage}
 
 object KafkaConsumerActor {
   sealed trait FacadeConsumerMessage
@@ -23,6 +23,7 @@ object KafkaConsumerActor {
 
 object KafkaConsumerActorJsonProtocol extends DefaultJsonProtocol {
   implicit val responseFacadeMessageFormat = jsonFormat6(ResponseFacadeMessage)
+  implicit val responseStrategyFacadeMessageFormat = jsonFormat7(ResponseStrategyFacadeMessage)
 }
 
 /**
@@ -65,17 +66,30 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 		    val mess = new String(arr, "UTF-8")
 		    val msgJsonObj = mess.parseJson
 	        val msgStr = msgJsonObj.compactPrint
-		    
-		    val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
-	        log.debug("KafkaConsumerActor received message from Facade Topic: {}", responseFacadeMessage)
-		    matchRequest(responseFacadeMessage) match {
-		      case Some(responseFacadeMessage) => {
+	        
+	        if(msgStr.contains(FEED_RESPONSE_MESSAGE_TYPE)) {
+	        	val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
 			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
 			    feedPushActor ! responseFacadeMessage
 			    feedPushActor ! StopMessage
-		      }
-		      case None => "Lets do nothing"
 		    }
+	        if(msgStr.contains(STRATEGY_RESPONSE_MESSAGE_TYPE)) {
+	        	val responseFacadeMessage = msgJsonObj.convertTo[ResponseStrategyFacadeMessage]
+			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
+			    feedPushActor ! responseFacadeMessage
+			    feedPushActor ! StopMessage
+		    }
+		    
+//		    val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
+//	        log.debug("KafkaConsumerActor received message from Facade Topic: {}", responseFacadeMessage)
+//		    matchRequest(responseFacadeMessage) match {
+//		      case Some(responseFacadeMessage) => {
+//			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
+//			    feedPushActor ! responseFacadeMessage
+//			    feedPushActor ! StopMessage
+//		      }
+//		      case None => "Lets do nothing"
+//		    }
 		    
 	    } catch {
 	      case e: Throwable =>
@@ -111,6 +125,7 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
   
   private def matchRequest(message: ResponseFacadeMessage): Option[ResponseFacadeMessage] = message.msgType match {
   	  case FEED_RESPONSE_MESSAGE_TYPE => Some(message)
+  	  case STRATEGY_RESPONSE_MESSAGE_TYPE => Some(message)
   	  case _ => {
   	    log.info("KafkaConsumerActor - not Facade MQ Response, skipping Kafka message") 
   	    None
@@ -128,6 +143,10 @@ class FeedPushActor extends Actor with ActorLogging {
   def receive = {
     case msg: ResponseFacadeMessage => {
 	      context.actorSelection("/user/feed") ! msg
+	      self ! StopMessage
+    }
+    case msg: ResponseStrategyFacadeMessage => {
+	      context.actorSelection("/user/strategy") ! msg
 	      self ! StopMessage
     }
     case StopMessage => {

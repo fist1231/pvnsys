@@ -62,7 +62,21 @@ class TttsFeedService extends Actor with ActorLogging {
 		kafkaServicesTopicConsumerActor ! StartListeningFacadeTopicMessage
 		  
 
-		// Start Facade topic message flow
+		/*
+		 * Start Facade topic message flow:
+		 * 
+		 * Kafka MQ ==> 
+		 * ==> (FacadeTopicMessage from FacadeMS) ==> 
+		 * ==> KafkeFacadeTopicConsumer via FeedActor ==> 
+		 * ==> Processing Duct[RequestFeedFacadeTopicMessage, Producer]: 1.Logs nessage; 2.Logs client; 3.Converts message; 4.Creates Producer ==> 
+		 * ==> Flow(Producer) ==> 
+		 * ==> Publishing Duct: 1.Each message starts feed generator. 2.Each Feed generator's message published to Kafka.
+		 * (Duct[RequestFeedFacadeTopicMessage, Unit]) ==> KafkaFacadeTopicProducer ==> 
+		 * ==> (ResponseFeedFacadeTopicMessage from FeeddMS) ==> 
+		 * ==> Kafka MQ
+		 *   
+		 */
+		// 
 		new FacadeMessageFlow(feedFacadeActor).startFlow
 
 		// Start Services topic message flow

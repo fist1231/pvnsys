@@ -13,7 +13,7 @@ import spray.json._
 
 
 object KafkaFacadeTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val facadeTopicMessageFormat = jsonFormat7(FacadeTopicMessage)
+  implicit val facadeTopicMessageFormat = jsonFormat6(FacadeTopicMessage)
 }
 
 object KafkaFacadeTopicConsumerActor {

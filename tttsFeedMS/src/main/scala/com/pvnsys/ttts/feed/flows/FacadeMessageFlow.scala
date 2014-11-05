@@ -34,7 +34,7 @@ object FacadeMessageFlow extends LazyLogging {
 	    }.
 	
 	    map { //msg =>
-	        logger.debug("FacadeMessageFlow duct step 3; starting feed")
+	        logger.debug("FacadeMessageFlow duct step 3; converting FacadeTopicMessage to RequestFeedFacadeTopicMessage")
 	        FeedService.convertFacadeMessage
 //	        RequestFeedFacadeTopicMessage(msg.id, msg.msgType, msg.client, msg.payload, msg.timestamp, msg.sequenceNum)
 	    }.

@@ -16,6 +16,7 @@ object TttsFacadeMS extends App with MainActors with TttsFacadeApi {
   //Starting WebSocket server listening to address:port specified in main/resources/application.conf
   private val rs = new TttsFacadeMSServer(Configuration.portWs)
   rs.forResource("/feed/ws", Some(feed))
+  rs.forResource("/strategy/ws", Some(strategy))
   rs.start
   sys.addShutdownHook({system.shutdown;rs.stop})
   

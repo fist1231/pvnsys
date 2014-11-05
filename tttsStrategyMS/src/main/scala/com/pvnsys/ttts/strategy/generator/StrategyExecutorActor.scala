@@ -66,15 +66,16 @@ class StrategyExecutorActor extends Actor with ActorLogging {
   override def postStop() = {
   }
   
-  private def startStrategy(req: TttsStrategyMessage) = {
+  private def startStrategy(msg: TttsStrategyMessage) = {
     
     // Real IB API call will be added here. For now all is fake
     // 1. Get feed
     // 2. Process feed
+    
     // 3. Publish results back to Facade Topic
     
     
-    publishResults(req)
+    publishResults(msg)
   }
   
   
@@ -96,16 +97,27 @@ class PublishStrategyResultsActor extends Actor with ActorLogging {
 	
 	override def receive = {
 		case StartPublishResultsMessage(msg) => 
-	        // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
-	        val messageTraits = Utils.generateMessageTraits
-	        log.debug(s"PublishStrategyResultsActor, Gettin message: {}", msg)
-  		    counter += 1
-//	    	val fakeQuote = "%.2f".format(Random.nextFloat() + 22)
-//		    val fakeMessage = ResponseStrategyFacadeTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, msg.client , s"$fakeQuote", messageTraits._2, s"$counter")
-//		    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
-//		    kafkaFacadeTopicProducerActor ! fakeMessage
-		    
-		
+
+		    msg match {
+				case msg: RequestStrategyFacadeTopicMessage => {
+				  	// Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
+			        val messageTraits = Utils.generateMessageTraits
+			        log.debug(s"PublishStrategyResultsActor, Gettin message: {}", msg)
+		  		    counter += 1
+			    	val fakeQuote = "%.2f".format(Random.nextFloat() + 77)
+				    val fakeMessage = ResponseStrategyFacadeTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, msg.client , s"$fakeQuote", messageTraits._2, s"$counter", "HOLD")
+				    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+				    kafkaFacadeTopicProducerActor ! fakeMessage
+				}
+				case msg: RequestStrategyServicesTopicMessage => {
+//			    	val fakeQuote = "%.2f".format(Random.nextFloat() + 55)
+//				    val fakeMessage = ResponseFeedServicesTopicMessage(messageTraits._1, FEED_RESPONSE_MESSAGE_TYPE, msg.client , s"$fakeQuote", messageTraits._2, s"$counter")
+//				    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+//				    kafkaServicesTopicProducerActor ! fakeMessage
+				}
+				case _ =>
+		    }
+		  
 	    case StopPublishResultsMessage =>
 		  log.debug("PublisStrategyResultsActor Cancel")
 	      context.stop(self)

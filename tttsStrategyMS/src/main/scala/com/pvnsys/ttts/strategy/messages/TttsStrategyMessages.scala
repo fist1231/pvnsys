@@ -19,7 +19,7 @@ object TttsStrategyMessages {
 	
 	case object StartKafkaServicesTopicConsumerMessage extends TttsStrategyMessage
 
-	case class FacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String) extends TttsStrategyMessage
+	case class FacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsStrategyMessage
 	case class RequestStrategyFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsStrategyMessage
 	case class ResponseStrategyFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String) extends TttsStrategyMessage
 

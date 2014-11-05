@@ -1,4 +1,4 @@
-package com.pvnsys.ttts.facade.feed
+package com.pvnsys.ttts.facade.strategy
 
 import com.pvnsys.ttts.facade.server.TttsFacadeMSServer
 import akka.actor.{Actor, ActorLogging, ActorContext, Props, OneForOneStrategy, AllForOneStrategy}
@@ -9,30 +9,30 @@ import org.java_websocket.WebSocket
 import com.pvnsys.ttts.facade.mq.KafkaProducerActor
 import java.net.InetSocketAddress
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{FacadeClientMessage, RequestFacadeMessage, ResponseFacadeMessage}
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{FacadeClientMessage, RequestStrategyFacadeMessage, ResponseStrategyFacadeMessage}
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.TttsFacadeMessage
 import spray.json._
 import com.pvnsys.ttts.facade.util.Utils
 
 
-object FeedActor {
-  sealed trait FeedActorMessage
-  case object FeedActorStopMessage extends FeedActorMessage
-  case class FeedActorUnregisterWebSocketMessage(webSocket : WebSocket) extends FeedActorMessage
+object StrategyActor {
+  sealed trait StrategyActorMessage
+  case object StrategyActorStopMessage extends StrategyActorMessage
+  case class StrategyActorUnregisterWebSocketMessage(webSocket : WebSocket) extends StrategyActorMessage
   
 }
 
-object FeedActorJsonProtocol extends DefaultJsonProtocol {
+object StrategyActorJsonProtocol extends DefaultJsonProtocol {
   implicit val facadeClientMessageFormat = jsonFormat2(FacadeClientMessage)
-  implicit val requestFacadeMessageFormat = jsonFormat6(RequestFacadeMessage)
-  implicit val responseFacadeMessageFormat = jsonFormat6(ResponseFacadeMessage)
+  implicit val requestFacadeMessageFormat = jsonFormat6(RequestStrategyFacadeMessage)
+  implicit val responseFacadeMessageFormat = jsonFormat7(ResponseStrategyFacadeMessage)
 }
 
 
-class FeedActor extends Actor with ActorLogging {
-  import FeedActor._
+class StrategyActor extends Actor with ActorLogging {
+  import StrategyActor._
   import TttsFacadeMSServer._
-  import FeedActorJsonProtocol._
+  import StrategyActorJsonProtocol._
   import Utils._
   import TttsFacadeMessages._
 
@@ -55,7 +55,7 @@ class FeedActor extends Actor with ActorLogging {
 //      kafkaConsumerActor ! KafkaConsumerMessage(xsock)
       
     }
-    case FeedActorUnregisterWebSocketMessage(ws) => {
+    case StrategyActorUnregisterWebSocketMessage(ws) => {
       if (null != ws) {
         log.debug("TttsFacadeMS Unregister WebSocket for url {}; key {}", ws.getResourceDescriptor, ws.getRemoteSocketAddress())
 //        sockets.foreach { case (key, value) => log.debug("wwwww key: {} ==> value: {}", key, value) }
@@ -67,7 +67,7 @@ class FeedActor extends Actor with ActorLogging {
 //        	sockets -= ws.getRemoteSocketAddress().toString()
         	sockets -= keyToKill
         	val messageTraits = Utils.generateMessageTraits
-	        val feedStopRequestMessage = RequestFacadeMessage(messageTraits._1, "FEED_STOP_REQ", keyToKill, "", messageTraits._2, messageTraits._3)
+	        val feedStopRequestMessage = RequestStrategyFacadeMessage(messageTraits._1, "STRATEGY_STOP_REQ", keyToKill, "", messageTraits._2, messageTraits._3)
 		    sendMessages(feedStopRequestMessage)
         }
 //        sockets.foreach { case (key, value) => log.debug("zzzzz key: {} ==> value: {}", key, value) }
@@ -75,18 +75,19 @@ class FeedActor extends Actor with ActorLogging {
     }
     case Close(ws, code, reason, ext) => {
 //      log.error("3 FeedActor closed for this reason @@@@@@@@@@@@@@@@@", reason)
-      self ! FeedActorUnregisterWebSocketMessage(ws)
+      self ! StrategyActorUnregisterWebSocketMessage(ws)
     }
     case Error(ws, ex) => {
 //      ex.printStackTrace()
 //      log.error("4 FeedActor error @@@@@@@@@@@@@@@@@", ex.getMessage())
-      self ! FeedActorUnregisterWebSocketMessage(ws)
+      self ! StrategyActorUnregisterWebSocketMessage(ws)
     }
-    case msg: ResponseFacadeMessage => {
+    case msg: ResponseStrategyFacadeMessage => {
       
 //      log.debug(s"TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT FeedActor received KafkaReceivedMessage: $msg")
-        log.debug("TttsFacadeMS received Services Response message: {}", msg)
+        log.debug("TttsFacadeMS StrategyActor received Services Response message: {}", msg)
 //        sockets.get(msg.client) match {
+//        sockets.foreach { case (key, value) => log.debug("zzzzz key: {} ==> value: {}", key, value) }
         sockets.get(msg.client) match {
 		  case Some(wsk) => {
 		    if(null != wsk && wsk.isOpen()) {
@@ -100,7 +101,7 @@ class FeedActor extends Actor with ActorLogging {
       
       /*
        * This is a message received from UI clients.
-       * Message is in JSON format: { id:MESSAGE_ID , msgType:FEED_REQ , client:TBD_ON_SERVER, payload:MESSAGE }
+       * Message is in JSON format: { msgType:STRATEGY_REQ , payload:MESSAGE }
        * 
        */ 
       
@@ -125,7 +126,7 @@ class FeedActor extends Actor with ActorLogging {
 		matchRequest(facadeClientMessage, webSocketId, messageTraits) match {
 		  case Some(facadeClientMessage) => {
 		      wsock.send(s"Beginning ... - $webSocketId" )
-		      log.debug("TttsFacadeMS received client request message: {}", facadeClientMessage)
+		      log.debug("TttsFacadeMS StrategyActor received client request message: {}", facadeClientMessage)
 			  sendMessages(facadeClientMessage)
 //		      consumer.handleDelivery(facadeTopicMessage)
 		  }
@@ -139,10 +140,10 @@ class FeedActor extends Actor with ActorLogging {
   }
   
   def matchRequest(clientReq: FacadeClientMessage, webSocketId: String, messageTraits: MessageTraits): Option[TttsFacadeMessage] = clientReq.msgType match {
-  	  case FEED_REQUEST_MESSAGE_TYPE => Some(RequestFacadeMessage(messageTraits._1 , clientReq.msgType, webSocketId, clientReq.payload, messageTraits._2, messageTraits._3))
-  	  case FEED_STOP_REQUEST_MESSAGE_TYPE => Some(RequestFacadeMessage(messageTraits._1, clientReq.msgType, webSocketId, clientReq.payload, messageTraits._2, messageTraits._3))
+  	  case STRATEGY_REQUEST_MESSAGE_TYPE => Some(RequestStrategyFacadeMessage(messageTraits._1 , clientReq.msgType, webSocketId, clientReq.payload, messageTraits._2, messageTraits._3))
+  	  case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => Some(RequestStrategyFacadeMessage(messageTraits._1, clientReq.msgType, webSocketId, clientReq.payload, messageTraits._2, messageTraits._3))
   	  case _ => {
-  	    log.debug("TttsFacadeMS FeedActor received unknown message type from the client: [{}]", clientReq.msgType) 
+  	    log.debug("TttsFacadeMS StrategyActor received unknown message type from the client: [{}]", clientReq.msgType) 
   	    None
   	  }
   }
