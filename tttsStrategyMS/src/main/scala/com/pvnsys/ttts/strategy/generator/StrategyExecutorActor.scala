@@ -43,7 +43,7 @@ class StrategyExecutorActor extends Actor with ActorLogging {
 	
   override def receive = {
     case req: RequestStrategyFacadeTopicMessage => {
-      log.debug("StrategyExecutorActor Received RequestFeedFacadeTopicMessage: {}", req)
+      log.debug("StrategyExecutorActor received RequestStrategyFacadeTopicMessage: {}", req)
       isActive = true
 	  req.msgType match {
 		    case STRATEGY_REQUEST_MESSAGE_TYPE => startStrategy(req)
@@ -52,13 +52,13 @@ class StrategyExecutorActor extends Actor with ActorLogging {
     }
 
     case req: RequestStrategyServicesTopicMessage => {
-      log.debug("StrategyExecutorActor Received RequestFeedServicesTopicMessage: {}", req)
+      log.debug("StrategyExecutorActor Received RequestStrategyServicesTopicMessage: {}", req)
       isActive = true
       startStrategy(req)
     }
     
     case StopStrategyExecutorMessage => {
-      log.debug("StrategyExecutorActor Received StopFeedGeneratorMessage. Terminating feed")
+      log.debug("StrategyExecutorActor Received StopStrategyExecutorMessage. Terminating feed")
       isActive = false
       self ! PoisonPill
     }
@@ -99,8 +99,8 @@ class StrategyExecutorActor extends Actor with ActorLogging {
     val message = ResponseStrategyFacadeTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, msg.client, msg.payload, messageTraits._2, msg.sequenceNum, signal)
     
     // 3. Publish results back to Facade Topic
-    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
-    kafkaServicesTopicProducerActor ! message
+    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+    kafkaFacadeTopicProducerActor ! message
     
   }
 

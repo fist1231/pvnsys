@@ -46,7 +46,7 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
   
   
   def produceKafkaMsg(msg: ResponseFeedServicesTopicMessage) = {
-    log.debug("KafkaServicesTopicProducerActor publishing message to Kafka Facade Topic: {}", msg)
+    log.debug("KafkaServicesTopicProducerActor publishing message to Kafka Services Topic: {}", msg)
 	val props = new Properties()
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
 	props.put("serializer.class", Configuration.serializerClassProducer)

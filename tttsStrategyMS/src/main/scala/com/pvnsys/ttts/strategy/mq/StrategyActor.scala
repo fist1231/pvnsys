@@ -1,7 +1,8 @@
 package com.pvnsys.ttts.strategy.mq
 
 import akka.actor.{ActorLogging, OneForOneStrategy, AllForOneStrategy}
-import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.{TttsStrategyMessage, FacadeTopicMessage, ServicesTopicMessage}
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.TttsStrategyMessage
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
 import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.stream.actor.ActorProducer
 import akka.stream.actor.ActorProducer._
@@ -16,6 +17,7 @@ object StrategyActor {
 
 class StrategyActor extends ActorProducer[TttsStrategyMessage] with ActorLogging {
   import StrategyActor._
+  import TttsStrategyMessages._
 
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
@@ -25,23 +27,50 @@ class StrategyActor extends ActorProducer[TttsStrategyMessage] with ActorLogging
   
   
 	override def receive = {
-		case msg: FacadeTopicMessage => 
-			  log.debug(s"StrategyActor, Gettin FacadeTopicMessage: {} - {}", msg.client, msg.msgType)
+
+		case msg: RequestStrategyFacadeTopicMessage => 
+			  log.debug(s"StrategyActor, Gettin RequestStrategyServicesTopicMessage: {} - {}", msg.client, msg.msgType)
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {
 		        //requeue the message
 		        //message ordering might not be preserved
 		      }
-		
-		case msg: ServicesTopicMessage => 
-			  log.debug(s"StrategyActor, Gettin ServicesTopicMessage: {} - {}", msg.client, msg.msgType)
+		case msg: RequestStrategyServicesTopicMessage => 
+			  log.debug(s"StrategyActor, Gettin RequestStrategyServicesTopicMessage: {} - {}", msg.client, msg.msgType)
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {
 		        //requeue the message
 		        //message ordering might not be preserved
 		      }
+		case msg: ResponseFeedServicesTopicMessage => 
+			  log.debug(s"StrategyActor, Gettin ResponseFeedServicesTopicMessage: {} - {}", msg.client, msg.msgType)
+		      if (isActive && totalDemand > 0) {
+		        onNext(msg)
+		      } else {
+		        //requeue the message
+		        //message ordering might not be preserved
+		      }
+	
+	
+//		case msg: FacadeTopicMessage => 
+//			  log.debug(s"StrategyActor, Gettin FacadeTopicMessage: {} - {}", msg.client, msg.msgType)
+//		      if (isActive && totalDemand > 0) {
+//		        onNext(msg)
+//		      } else {
+//		        //requeue the message
+//		        //message ordering might not be preserved
+//		      }
+//		
+//		case msg: ServicesTopicMessage => 
+//			  log.debug(s"StrategyActor, Gettin ServicesTopicMessage: {} - {}", msg.client, msg.msgType)
+//		      if (isActive && totalDemand > 0) {
+//		        onNext(msg)
+//		      } else {
+//		        //requeue the message
+//		        //message ordering might not be preserved
+//		      }
 		case StopMessage => {
 			log.debug("StrategyActor StopMessage")
 		}

@@ -11,7 +11,9 @@
 	        </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
 	    <encoder>
-	      <pattern>%msg%n</pattern>
+	      <!-- pattern>%msg%n</pattern-->
+	      <!-- pattern>%d %-5p [%t] %C (%F:%L) - %m%n</pattern-->
+	      <pattern>%d %-5p ==> %msg%n</pattern>
 	    </encoder>
 	</appender>
 

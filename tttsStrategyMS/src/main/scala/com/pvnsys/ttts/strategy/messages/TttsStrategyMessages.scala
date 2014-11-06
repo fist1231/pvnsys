@@ -1,5 +1,7 @@
 package com.pvnsys.ttts.strategy.messages
 
+import akka.actor.ActorRef
+
 object TttsStrategyMessages {
   
 	val FEED_REQUEST_MESSAGE_TYPE = "FEED_REQ"
@@ -14,8 +16,15 @@ object TttsStrategyMessages {
 	case object StartStrategyServiceMessage extends TttsStrategyMessage
 	case object StopStrategyServiceMessage extends TttsStrategyMessage
 
+	// ======= Deprecated and will be removed soon
 	case object StartListeningFacadeTopicMessage extends TttsStrategyMessage
 	case object StartListeningServicesTopicMessage extends TttsStrategyMessage
+	// =======
+	
+	case class StartListeningStrategyRequestFlowFacadeTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
+	case class StartListeningStrategyRequestFlowServicesTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
+	case class StartListeningFeedResponseToFacadeFlowServicesTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
+	case class StartListeningFeedResponseToServicesFlowServicesTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
 	
 	case object StartKafkaServicesTopicConsumerMessage extends TttsStrategyMessage
 

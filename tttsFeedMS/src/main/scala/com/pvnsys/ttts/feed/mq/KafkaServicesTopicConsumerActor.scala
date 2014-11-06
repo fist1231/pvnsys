@@ -12,14 +12,15 @@ import akka.actor.SupervisorStrategy.{Restart, Stop}
 import spray.json._
 
 
-object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val servicesTopicMessageFormat = jsonFormat6(ServicesTopicMessage)
-}
-
 object KafkaServicesTopicConsumerActor {
 //  def props(address: InetSocketAddress, groupName: Option[String]) = Props(new KafkaConsumerActor(address, groupName))
   def props(toWhom: ActorRef) = Props(new KafkaServicesTopicConsumerActor(toWhom))
 }
+
+object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
+  implicit val servicesTopicMessageFormat = jsonFormat6(ServicesTopicMessage)
+}
+
 
 /**
  * This actor will register itself to consume messages from the AkkaMQ server. 

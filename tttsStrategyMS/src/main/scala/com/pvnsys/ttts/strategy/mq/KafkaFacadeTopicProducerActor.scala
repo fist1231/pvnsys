@@ -31,6 +31,10 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
   
 	
   override def receive = {
+    /*
+     * KafkaFacadeTopicProducerActor sends out only one message type: 
+     * 1. STRATEGY_RESP of ResponseStrategyFacadeTopicMessage
+     */ 
     case msg: ResponseStrategyFacadeTopicMessage => {
       produceKafkaMsg(msg)
       self ! StopMessage
@@ -38,7 +42,7 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
     case StopMessage => {
       self ! PoisonPill
     }
-    case msg => log.error(s"Received unknown message $msg")
+    case msg => log.error(s"KafkaFacadeTopicProducerActor received unknown message $msg")
   }
   
   override def postStop() = {
@@ -47,11 +51,11 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
   
   def produceKafkaMsg(msg: ResponseStrategyFacadeTopicMessage) = {
     log.debug("KafkaFacadeTopicProducerActor publishing message to Kafka Facade Topic: {}", msg)
-	val props = new Properties();
-	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
-	props.put("serializer.class", Configuration.serializerClassProducer);
+	val props = new Properties()
+	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
+	props.put("serializer.class", Configuration.serializerClassProducer)
 
-	val producer = new Producer[Integer, String](new ProducerConfig(props));
+	val producer = new Producer[Integer, String](new ProducerConfig(props))
     val topic = Configuration.facadeTopic 
 
     // Convert RequestFacadeMessage back to JsValue

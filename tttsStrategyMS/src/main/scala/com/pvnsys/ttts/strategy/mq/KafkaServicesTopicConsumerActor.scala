@@ -10,17 +10,25 @@ import scala.collection.JavaConversions._
 import com.pvnsys.ttts.strategy.Configuration
 import akka.actor.SupervisorStrategy.{Restart, Stop}
 import spray.json._
+import akka.event.LogSource
+import akka.event.Logging
+
+
+object KafkaServicesTopicConsumerActor {
+//  def props(address: InetSocketAddress, groupName: Option[String]) = Props(new KafkaConsumerActor(address, groupName))
+  def props(toWhom: ActorRef) = Props(new KafkaServicesTopicConsumerActor(toWhom))
+
+  implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {
+    def genString(o: AnyRef): String = o.getClass.getName
+    override def getClazz(o: AnyRef): Class[_] = o.getClass
+  }
+}
 
 
 object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
   implicit val servicesTopicMessageFormat = jsonFormat7(ServicesTopicMessage)
   implicit val responseFeedServicesTopicMessageFormat = jsonFormat6(ResponseFeedServicesTopicMessage)
   implicit val requestStrategyServicesTopicMessageFormat = jsonFormat6(RequestStrategyServicesTopicMessage)
-}
-
-object KafkaServicesTopicConsumerActor {
-//  def props(address: InetSocketAddress, groupName: Option[String]) = Props(new KafkaConsumerActor(address, groupName))
-  def props(toWhom: ActorRef) = Props(new KafkaServicesTopicConsumerActor(toWhom))
 }
 
 /**
@@ -33,7 +41,9 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 	import KafkaServicesTopicConsumerActorJsonProtocol._
 	import TttsStrategyMessages._
 	
-    override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
+	override val log = Logging(context.system, this)	
+    
+	override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
       log.error("KafkaServicesTopicConsumerActor Unexpected failure: {}", e.getMessage)
       Restart
@@ -57,9 +67,10 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 		}
 		case StartListeningServicesTopicMessage => {
 			log.debug(s"Start Listening in KafkaServicesTopicConsumerActor")
+//			log.debug(template, arg1, arg2, arg3, arg4)
 			startListening()
 		}
-		case _ => log.error("KafkaServicesTopicConsumerActor Received unknown message")
+		case m => log.error("KafkaServicesTopicConsumerActor Received unknown message: {}", m)
 	}
 	
 	
@@ -88,16 +99,26 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 				    val msgJsonObj = mess.parseJson
 			        val msgStr = msgJsonObj.compactPrint
 
+					/*
+					 * KafkaServicesTopicConsumerActor listens for only three message types: 
+					 * 1. FEED_RESPONSE_MESSAGE_TYPE of ResponseFeedServicesTopicMessage
+					 * 2. STRATEGY_REQUEST_MESSAGE_TYPE of RequestStrategyServicesTopicMessage
+					 * 3. STRATEGY_STOP_REQUEST_MESSAGE_TYPE of RequestStrategyServicesTopicMessage
+					 */ 
 			        if(msgStr.contains(FEED_RESPONSE_MESSAGE_TYPE)) {
 			        	val responseServicesMessage = msgJsonObj.convertTo[ResponseFeedServicesTopicMessage]
-			        	log.debug("Strategy KafkaServicesTopicConsumerActor received ResponseFeedServicesTopicMessage from Kafka Services Topic: {}", responseServicesMessage)
+			        	log.debug("KafkaServicesTopicConsumerActor received FEED_RESPONSE_MESSAGE_TYPE from Kafka Services Topic: {}", responseServicesMessage)
 			        	consumer.handleDelivery(responseServicesMessage)
-			        }
-			        if(msgStr.contains(STRATEGY_REQUEST_MESSAGE_TYPE)) {
+			        } else if(msgStr.contains(STRATEGY_REQUEST_MESSAGE_TYPE)) {
 			        	val requestServicesMessage = msgJsonObj.convertTo[RequestStrategyServicesTopicMessage]
-			        	log.debug("Strategy KafkaServicesTopicConsumerActor received RequestStrategyServicesTopicMessage from Kafka Services Topic: {}", requestServicesMessage)
+			        	log.debug("KafkaServicesTopicConsumerActor received STRATEGY_REQUEST_MESSAGE_TYPE from Kafka Services Topic: {}", requestServicesMessage)
 			        	consumer.handleDelivery(requestServicesMessage)
-
+			        } else if(msgStr.contains(STRATEGY_STOP_REQUEST_MESSAGE_TYPE)) {
+			        	val requestServicesMessage = msgJsonObj.convertTo[RequestStrategyServicesTopicMessage]
+			        	log.debug("KafkaServicesTopicConsumerActor received STRATEGY_STOP_REQUEST_MESSAGE_TYPE from Kafka Services Topic: {}", requestServicesMessage)
+			        	consumer.handleDelivery(requestServicesMessage)
+				    } else {
+			        	log.debug("KafkaServicesTopicConsumerActor skipping UNKNOWN message type from Kafka Services Topic: {}", msgStr)
 				    }
 				    
 			        
@@ -110,7 +131,7 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 //				    }
 		      }
 		} catch {
-		  case e: Throwable => log.error("Error processing message, stop consuming: " + e)
+		  case e: Throwable => log.error("KafkaServicesTopicConsumerActor Error processing message, stop consuming: " + e)
 		}
 	  
 	}

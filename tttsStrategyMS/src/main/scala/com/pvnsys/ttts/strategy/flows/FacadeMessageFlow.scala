@@ -19,7 +19,7 @@ object FacadeMessageFlow extends LazyLogging {
 
   type facadeMessageFlowOutDuctType = (String, Producer[RequestStrategyFacadeTopicMessage])
   
-  def apply(): Duct[FacadeTopicMessage, facadeMessageFlowOutDuctType] = Duct[FacadeTopicMessage].
+  def apply(): Duct[RequestStrategyFacadeTopicMessage, facadeMessageFlowOutDuctType] = Duct[RequestStrategyFacadeTopicMessage].
 	    // acknowledge and pass on
 	    map { msg =>
 	      val z = msg.msgType 
@@ -69,7 +69,7 @@ class FacadeMessageFlow(strategyFacadeActor: ActorRef)(implicit context: ActorCo
 					    case STRATEGY_REQUEST_MESSAGE_TYPE => {
 					    	logger.debug("Got STRATEGY_REQ. Key {}", msg.client)	          
 						    val strategyExecutorActor = context.actorOf(Props(classOf[StrategyExecutorActor]))
-						    logger.debug("Starting Strategy Generator Actor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
+						    logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
 						    strategies += (msg.client -> strategyExecutorActor)
 						    strategyExecutorActor ! msg
 					    }
@@ -79,11 +79,12 @@ class FacadeMessageFlow(strategyFacadeActor: ActorRef)(implicit context: ActorCo
 					    	
 					        strategies.get(msg.client) match {
 							  case Some(strategyExecutorActor) => {
-							    logger.debug("Stopping Strategy Generator Actor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
+							    logger.debug("Stopping StrategyExecutorActor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
+							    strategyExecutorActor ! msg
 							    strategyExecutorActor ! StopStrategyExecutorMessage
 							    strategies -= msg.client 
 							  }
-							  case None => logger.debug("No such TttsStrategyService strategy to stop. Key {}", msg.client)
+							  case None => logger.debug("No such StrategyExecutorActor strategy to stop. Key {}", msg.client)
 							}
 					    }
 				  }

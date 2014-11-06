@@ -7,7 +7,7 @@ import akka.stream.actor.ActorProducer
 import scala.concurrent.duration._
 import com.pvnsys.ttts.feed.mq.KafkaFacadeTopicConsumerActor
 import com.typesafe.scalalogging.slf4j.LazyLogging
-import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartFeedServiceMessage, StopFeedServiceMessage, StartListeningFacadeTopicMessage, FacadeTopicMessage, RequestFeedFacadeTopicMessage, TttsFeedMessage}
+import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartFeedServiceMessage, StopFeedServiceMessage, StartListeningFacadeTopicMessage, StartListeningServicesTopicMessage, FacadeTopicMessage, RequestFeedFacadeTopicMessage, TttsFeedMessage}
 import spray.json._
 import org.reactivestreams.api.Producer
 import com.pvnsys.ttts.feed.mq.{KafkaFacadeTopicConsumerActor, KafkaServicesTopicConsumerActor}
@@ -59,7 +59,7 @@ class TttsFeedService extends Actor with ActorLogging {
 		// Start Kafka consumer actor for incoming messages from Services Topic
 		val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(feedServicesActor), "kafkaServicesConsumer")
 //		log.debug("+++++++ KafkaServicesTopicConsumerActor tttsFeedActorSystem is: {}", kafkaServicesTopicConsumerActor)
-		kafkaServicesTopicConsumerActor ! StartListeningFacadeTopicMessage
+		kafkaServicesTopicConsumerActor ! StartListeningServicesTopicMessage
 		  
 
 		/*

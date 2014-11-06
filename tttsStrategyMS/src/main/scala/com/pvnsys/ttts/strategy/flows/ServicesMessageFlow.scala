@@ -18,9 +18,9 @@ import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
 object ServicesMessageFlow extends LazyLogging {
 
   import TttsStrategyMessages._
-  type servicesMessageFlowOutDuctType = (String, Producer[ServicesTopicMessage])
+  type servicesMessageFlowOutDuctType = (String, Producer[ResponseFeedServicesTopicMessage])
   
-  def apply(): Duct[ServicesTopicMessage, servicesMessageFlowOutDuctType] = Duct[ServicesTopicMessage].
+  def apply(): Duct[ResponseFeedServicesTopicMessage, servicesMessageFlowOutDuctType] = Duct[ResponseFeedServicesTopicMessage].
 	    // acknowledge and pass on
 	    map { msg =>
 	      val z = msg.msgType 
@@ -40,7 +40,7 @@ object ServicesMessageFlow extends LazyLogging {
 	    }.
 	    
 	    groupBy {
-	      case msg: TttsStrategyMessage => "Outloop"
+	      case msg: ResponseFeedServicesTopicMessage => "Outloop"
 	    }
   
 }
@@ -59,8 +59,8 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef)(implicit context: Act
   	val servicesMessageDuct = ServicesMessageFlow()
   	
 	val strategies = mutable.Map[String, ActorRef]()
-	val strategyPublisherDuct: Duct[ServicesTopicMessage, Unit] = 
-			Duct[ServicesTopicMessage] foreach {msg =>
+	val strategyPublisherDuct: Duct[ResponseFeedServicesTopicMessage, Unit] = 
+			Duct[ResponseFeedServicesTopicMessage] foreach {msg =>
 				  /*
 				   * For every new feed request add client -> feedActor to the Map
 				   * For every feed termination request, find feedActor in the Map, stop it and remove entry from the Map 
@@ -69,7 +69,7 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef)(implicit context: Act
 					    case STRATEGY_REQUEST_MESSAGE_TYPE => {
 					    	logger.debug("Got STRATEGY_REQUEST_MESSAGE_TYPE. Key {}", msg.client)	          
 						    val strategyExecutorActor = context.actorOf(Props(classOf[StrategyExecutorActor]))
-						    logger.debug("Starting Feed Generator Actor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
+						    logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
 						    strategies += (msg.client -> strategyExecutorActor)
 						    strategyExecutorActor ! msg
 					    }
@@ -79,7 +79,8 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef)(implicit context: Act
 					    	
 					        strategies.get(msg.client) match {
 							  case Some(strategyExecActor) => {
-							    logger.debug("Stopping Strategy Executor Actor. Key {}; ActorRef {}", msg.client, strategyExecActor)
+							    logger.debug("Stopping StrategyExecutorActor. Key {}; ActorRef {}", msg.client, strategyExecActor)
+							    strategyExecActor ! msg
 							    strategyExecActor ! StopStrategyExecutorMessage
 							    strategies -= msg.client 
 							  }
@@ -89,7 +90,7 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef)(implicit context: Act
 					    case FEED_RESPONSE_MESSAGE_TYPE => {
 					    	logger.debug("Got FEED_RESPONSE_MESSAGE_TYPE. Key {}", msg.client)	          
 						    val strategyExecutorActor = context.actorOf(Props(classOf[StrategyExecutorActor]))
-						    logger.debug("Starting Feed Generator Actor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
+						    logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
 //						    strategies += (msg.client -> strategyExecutorActor)
 						    strategyExecutorActor ! msg
 					    }

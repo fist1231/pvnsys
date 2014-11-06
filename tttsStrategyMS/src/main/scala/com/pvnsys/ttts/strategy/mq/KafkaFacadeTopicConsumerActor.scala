@@ -10,16 +10,25 @@ import scala.collection.JavaConversions._
 import com.pvnsys.ttts.strategy.Configuration
 import akka.actor.SupervisorStrategy.{Restart, Stop}
 import spray.json._
+//import akka.event.LogSource
+//import akka.event.Logging
+
+
+object KafkaFacadeTopicConsumerActor {
+//  def props(address: InetSocketAddress, groupName: Option[String]) = Props(new KafkaConsumerActor(address, groupName))
+  def props(toWhom: ActorRef) = Props(new KafkaFacadeTopicConsumerActor(toWhom))
+
+//  implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {
+//    def genString(o: AnyRef): String = o.getClass.getName
+//    override def getClazz(o: AnyRef): Class[_] = this.getClazz(o)
+//  }
+}
 
 
 object KafkaFacadeTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
   implicit val facadeTopicMessageFormat = jsonFormat6(FacadeTopicMessage)
 }
 
-object KafkaFacadeTopicConsumerActor {
-//  def props(address: InetSocketAddress, groupName: Option[String]) = Props(new KafkaConsumerActor(address, groupName))
-  def props(toWhom: ActorRef) = Props(new KafkaFacadeTopicConsumerActor(toWhom))
-}
 
 /**
  * This actor will register itself to consume messages from the Kafka server. 
@@ -31,6 +40,8 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 	import context._
 	import KafkaFacadeTopicConsumerActorJsonProtocol._
 	import TttsStrategyMessages._
+
+//	override val log = Logging(context.system, this)
 	
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
@@ -68,7 +79,7 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 	
 	private def register(consumer: DefaultKafkaConsumer): Unit = {
 
-		val groupId = Configuration.facadeGroupId
+	    val groupId = Configuration.facadeGroupId
 		val prps = new Properties()
 		prps.put("group.id", groupId)
 		prps.put("socket.buffer.size", Configuration.socketBufferSizeConsumer)
@@ -98,16 +109,21 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 				    }
 		      }
 		} catch {
-		  case e: Throwable => log.error("Error processing message, stop consuming: " + e)
+		  case e: Throwable => log.error("KafkaFacadeTopicConsumerActor Error processing message, stop consuming: " + e)
 		}
 	  
 	}
 	
 	private def matchRequest(message: FacadeTopicMessage): Option[FacadeTopicMessage] = message.msgType match {
+		/*
+		 * KafkaFacadeTopicConsumerActor listens for only two message types: 
+		 * 1. STRATEGY_REQUEST_MESSAGE_TYPE of RequestStrategyFacadeTopicMessage of FacadeTopicMessage
+		 * 2. STRATEGY_STOP_REQUEST_MESSAGE_TYPE of RequestStrategyFacadeTopicMessage of FacadeTopicMessage
+		 */ 
 		case STRATEGY_REQUEST_MESSAGE_TYPE => Some(message)
 		case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => Some(message)
-		case _ => {
-			log.debug("KafkaFacadeTopicConsumerActorJsonProtocol - not Strategy Service request, skipping Kafka message") 
+		case m => {
+			log.debug("KafkaFacadeTopicConsumerActor - not Strategy Request Message from Facade Topic, skipping Kafka message: {}", m) 
 			None
 		}
 	}
