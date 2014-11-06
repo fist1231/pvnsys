@@ -2,7 +2,7 @@ package com.pvnsys.ttts.strategy.mq
 
 import akka.actor.{Actor, ActorRef, ActorLogging, Props, AllForOneStrategy}
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
-import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.{StartListeningServicesTopicMessage, ServicesTopicMessage, RequestStrategyServicesTopicMessage, TttsStrategyMessage}
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.{StartListeningServicesTopicMessage, ServicesTopicMessage, RequestStrategyServicesTopicMessage, TttsStrategyMessage, ResponseFeedServicesTopicMessage}
 import kafka.consumer.ConsumerConfig
 import java.util.Properties
 import kafka.consumer.Consumer
@@ -14,6 +14,8 @@ import spray.json._
 
 object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
   implicit val servicesTopicMessageFormat = jsonFormat7(ServicesTopicMessage)
+  implicit val responseFeedServicesTopicMessageFormat = jsonFormat6(ResponseFeedServicesTopicMessage)
+  implicit val requestStrategyServicesTopicMessageFormat = jsonFormat6(RequestStrategyServicesTopicMessage)
 }
 
 object KafkaServicesTopicConsumerActor {
@@ -85,13 +87,27 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 				    val mess = new String(arr.message, "UTF-8")
 				    val msgJsonObj = mess.parseJson
 			        val msgStr = msgJsonObj.compactPrint
-				    
-				    val servicesTopicMessage = msgJsonObj.convertTo[ServicesTopicMessage]
-				    log.debug("KafkaServicesTopicConsumerActor received message from Kafka Services Topic: {}", servicesTopicMessage)
-				    matchRequest(servicesTopicMessage) match {
-				      case Some(servicesTopicMessage) => consumer.handleDelivery(servicesTopicMessage)
-				      case None => "Lets do nothing"
+
+			        if(msgStr.contains(FEED_RESPONSE_MESSAGE_TYPE)) {
+			        	val responseServicesMessage = msgJsonObj.convertTo[ResponseFeedServicesTopicMessage]
+			        	log.debug("Strategy KafkaServicesTopicConsumerActor received ResponseFeedServicesTopicMessage from Kafka Services Topic: {}", responseServicesMessage)
+			        	consumer.handleDelivery(responseServicesMessage)
+			        }
+			        if(msgStr.contains(STRATEGY_REQUEST_MESSAGE_TYPE)) {
+			        	val requestServicesMessage = msgJsonObj.convertTo[RequestStrategyServicesTopicMessage]
+			        	log.debug("Strategy KafkaServicesTopicConsumerActor received RequestStrategyServicesTopicMessage from Kafka Services Topic: {}", requestServicesMessage)
+			        	consumer.handleDelivery(requestServicesMessage)
+
 				    }
+				    
+			        
+			        
+//				    val servicesTopicMessage = msgJsonObj.convertTo[ServicesTopicMessage]
+//				    log.debug("KafkaServicesTopicConsumerActor received message from Kafka Services Topic: {}", servicesTopicMessage)
+//				    matchRequest(servicesTopicMessage) match {
+//				      case Some(servicesTopicMessage) => consumer.handleDelivery(servicesTopicMessage)
+//				      case None => "Lets do nothing"
+//				    }
 		      }
 		} catch {
 		  case e: Throwable => log.error("Error processing message, stop consuming: " + e)
@@ -99,14 +115,15 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 	  
 	}
 	
-  private def matchRequest(message: ServicesTopicMessage): Option[ServicesTopicMessage] = message.msgType match {
-  	  case STRATEGY_REQUEST_MESSAGE_TYPE => Some(message)
-  	  case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => Some(message)
-  	  case _ => {
-  	    log.debug("KafkaServicesTopicConsumerActorJsonProtocol - not Strategy Service request, skipping Kafka message") 
-  	    None
-  	  }
-  }
+//  private def matchRequest(message: ServicesTopicMessage): Option[ServicesTopicMessage] = message.msgType match {
+//  	  case STRATEGY_REQUEST_MESSAGE_TYPE => Some(message)
+//  	  case FEED_RESPONSE_MESSAGE_TYPE => Some(message)
+////  	  case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => Some(message)
+//  	  case _ => {
+//  	    log.debug("KafkaServicesTopicConsumerActorJsonProtocol - not Strategy Service request, skipping Kafka message") 
+//  	    None
+//  	  }
+//  }
 	
    
 	override def postStop() = {}

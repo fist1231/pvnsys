@@ -39,7 +39,7 @@ class TttsStrategyService extends Actor with ActorLogging {
 		val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(strategyFacadeActor), "strategyKafkaFacadeConsumer")
 		kafkaFacadeTopicConsumerActor ! StartListeningFacadeTopicMessage
 		
-		val strategyServicesActor = context.actorOf(Props(classOf[StrategyActor]), "feedServicesConsumer")
+		val strategyServicesActor = context.actorOf(Props(classOf[StrategyActor]), "strategyServicesConsumer")
 		
 		// Start Kafka consumer actor for incoming messages from Services Topic
 		val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(strategyServicesActor), "strategyKafkaServicesConsumer")

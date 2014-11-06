@@ -27,7 +27,6 @@ class StrategyActor extends ActorProducer[TttsStrategyMessage] with ActorLogging
 	override def receive = {
 		case msg: FacadeTopicMessage => 
 			  log.debug(s"StrategyActor, Gettin FacadeTopicMessage: {} - {}", msg.client, msg.msgType)
-//			  throw new CustomException("WTFWTFWTFWTF????????????")
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {
@@ -37,7 +36,6 @@ class StrategyActor extends ActorProducer[TttsStrategyMessage] with ActorLogging
 		
 		case msg: ServicesTopicMessage => 
 			  log.debug(s"StrategyActor, Gettin ServicesTopicMessage: {} - {}", msg.client, msg.msgType)
-//			  throw new CustomException("WTFWTFWTFWTF????????????")
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {

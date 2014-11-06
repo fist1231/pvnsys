@@ -98,13 +98,13 @@ class FakeFeedActor extends Actor with ActorLogging {
 		    
 		    msg match {
 				case msg: RequestFeedFacadeTopicMessage => {
-			    	val fakeQuote = "%.2f".format(Random.nextFloat() + 22)
+			    	val fakeQuote = "%.2d".format(Random.nextDouble() + 22)
 				    val fakeMessage = ResponseFeedFacadeTopicMessage(messageTraits._1, FEED_RESPONSE_MESSAGE_TYPE, msg.client , s"$fakeQuote", messageTraits._2, s"$counter")
 				    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
 				    kafkaFacadeTopicProducerActor ! fakeMessage
 				}
 				case msg: RequestFeedServicesTopicMessage => {
-			    	val fakeQuote = "%.2f".format(Random.nextFloat() + 55)
+			    	val fakeQuote = "%.2d".format(Random.nextDouble() + 55)
 				    val fakeMessage = ResponseFeedServicesTopicMessage(messageTraits._1, FEED_RESPONSE_MESSAGE_TYPE, msg.client , s"$fakeQuote", messageTraits._2, s"$counter")
 				    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
 				    kafkaServicesTopicProducerActor ! fakeMessage

@@ -78,9 +78,9 @@ class FacadeMessageFlow(strategyFacadeActor: ActorRef)(implicit context: ActorCo
 //					    	feeds.foreach { case (key, value) => logger.debug(" key: {} ==> value: {}", key, value) }
 					    	
 					        strategies.get(msg.client) match {
-							  case Some(strategyExecActor) => {
-							    logger.debug("Stopping Strategy Generator Actor. Key {}; ActorRef {}", msg.client, strategyExecActor)
-							    strategyExecActor ! StopStrategyExecutorMessage
+							  case Some(strategyExecutorActor) => {
+							    logger.debug("Stopping Strategy Generator Actor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
+							    strategyExecutorActor ! StopStrategyExecutorMessage
 							    strategies -= msg.client 
 							  }
 							  case None => logger.debug("No such TttsStrategyService strategy to stop. Key {}", msg.client)
@@ -93,11 +93,6 @@ class FacadeMessageFlow(strategyFacadeActor: ActorRef)(implicit context: ActorCo
   	
 	override def startFlow() = Flow(strategyFacadeConsumer) append facadeMessageDuct map {
 		case (str, producer) => 
-	//		  	log.debug("~~~~~~~ And inside the main Flow is: {}", producer)
-	// For every message start new Flow that produces feed
-	//		  	val kafkaProducerActor = context.actorOf(KafkaProducerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
-	//		  	kafkaProducerActor ! msg
-		
 		// start a new flow for each message type
 		Flow(producer)
 			// extract the client
