@@ -1,10 +1,7 @@
 ## PVN Systems TTTS Strategy Service
 
-Do not add real strategy code to this project.
-This is a template project, make a copy and rename first.
+This is a template Strategy project, requires real stategy algo implementation of com.pvnsys.ttts.strategy.impl.Strategy trait in com.pvnsys.ttts.strategy.impl package.
 
-Or to use existing .classpath add USERPROFILE_HOME=c:\Users\{username} to Eclipse variables. 
-c:\Users\{username} is a USERPROFILE windows variable, or correspondent Linux variable
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
