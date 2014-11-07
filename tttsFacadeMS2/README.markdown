@@ -28,21 +28,21 @@ Prerequisites: java, sbt, gradle.
 
 4. Edit JAVA_HOME and PATH in setEnv.cmd
 
-5. Run 
+5. Run environment setup: 
 
-	$ setEnv.cmd
+		$ setEnv.cmd
 
 6. Have running Zookeeper on localhost:2181 (see instructions in help.me for details):
 	
-	$ zookeeper-server-start.bat ..\..\config\zookeeper.properties
+		$ zookeeper-server-start.bat ..\..\config\zookeeper.properties
 	
 7. Have running Kafka server on localhost:9092 (see instructions in help.me for details):
 	
-	$ kafka-server-start.bat ..\..\config\server.properties
+		$ kafka-server-start.bat ..\..\config\server.properties
 
 8.	Build and run TttsFacadeMS2 with SBT (or see MISC to how build and run an assembly jar):
 
-	$ sbt clean compile run
+		$ sbt clean compile run
 
 9.	Have TttsFeedMS and TttsStrategyMS built and running. See instructions in correspondent projects.
 
@@ -54,15 +54,15 @@ MISC:
         
 1. Generate eclipse project files: 
 
-	$ sbt elipse    
+		$ sbt elipse    
 
 2. Packaging: 
 
-	$ sbt assembly
+		$ sbt assembly
 
 3. Run packaged jar: 
 
-	$ tttsFacadeMS2/target/scala-{VERSION}/java -jar ttts-facade-microservice-assembly-1.0.jar        
+		$ tttsFacadeMS2/target/scala-{VERSION}/java -jar ttts-facade-microservice-assembly-1.0.jar        
     
-4. Learn more at https://www.pvnsys.com/
+4. Learn more at https://www.pvnsys.com/ (TBD)
 
