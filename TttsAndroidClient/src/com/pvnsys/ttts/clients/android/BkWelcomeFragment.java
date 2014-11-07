@@ -40,6 +40,9 @@ public class BkWelcomeFragment extends Fragment {
 			           case R.id.begin_button_button:
 			        	   showNameDialog();
 			              break;
+//			           case R.id.begin_strategy_button:
+//			        	   showNameDialog();
+//			              break;
 			           case R.id.help_button_button:
 			        	   startHelpFragment();   
 			              break;
@@ -53,6 +56,7 @@ public class BkWelcomeFragment extends Fragment {
 		};
 		
 		fragmentView.findViewById(R.id.begin_button_button).setOnClickListener(welcomeListener);
+//		fragmentView.findViewById(R.id.begin_strategy_button).setOnClickListener(welcomeListener);
 		fragmentView.findViewById(R.id.help_button_button).setOnClickListener(welcomeListener);
 		fragmentView.findViewById(R.id.exit_button_button).setOnClickListener(welcomeListener);
 

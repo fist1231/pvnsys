@@ -16,4 +16,21 @@
         android:inputType="textCapWords"
         android:maxLength="25" />
 
+    <RadioGroup android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical">
+		    <RadioButton
+		        android:id="@+id/feed_rb"
+		        android:layout_width="158dp"
+		        android:layout_height="wrap_content"
+		        android:checked="true"
+		        android:text="@string/feed" />
+		
+		    <RadioButton
+		        android:id="@+id/strategy_rb"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:text="@string/strategy" />
+	 </RadioGroup>
+
 </LinearLayout>

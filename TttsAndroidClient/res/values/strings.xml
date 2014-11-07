@@ -17,6 +17,8 @@
     <string name="connection_string">192.168.1.4:6969</string>
     <string name="connection_dialog_title">Connection String</string>
     <string name="connection_string_message">Please enter IP and Port:</string>
+    <string name="feed">Feed</string>
+    <string name="strategy">Strategy</string>
     
     <color name="green">#306754</color>
     <color name="grey">#199119</color>

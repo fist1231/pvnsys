@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Chronometer;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.pvnsys.ttts.clients.android.ConnectionParametersDialogFragment.ConnectionParametersDialogListener;
@@ -79,6 +80,10 @@ public class TttsAndroidClient extends FragmentActivity implements ConnectionPar
 	public void onDialogPositiveClick(DialogFragment dialog) {
 		EditText et = (EditText)dialog.getDialog().findViewById(R.id.connection_parameter);
 		String connectionParameter = et.getText().toString().trim();
+
+		boolean isFeed = true;
+		RadioButton rbFeed = (RadioButton)dialog.getDialog().findViewById(R.id.feed_rb);
+		isFeed = rbFeed.isChecked();
 		
 		BkWelcomeFragment actionFragment = (BkWelcomeFragment)getFragmentManager().findFragmentById(R.id.fragment_container);
 		if(actionFragment != null) {
@@ -97,7 +102,11 @@ public class TttsAndroidClient extends FragmentActivity implements ConnectionPar
 				Toast toastWin = Toast.makeText(this.getApplicationContext(), string, Toast.LENGTH_SHORT);
 				toastWin.show();
 			} else {
-				startMainActionFragment(connectionParameter);
+				if(isFeed) {
+					 startMainActionFragment(connectionParameter);
+				} else {
+					 startStrategyFragment(connectionParameter);
+				}
 			}
 		} else {
 			storeConnectionParmeter(connectionParameter);
@@ -126,6 +135,21 @@ public class TttsAndroidClient extends FragmentActivity implements ConnectionPar
 			fragment = new BkActionFragment();
 			Bundle bundle = new Bundle();
 			bundle.putString(BkActionFragment.CONNECTION_STRING_KEY, connectionParameter);
+			fragment.setArguments(bundle);
+		}
+		FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+		fragmentTransaction.replace(R.id.fragment_container, fragment);
+		fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+		fragmentTransaction.addToBackStack(null);
+		fragmentTransaction.commit();
+	}
+
+	void startStrategyFragment(String connectionParameter) {
+		StrategyFragment fragment = (StrategyFragment)getFragmentManager().findFragmentById(R.layout.strategy_fragment);
+		if(fragment == null) {
+			fragment = new StrategyFragment();
+			Bundle bundle = new Bundle();
+			bundle.putString(StrategyFragment.CONNECTION_STRING_KEY, connectionParameter);
 			fragment.setArguments(bundle);
 		}
 		FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
