@@ -1,6 +1,4 @@
 /target
 /bin/
-/.classpath
-/setEnv.cmd
 /log/
 /.cache
