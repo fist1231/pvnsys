@@ -81,7 +81,7 @@ class FacadeMessageFlow(strategyFacadeActor: ActorRef, serviceUniqueID: String)(
 							  case Some(strategyExecutorActor) => {
 							    logger.debug("Stopping StrategyExecutorActor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
 							    strategyExecutorActor ! msg
-							    strategyExecutorActor ! StopStrategyExecutorMessage
+//							    strategyExecutorActor ! StopStrategyExecutorMessage
 							    strategies -= msg.client 
 							  }
 							  case None => logger.debug("No such StrategyExecutorActor strategy to stop. Key {}", msg.client)

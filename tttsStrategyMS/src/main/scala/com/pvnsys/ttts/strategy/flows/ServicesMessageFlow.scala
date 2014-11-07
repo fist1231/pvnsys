@@ -103,7 +103,7 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
 								  case Some(strategyExecActor) => {
 								    logger.debug("Stopping StrategyExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[RequestStrategyServicesTopicMessage].client, strategyExecActor)
 								    strategyExecActor ! x
-								    strategyExecActor ! StopStrategyExecutorMessage
+//								    strategyExecActor ! StopStrategyExecutorMessage
 								    strategies -= x.asInstanceOf[RequestStrategyServicesTopicMessage].client 
 								  }
 								  case None => logger.debug("No such Strategy to stop. Key {}", x.asInstanceOf[RequestStrategyServicesTopicMessage].client)
