@@ -24,7 +24,7 @@ Prerequisites: java, sbt, gradle.
 
 3. Change directory into your clone:
 
-        $ cd pvnsys/tttsFacadeMS
+        $ cd pvnsys/tttsFacadeMS2
 
 4. Edit JAVA_HOME and PATH in setEnv.cmd
 
@@ -55,6 +55,10 @@ MISC:
 1. Generate eclipse project files: 
 
 		$ sbt elipse    
+		
+Or to use existing .classpath add USERPROFILE_HOME=c:\Users\{username} to Eclipse variables. 
+c:\Users\{username} is a USERPROFILE windows variable, or correspondent Linux variable
+		
 
 2. Packaging: 
 

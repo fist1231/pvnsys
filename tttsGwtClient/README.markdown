@@ -2,28 +2,40 @@
 
 Follow these steps to get started:
 
-1. Have Kafka, TttsFacadeMS, TttsFeedMS (read TttsFacadeMS instructions on how to start them)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-2. Have gradle installed
+Prerequisites: TttsFacadeMS, TttsFeedMS and TttsStrategyMS must be running.
 
-3. Change directory into your project:
+See:
+	- tttsFacadeMS2/README.markdown
+	- tttsFeedMS/README.markdown
+	- tttsStrategyMS/README.markdown
+for instructions. 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+1. Have gradle installed
+
+2. Change directory into your project:
 
         $ cd pvnsys/tttsGwtClient
 
-4. Edit JAVA_HOME and PATH in setEnv.cmd
+3. Edit JAVA_HOME and PATH in setEnv.cmd
 
-5. Run setEnv.cmd
+4. Run setEnv.cmd
 
-6. Install missing libs, see readme.tst in tttsGwtClient/missinLib directory
+5. Install missing libs, see readme.tst in tttsGwtClient/missinLib directory
 
-7. Start the application:
+6. Start the application:
 
         $ gradle clean runJettyWar
 
-8. Browse to http://localhost:8080/tttsGwtClient
+7. Browse to http://localhost:8080/tttsGwtClient
 
-9. Generate eclipse project files: $ gradle elipse
+8. Generate eclipse project files: $ gradle elipse
 
-Or to use existing .classpath add USERPROFILE_HOME=c:\Userc\{username} to Eclipse variables. 
+Or to use existing .classpath add USERPROFILE_HOME=c:\Users\{username} to Eclipse variables. 
 c:\Userc\{username} is a USERPROFILE windows variable, or correspondent Linux variable
 
