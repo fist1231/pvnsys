@@ -16,43 +16,53 @@ Prerequisites: java, sbt, gradle.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-5. Build Kafka from sources against Scala 2.11.2. See tttsFacadeMS2/help.me for instructions
+1. Build Kafka from sources against Scala 2.11.2. See tttsFacadeMS2/help.me for instructions
 
-6. Git-clone source code.
+2. Git-clone source code.
 
         $ git clone https://github.com/fist1231/pvnsys.git
 
-7. Change directory into your clone:
+3. Change directory into your clone:
 
         $ cd pvnsys/tttsFacadeMS
 
-8. Edit JAVA_HOME and PATH in setEnv.cmd
+4. Edit JAVA_HOME and PATH in setEnv.cmd
 
-9. Run setEnv.cmd
+5. Run 
 
-10. Have running Zookeeper on localhost:2181:
-	zookeeper-server-start.bat ..\..\config\zookeeper.properties
-	(see instructions in help.me for details)
+	$ setEnv.cmd
 
-11. Have running Kafka server on localhost:9092:
-	kafka-server-start.bat ..\..\config\server.properties
-	(see instructions in help.me for details)
+6. Have running Zookeeper on localhost:2181 (see instructions in help.me for details):
+	
+	$ zookeeper-server-start.bat ..\..\config\zookeeper.properties
+	
+7. Have running Kafka server on localhost:9092 (see instructions in help.me for details):
+	
+	$ kafka-server-start.bat ..\..\config\server.properties
 
-12.	Build and run TttsFacadeMS2 with SBT:
+8.	Build and run TttsFacadeMS2 with SBT (or see MISC to how build and run an assembly jar):
 
-13.	Have TttsFeedMS and TttsStrategyMS built and running. See instructions in correspondent projects.
+	$ sbt clean compile run
 
-14. Browse to http://localhost:9696/
+9.	Have TttsFeedMS and TttsStrategyMS built and running. See instructions in correspondent projects.
 
-====================================================================
+10. Browse to http://localhost:9696/
 
-Misc:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MISC:
         
-15. Generate eclipse project files: $sbt elipse    
+1. Generate eclipse project files: 
 
-16. Packaging: sbt assembly
+	$ sbt elipse    
 
-17. Run packaged jar: tttsFacadeMS2/target/scala-{VERSION}/java -jar ttts-facade-microservice-assembly-1.0.jar        
+2. Packaging: 
+
+	$ sbt assembly
+
+3. Run packaged jar: 
+
+	$ tttsFacadeMS2/target/scala-{VERSION}/java -jar ttts-facade-microservice-assembly-1.0.jar        
     
-18. Learn more at https://www.pvnsys.com/
+4. Learn more at https://www.pvnsys.com/
 
