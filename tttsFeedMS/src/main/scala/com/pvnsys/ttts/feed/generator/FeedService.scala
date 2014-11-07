@@ -12,7 +12,7 @@ object FeedService {
   }
 
   def convertServicesMessage(msg: ServicesTopicMessage): RequestFeedServicesTopicMessage = {
-     RequestFeedServicesTopicMessage(msg.id, msg.msgType, msg.client, msg.payload, msg.timestamp, msg.sequenceNum)
+     RequestFeedServicesTopicMessage(msg.id, msg.msgType, msg.client, msg.payload, msg.timestamp, msg.sequenceNum, msg.serviceId)
   }
   
 }

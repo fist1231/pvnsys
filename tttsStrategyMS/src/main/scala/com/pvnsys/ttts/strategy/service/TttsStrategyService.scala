@@ -15,6 +15,7 @@ import com.pvnsys.ttts.strategy.generator.StrategyService
 import akka.actor.ActorRef
 import com.pvnsys.ttts.strategy.mq.StrategyActor
 import com.pvnsys.ttts.strategy.flows.{FacadeMessageFlow, ServicesMessageFlow}
+import com.pvnsys.ttts.strategy.util.Utils
 
 
 object TttsStrategyService extends LazyLogging {
@@ -25,44 +26,29 @@ class TttsStrategyService extends Actor with ActorLogging {
   import TttsStrategyService._
   import TttsStrategyMessages._
   
-  val commonVar: String = "sasfgs"
+  val serviceUniqueID = Utils.generateUuid
   
-//    override val supervisorStrategy = OneForOneStrategy(loggingEnabled = true) {
-//	    case e: Exception =>
-//	      log.error("TttsStrategyService Unexpected failure: {}", e.getMessage)
-//	      Restart
-//  	}
+    override val supervisorStrategy = OneForOneStrategy(loggingEnabled = true) {
+	    case e: Exception =>
+	      log.error("TttsStrategyService Unexpected failure: {}", e.getMessage)
+	      Restart
+  	}
   
     
     private def startService() = {
       
-//		val strategyFacadeActor = context.actorOf(Props(classOf[StrategyActor]), "strategyFacadeConsumer")
-//		
-//		// Start Kafka consumer actor for incoming messages from Facade Topic
-//		val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(strategyFacadeActor), "strategyKafkaFacadeConsumer")
-//		kafkaFacadeTopicConsumerActor ! StartListeningFacadeTopicMessage
-//		
-//		val strategyServicesActor = context.actorOf(Props(classOf[StrategyActor]), "strategyServicesConsumer")
-//		
-//		// Start Kafka consumer actor for incoming messages from Services Topic
-//		val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(strategyServicesActor), "strategyKafkaServicesConsumer")
-//		kafkaServicesTopicConsumerActor ! StartListeningServicesTopicMessage
-
-		val facadeStrategyRequestFlowStrategyActor = context.actorOf(Props(classOf[StrategyActor]), "facadeStrategyRequestFlowStrategyActor")
-		val servicesStrategyRequestFlowStrategyActor = context.actorOf(Props(classOf[StrategyActor]), "servicesStrategyRequestFlowStrategyActor")
-		val servicesFeedResponseToFacadeFlowStrategyActor = context.actorOf(Props(classOf[StrategyActor]), "servicesFeedResponseToFacadeFlowStrategyActor")
-		val servicesFeedResponseToServicesFlowStrategyActor = context.actorOf(Props(classOf[StrategyActor]), "servicesFeedResponseToServicesFlowStrategyActor")
-		// Start Kafka consumer actor for incoming messages from both Facade and Services Topics
-		val kafkaGenericConsumerActor = context.actorOf(Props(classOf[KafkaGenericConsumerActor]), "strategyKafkaConsumer")
-		log.debug("TttsStrategyService sending StartListeningStrategyRequestFlowFacadeTopicMessage to kafkaGenericConsumerActor")
-		kafkaGenericConsumerActor ! StartListeningStrategyRequestFlowFacadeTopicMessage(facadeStrategyRequestFlowStrategyActor)
-		log.debug("TttsStrategyService sending StartListeningStrategyRequestFlowFacadeTopicMessage to kafkaGenericConsumerActor")
-		kafkaGenericConsumerActor ! StartListeningStrategyRequestFlowServicesTopicMessage(servicesStrategyRequestFlowStrategyActor)
-		log.debug("TttsStrategyService sending StartListeningStrategyRequestFlowServicesTopicMessage to kafkaGenericConsumerActor")
-		kafkaGenericConsumerActor ! StartListeningFeedResponseToFacadeFlowServicesTopicMessage(servicesFeedResponseToFacadeFlowStrategyActor)
-		log.debug("TttsStrategyService sending StartListeningFeedResponseToFacadeFlowServicesTopicMessage to kafkaGenericConsumerActor")
-		kafkaGenericConsumerActor ! StartListeningFeedResponseToServicesFlowServicesTopicMessage(servicesFeedResponseToServicesFlowStrategyActor)
+		val strategyFacadeActor = context.actorOf(Props(classOf[StrategyActor]), "strategyFacadeConsumer")
 		
+		// Start Kafka consumer actor for incoming messages from Facade Topic
+		val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(strategyFacadeActor, serviceUniqueID), "strategyKafkaFacadeConsumer")
+		kafkaFacadeTopicConsumerActor ! StartListeningFacadeTopicMessage
+		
+		val strategyServicesActor = context.actorOf(Props(classOf[StrategyActor]), "strategyServicesConsumer")
+		
+		// Start Kafka consumer actor for incoming messages from Services Topic
+		val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(strategyServicesActor, serviceUniqueID), "strategyKafkaServicesConsumer")
+		kafkaServicesTopicConsumerActor ! StartListeningServicesTopicMessage
+
 		/*
 		 * Start Facade topic message flow:
 		 * 
@@ -77,23 +63,11 @@ class TttsStrategyService extends Actor with ActorLogging {
 		 * ==> Kafka MQ
 		 *   
 		 */
-//		new FacadeMessageFlow(strategyFacadeActor).startFlow
-//
-//		// Start Services topic message flow
-//		new ServicesMessageFlow(strategyServicesActor).startFlow
-
-		new FacadeMessageFlow(facadeStrategyRequestFlowStrategyActor).startFlow
+		new FacadeMessageFlow(strategyFacadeActor, serviceUniqueID).startFlow
 
 		// Start Services topic message flow
-		new ServicesMessageFlow(servicesStrategyRequestFlowStrategyActor).startFlow
+		new ServicesMessageFlow(strategyServicesActor, serviceUniqueID).startFlow
 
-		// Start Services topic message flow
-		new ServicesMessageFlow(servicesFeedResponseToFacadeFlowStrategyActor).startFlow
-
-		// Start Services topic message flow
-		new ServicesMessageFlow(servicesFeedResponseToServicesFlowStrategyActor).startFlow
-		
-		
     }
   
 	override def receive = {

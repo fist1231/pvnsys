@@ -18,7 +18,7 @@ object KafkaServicesTopicConsumerActor {
 }
 
 object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val servicesTopicMessageFormat = jsonFormat6(ServicesTopicMessage)
+  implicit val servicesTopicMessageFormat = jsonFormat7(ServicesTopicMessage)
 }
 
 

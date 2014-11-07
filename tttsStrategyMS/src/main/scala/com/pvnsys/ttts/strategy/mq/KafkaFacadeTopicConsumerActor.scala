@@ -1,22 +1,31 @@
 package com.pvnsys.ttts.strategy.mq
 
-import akka.actor.{Actor, ActorRef, ActorLogging, Props, AllForOneStrategy}
-import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
-import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.{StartListeningFacadeTopicMessage, FacadeTopicMessage, RequestStrategyFacadeTopicMessage, TttsStrategyMessage}
-import kafka.consumer.ConsumerConfig
 import java.util.Properties
-import kafka.consumer.Consumer
-import scala.collection.JavaConversions._
+
+import scala.collection.JavaConversions.seqAsJavaList
+
 import com.pvnsys.ttts.strategy.Configuration
-import akka.actor.SupervisorStrategy.{Restart, Stop}
-import spray.json._
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
+
+import StrategyActor.StopMessage
+import akka.actor.Actor
+import akka.actor.ActorLogging
+import akka.actor.ActorRef
+import akka.actor.AllForOneStrategy
+import akka.actor.Props
+import akka.actor.SupervisorStrategy.Restart
+import akka.actor.actorRef2Scala
+import kafka.consumer.Consumer
+import kafka.consumer.ConsumerConfig
+import spray.json.DefaultJsonProtocol
+import spray.json.pimpString
 //import akka.event.LogSource
 //import akka.event.Logging
 
 
 object KafkaFacadeTopicConsumerActor {
 //  def props(address: InetSocketAddress, groupName: Option[String]) = Props(new KafkaConsumerActor(address, groupName))
-  def props(toWhom: ActorRef) = Props(new KafkaFacadeTopicConsumerActor(toWhom))
+  def props(processorActorRef: ActorRef, serviceId: String) = Props(new KafkaFacadeTopicConsumerActor(processorActorRef, serviceId))
 
 //  implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {
 //    def genString(o: AnyRef): String = o.getClass.getName
@@ -26,14 +35,15 @@ object KafkaFacadeTopicConsumerActor {
 
 
 object KafkaFacadeTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val facadeTopicMessageFormat = jsonFormat6(FacadeTopicMessage)
+  import TttsStrategyMessages._
+  implicit val requestStrategyFacadeTopicMessageFormat = jsonFormat6(RequestStrategyFacadeTopicMessage)
 }
 
 
 /**
  * This actor will register itself to consume messages from the Kafka server. 
  */
-class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLogging {
+class KafkaFacadeTopicConsumerActor(processorActorRef: ActorRef, serviceId: String) extends Actor with ActorLogging {
   
 	import KafkaFacadeTopicConsumerActor._
 	import StrategyActor._
@@ -54,7 +64,7 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 		
 		val consumer = new DefaultKafkaConsumer {
 		    override def handleDelivery(message: TttsStrategyMessage) = {
-		        toWhom ! message
+		        processorActorRef ! message
 		    }
 		}
 		register(consumer)
@@ -101,11 +111,11 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 				    val msgJsonObj = mess.parseJson
 			        val msgStr = msgJsonObj.compactPrint
 				    
-				    val facadeTopicMessage = msgJsonObj.convertTo[FacadeTopicMessage]
-				    log.debug("KafkaFacadeTopicConsumerActor received message from Kafka Facade Topic: {}", facadeTopicMessage)
-				    matchRequest(facadeTopicMessage) match {
-				      case Some(facadeTopicMessage) => consumer.handleDelivery(facadeTopicMessage)
-				      case None => "Lets do nothing"
+				    val requestStrategyFacadeTopicMessage = msgJsonObj.convertTo[RequestStrategyFacadeTopicMessage]
+				    log.debug("KafkaFacadeTopicConsumerActor received message from Kafka Facade Topic: {}", requestStrategyFacadeTopicMessage)
+				    matchRequest(requestStrategyFacadeTopicMessage) match {
+				      case Some(facadeTopicMessage) => consumer.handleDelivery(requestStrategyFacadeTopicMessage)
+				      case None => "Do nothing"
 				    }
 		      }
 		} catch {
@@ -114,7 +124,7 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 	  
 	}
 	
-	private def matchRequest(message: FacadeTopicMessage): Option[FacadeTopicMessage] = message.msgType match {
+	private def matchRequest(message: RequestStrategyFacadeTopicMessage): Option[RequestStrategyFacadeTopicMessage] = message.msgType match {
 		/*
 		 * KafkaFacadeTopicConsumerActor listens for only two message types: 
 		 * 1. STRATEGY_REQUEST_MESSAGE_TYPE of RequestStrategyFacadeTopicMessage of FacadeTopicMessage
@@ -123,7 +133,7 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 		case STRATEGY_REQUEST_MESSAGE_TYPE => Some(message)
 		case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => Some(message)
 		case m => {
-			log.debug("KafkaFacadeTopicConsumerActor - not Strategy Request Message from Facade Topic, skipping Kafka message: {}", m) 
+			log.debug("KafkaFacadeTopicConsumerActor - not RequestStrategyFacadeTopicMessage from Facade Topic, skipping Kafka message: {}", m) 
 			None
 		}
 	}

@@ -52,6 +52,14 @@ class StrategyActor extends ActorProducer[TttsStrategyMessage] with ActorLogging
 		        //requeue the message
 		        //message ordering might not be preserved
 		      }
+		case msg: ResponseFeedFacadeTopicMessage => 
+			  log.debug(s"StrategyActor, Gettin ResponseFeedServicesTopicMessage: {} - {}", msg.client, msg.msgType)
+		      if (isActive && totalDemand > 0) {
+		        onNext(msg)
+		      } else {
+		        //requeue the message
+		        //message ordering might not be preserved
+		      }
 	
 	
 //		case msg: FacadeTopicMessage => 

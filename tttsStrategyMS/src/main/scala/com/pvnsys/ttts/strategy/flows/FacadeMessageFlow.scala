@@ -46,7 +46,7 @@ object FacadeMessageFlow extends LazyLogging {
 }
 
 
-class FacadeMessageFlow(strategyFacadeActor: ActorRef)(implicit context: ActorContext) extends StrategyServiceFlow with LazyLogging {
+class FacadeMessageFlow(strategyFacadeActor: ActorRef, serviceUniqueID: String)(implicit context: ActorContext) extends StrategyServiceFlow with LazyLogging {
   
 	import FacadeMessageFlow._
 	import TttsStrategyMessages._
@@ -68,7 +68,7 @@ class FacadeMessageFlow(strategyFacadeActor: ActorRef)(implicit context: ActorCo
 				  msg.msgType match {
 					    case STRATEGY_REQUEST_MESSAGE_TYPE => {
 					    	logger.debug("Got STRATEGY_REQ. Key {}", msg.client)	          
-						    val strategyExecutorActor = context.actorOf(Props(classOf[StrategyExecutorActor]))
+						    val strategyExecutorActor = context.actorOf(StrategyExecutorActor.props(serviceUniqueID))
 						    logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", msg.client, strategyExecutorActor)
 						    strategies += (msg.client -> strategyExecutorActor)
 						    strategyExecutorActor ! msg

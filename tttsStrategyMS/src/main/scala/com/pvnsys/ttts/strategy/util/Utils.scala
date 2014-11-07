@@ -17,7 +17,10 @@ object Utils {
     
     (uuid, timestamp, s"$seqNum")
   }
+
   
+    def generateUuid: String = java.util.UUID.randomUUID.toString
+
 }
 
 
