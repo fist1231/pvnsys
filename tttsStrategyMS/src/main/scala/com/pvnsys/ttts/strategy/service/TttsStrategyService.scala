@@ -10,7 +10,7 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
 import spray.json._
 import org.reactivestreams.api.Producer
-import com.pvnsys.ttts.strategy.mq.{KafkaGenericConsumerActor, KafkaFacadeTopicConsumerActor, KafkaServicesTopicConsumerActor}
+import com.pvnsys.ttts.strategy.mq.{KafkaFacadeTopicConsumerActor, KafkaServicesTopicConsumerActor}
 import com.pvnsys.ttts.strategy.generator.StrategyService
 import akka.actor.ActorRef
 import com.pvnsys.ttts.strategy.mq.StrategyActor
