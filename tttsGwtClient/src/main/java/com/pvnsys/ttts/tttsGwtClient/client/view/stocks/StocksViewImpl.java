@@ -21,7 +21,8 @@ import com.sksamuel.gwt.websockets.WebsocketListener;
 public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 
 	  private Controller<T> controller;
-	  private Websocket socket;
+	  private Websocket feedSocket;
+	  private Websocket strategySocket;
 	
 	
 	private static StocksViewUiBinder uiBinder = GWT.create(StocksViewUiBinder.class);
@@ -52,8 +53,17 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 	Button stopFeed;
 
 	@UiField
+	Button startStrategy;
+
+	@UiField
+	Button stopStrategy;
+	
+	@UiField
 	Button connect;
 
+	@UiField
+	Button disconnect;
+	
 	@UiField
 	Label connectionLabel;
 	
@@ -77,47 +87,116 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 		initWidget(uiBinder.createAndBindUi(this));
 		sPanelWS.setAlwaysShowScrollBars(true);
 		connect.setVisible(true);
+		disconnect.setVisible(false);
 		startFeed.setVisible(false);
 		stopFeed.setVisible(false);
+		startStrategy.setVisible(false);
+		stopStrategy.setVisible(false);
 		connectionLabel.setText("Disconnected");
+		connectionString.setText("127.0.0.1:6969");
 		
 		connect.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-		    	socket = getWebSocket(connectionString.getText());
-			    if(socket != null) {
+				feedSocket = getFeedWebSocket(connectionString.getText());
+			    if(feedSocket != null) {
 			    	if(connectionString.getText() != null && connectionString.getText().trim().length() > 0) {
-				    	socket.open();
+			    		feedSocket.open();
 				    	connectionValidationLabel.setText("");
 			    	} else {
 			    		connectionValidationLabel.setText("Please enter connection string. Format: [127.0.0.1:6969]");
 			    	}
 			    }
+			    
+				strategySocket = getStrategyWebSocket(connectionString.getText());
+			    if(strategySocket != null) {
+			    	if(connectionString.getText() != null && connectionString.getText().trim().length() > 0) {
+			    		strategySocket.open();
+			    	} else {
+			    	}
+			    }
+			    
 			}
 		});
 
+		disconnect.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+			    if(feedSocket != null) {
+			    	feedSocket.close();
+			    }
+			    if(strategySocket != null) {
+			    	strategySocket.close();
+			    }
+				startFeed.setVisible(false);
+				stopFeed.setVisible(false);
+				startStrategy.setVisible(false);
+				stopStrategy.setVisible(false);
+				connect.setVisible(true);
+				disconnect.setVisible(false);
+				connectionLabel.setText("Disconnected");
+			}
+		});
+		
 		startFeed.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-			    String msg = "{ \"id\":\"ID-3\", \"msgType\":\"FEED_REQ\", \"client\":\"TBD_ON_SERVER\", \"payload\":\"Omg, GWT, lolz, WTF ???\" }";
-			    if(socket != null) {
-			    	socket.send(msg);
+			    String msg = "{\"msgType\":\"FEED_REQ\", \"payload\":\"Sample Payload\" }";
+			    if(feedSocket != null) {
+			    	feedSocket.send(msg);
 			    }
 				startFeed.setVisible(false);
 				stopFeed.setVisible(true);
+				startStrategy.setVisible(false);
+				stopStrategy.setVisible(false);
+				disconnect.setVisible(false);
+				vPanelWS.clear();
 			}
 		});
 		
 		stopFeed.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-			    if(socket != null) {
-			    	socket.close();
+			    String msg = "{\"msgType\":\"FEED_STOP_REQ\", \"payload\":\"Sample Payload\" }";
+			    if(feedSocket != null) {
+			    	feedSocket.send(msg);
+			    }
+				startFeed.setVisible(true);
+				stopFeed.setVisible(false);
+				startStrategy.setVisible(true);
+				stopStrategy.setVisible(false);
+				disconnect.setVisible(true);
+			}
+		});
+
+		startStrategy.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+			    String msg = "{\"msgType\":\"STRATEGY_REQ\", \"payload\":\"Sample Payload\" }";
+			    if(strategySocket != null) {
+			    	strategySocket.send(msg);
 			    }
 				startFeed.setVisible(false);
 				stopFeed.setVisible(false);
-				connect.setVisible(true);
-				connectionLabel.setText("Disconnected");
+				startStrategy.setVisible(false);
+				stopStrategy.setVisible(true);
+				disconnect.setVisible(false);
+				vPanelWS.clear();
+			}
+		});
+		
+		stopStrategy.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+			    String msg = "{\"msgType\":\"STRATEGY_STOP_REQ\", \"payload\":\"Sample Payload\" }";
+			    if(strategySocket != null) {
+			    	strategySocket.send(msg);
+			    }
+				startFeed.setVisible(true);
+				stopFeed.setVisible(false);
+				startStrategy.setVisible(true);
+				stopStrategy.setVisible(false);
+				disconnect.setVisible(true);
 			}
 		});
 		
@@ -127,7 +206,7 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 		return this;
 	}
 
-	private Websocket getWebSocket(final String connectionString) {
+	private Websocket getFeedWebSocket(final String connectionString) {
 		Websocket socket = new Websocket("ws://" + connectionString + "/feed/ws");
 		socket.addListener(new WebsocketListener() {
 			
@@ -135,7 +214,9 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 			public void onOpen() {
 				connectionLabel.setText("Successfully connected to " + connectionString);
 				startFeed.setVisible(true);
+				startStrategy.setVisible(true);
 				connect.setVisible(false);
+				disconnect.setVisible(true);
 				// TODO Auto-generated method stub
 				
 			}
@@ -157,5 +238,39 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 		return socket;
 		
 	}
+
+	private Websocket getStrategyWebSocket(final String connectionString) {
+		Websocket socket = new Websocket("ws://" + connectionString + "/strategy/ws");
+		socket.addListener(new WebsocketListener() {
+			
+			@Override
+			public void onOpen() {
+				connectionLabel.setText("Successfully connected to " + connectionString);
+				startFeed.setVisible(true);
+				startStrategy.setVisible(true);
+				connect.setVisible(false);
+				disconnect.setVisible(true);
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onMessage(String msg) {
+				vPanelWS.add(new Label(msg));
+				sPanelWS.scrollToBottom();
+			}
+			
+			@Override
+			public void onClose() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
+		
+		return socket;
+		
+	}
+	
 	
 }

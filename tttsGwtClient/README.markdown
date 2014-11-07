@@ -14,7 +14,7 @@ Follow these steps to get started:
 
 5. Run setEnv.cmd
 
-6. INstall missing libs, see readme.tst in tttsGwtClient/missinLib directory
+6. Install missing libs, see readme.tst in tttsGwtClient/missinLib directory
 
 7. Start the application:
 
@@ -22,5 +22,8 @@ Follow these steps to get started:
 
 8. Browse to http://localhost:8080/tttsGwtClient
 
-9. Generate eclipse project files: $ gradle elipse    
+9. Generate eclipse project files: $ gradle elipse
+
+Or to use existing .classpath add USERPROFILE_HOME=c:\Userc\{username} to Eclipse variables. 
+c:\Userc\{username} is a USERPROFILE windows variable, or correspondent Linux variable
 

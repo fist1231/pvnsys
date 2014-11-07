@@ -1,3 +1,5 @@
 /.apt_generated
 /.gradle/
 /target/
+/bin/
+/.gwt/
