@@ -2,55 +2,57 @@
 
 Follow these steps to get started:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Prerequisites: java, sbt, gradle.
+
 1. Have java 1.7 installed
 
 2. Have sbt installed (http://www.scala-sbt.org/)
 
 3. Have git installed (http://git-scm.com/downloads)
 
-4. !!! Do p.9 instead (Have Kafka installed (tested version bundled with kafka_2.10-0.8.1.1). Comes with Zookeeper.)
+4. Have gradle 2.1 installed (http://www.gradle.org/downloads)
 
-5. Git-clone this repository.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+5. Build Kafka from sources against Scala 2.11.2. See tttsFacadeMS2/help.me for instructions
+
+6. Git-clone source code.
 
         $ git clone https://github.com/fist1231/pvnsys.git
 
-6. Change directory into your clone:
+7. Change directory into your clone:
 
         $ cd pvnsys/tttsFacadeMS
 
-7. Edit JAVA_HOME and PATH in setEnv.cmd
+8. Edit JAVA_HOME and PATH in setEnv.cmd
 
-8. Run setEnv.cmd
+9. Run setEnv.cmd
 
-9. Build Kafka from sources against Scala 2.11.2. See tttsFacadeMS2/read.me for instructions
-
-10. Start Zookeeper on localhost:2181, or adjust resources/application.conf accordingly :
+10. Have running Zookeeper on localhost:2181:
 	zookeeper-server-start.bat ..\..\config\zookeeper.properties
 	(see instructions in help.me for details)
 
-11. Start Kafka server on localhost:9092, or adjust resources/application.conf accordingly :
+11. Have running Kafka server on localhost:9092:
 	kafka-server-start.bat ..\..\config\server.properties
 	(see instructions in help.me for details)
 
-12.	Launch SBT:
+12.	Build and run TttsFacadeMS2 with SBT:
 
-        $ sbt clean compile
-
-13. Start the application:
-
-        $ sbt run
+13.	Have TttsFeedMS and TttsStrategyMS built and running. See instructions in correspondent projects.
 
 14. Browse to http://localhost:9696/
 
-15. Stop the application:
+====================================================================
 
-        $ Ctrl + C
+Misc:
         
-16. Generate eclipse project files: $sbt elipse    
+15. Generate eclipse project files: $sbt elipse    
 
-17. Packaging: sbt assembly
+16. Packaging: sbt assembly
 
-18. Run packaged jar: tttsFacadeMS2/target/scala-{VERSION}/java -jar ttts-facade-microservice-assembly-1.0.jar        
+17. Run packaged jar: tttsFacadeMS2/target/scala-{VERSION}/java -jar ttts-facade-microservice-assembly-1.0.jar        
     
-19. Learn more at https://www.pvnsys.com/
+18. Learn more at https://www.pvnsys.com/
 
