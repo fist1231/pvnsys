@@ -7,7 +7,7 @@
     android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/connection_display_param"
+        android:id="@+id/strategy_connection_display_param"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -19,7 +19,7 @@
         android:textColor="@color/yellow" />
     
     <Chronometer
-        android:id="@+id/chronometer1"
+        android:id="@+id/strategy_chronometer1"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
@@ -30,7 +30,7 @@
         android:textColor="@color/white" />
 
     <ImageButton
-        android:id="@+id/start_feed_button"
+        android:id="@+id/start_strategy_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
@@ -43,7 +43,7 @@
         android:src="@drawable/start_button" />
     
     <ImageButton
-        android:id="@+id/stop_feed_button"
+        android:id="@+id/stop_strategy_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
@@ -56,7 +56,7 @@
         android:src="@drawable/stop_button" />
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/strategy_textView1"
         android:layout_width="fill_parent"
         android:layout_height="1dp"
         android:layout_marginLeft="30dp"
@@ -64,7 +64,7 @@
         android:background="@color/white" />
 
     <ScrollView
-        android:id="@+id/scrollView1"
+        android:id="@+id/strategy_scrollView1"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="5dp"
@@ -76,7 +76,7 @@
         android:fillViewport="false" >
 
         <LinearLayout
-            android:id="@+id/quotes"
+            android:id="@+id/strategy_quotes"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" >

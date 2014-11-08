@@ -37,6 +37,11 @@ public class TttsAndroidClient extends FragmentActivity implements ConnectionPar
 //				fragmentTransaction.addToBackStack(null);
 				fragmentTransaction.commit();
 			}
+			if(actionFragment instanceof StrategyFragment) {
+				FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+				fragmentTransaction.show(actionFragment);
+				fragmentTransaction.commit();
+			}
 			if(actionFragment instanceof BkWelcomeFragment) {
 				FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
 				fragmentTransaction.show(actionFragment);
@@ -83,7 +88,9 @@ public class TttsAndroidClient extends FragmentActivity implements ConnectionPar
 
 		boolean isFeed = true;
 		RadioButton rbFeed = (RadioButton)dialog.getDialog().findViewById(R.id.feed_rb);
+		System.out.println("^^^^^^^^^^^^^^^^^ rbFeed = " + rbFeed);
 		isFeed = rbFeed.isChecked();
+		System.out.println("^^^^^^^^^^^^^^^^^ isFeed = " + isFeed);
 		
 		BkWelcomeFragment actionFragment = (BkWelcomeFragment)getFragmentManager().findFragmentById(R.id.fragment_container);
 		if(actionFragment != null) {
@@ -110,7 +117,11 @@ public class TttsAndroidClient extends FragmentActivity implements ConnectionPar
 			}
 		} else {
 			storeConnectionParmeter(connectionParameter);
-			startMainActionFragment(connectionParameter);
+			if(isFeed) {
+				startMainActionFragment(connectionParameter);
+			} else {
+				 startStrategyFragment(connectionParameter);
+			}
 		}
 
 	}

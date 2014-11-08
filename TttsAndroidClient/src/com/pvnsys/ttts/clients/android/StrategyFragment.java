@@ -1,5 +1,8 @@
 package com.pvnsys.ttts.clients.android;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Fragment;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -18,6 +21,10 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
+import com.pvnsys.ttts.clients.android.util.Utils;
+import com.pvnsys.ttts.clients.android.vo.StrategyVO;
+
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
 import de.tavendo.autobahn.WebSocketHandler;
@@ -33,8 +40,8 @@ public class StrategyFragment extends Fragment {
 
 	private int count = 0;
 	Chronometer chr;
-	ImageButton startFeedButton;
-	ImageButton stopFeedButton;
+	ImageButton startStrategyButton;
+	ImageButton stopStrategyButton;
     private String connectionParameter;
     private boolean isFeedActive;
 
@@ -47,13 +54,13 @@ public class StrategyFragment extends Fragment {
 	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		getActivity().getMenuInflater().inflate(R.menu.bk_activity, menu);
+		getActivity().getMenuInflater().inflate(R.menu.strategy_activity, menu);
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 	    switch (item.getItemId()) {
-        case R.id.restart_feed:
+        case R.id.strategy_restart_feed:
             	((TttsAndroidClient)getActivity()).startApp();
             	return true;
         	default:
@@ -75,20 +82,20 @@ public class StrategyFragment extends Fragment {
 		Bundle bundle=getArguments();
 		connectionParameter = bundle.getString(CONNECTION_STRING_KEY);
 		
-        Log.v("===========> BK Action Fragment", "Fragment State: onActivityCreated()");
+        Log.v("===========> Strategy Fragment", "Fragment State: onActivityCreated()");
         super.onCreateView(inflater, container, savedInstanceState);
 		count = 0;
 
-		View fragmentView = inflater.inflate(R.layout.bk_action_fragment, container, false);
+		View fragmentView = inflater.inflate(R.layout.strategy_fragment, container, false);
 
 		restoreInstanceState(fragmentView, savedInstanceState);
 		
-		TextView connectionParamDisplay = (TextView)fragmentView.findViewById(R.id.connection_display_param);
+		TextView connectionParamDisplay = (TextView)fragmentView.findViewById(R.id.strategy_connection_display_param);
 		connectionParamDisplay.setText(connectionParameter);
 
 		
-		startFeedButton = (ImageButton)fragmentView.findViewById(R.id.start_feed_button);
-		stopFeedButton = (ImageButton)fragmentView.findViewById(R.id.stop_feed_button);
+		startStrategyButton = (ImageButton)fragmentView.findViewById(R.id.start_strategy_button);
+		stopStrategyButton = (ImageButton)fragmentView.findViewById(R.id.stop_strategy_button);
 		setFeedActive(isFeedActive);
 		
 		setListeners(fragmentView);
@@ -117,7 +124,7 @@ public class StrategyFragment extends Fragment {
 			 outState.putString(CONNECTION_STRING_KEY, connectionParameter);
 			 outState.putBoolean(FEED_ACTIVE_KEY, isFeedActive);
 
-			Chronometer chr = (Chronometer)getActivity().findViewById(R.id.chronometer1);
+			Chronometer chr = (Chronometer)getActivity().findViewById(R.id.strategy_chronometer1);
 			if(chr != null && count > 0) {
 				outState.putLong(TIMER_KEY, chr.getBase());
 			}
@@ -143,13 +150,13 @@ public class StrategyFragment extends Fragment {
 				setFeedActive(isFeedActive);
 			}
 			if(savedInstanceState.containsKey(TIMER_KEY)) {
-				Chronometer chr = (Chronometer)fragmentView.findViewById(R.id.chronometer1);
+				Chronometer chr = (Chronometer)fragmentView.findViewById(R.id.strategy_chronometer1);
 				chr.setBase(savedInstanceState.getLong(TIMER_KEY));
 				chr.start();
 			}
 			
-			ScrollView sw = (ScrollView)fragmentView.findViewById(R.id.scrollView1);
-			LinearLayout quotes = (LinearLayout)fragmentView.findViewById(R.id.quotes);
+			ScrollView sw = (ScrollView)fragmentView.findViewById(R.id.strategy_scrollView1);
+			LinearLayout quotes = (LinearLayout)fragmentView.findViewById(R.id.strategy_quotes);
 		    System.out.println("+++++++ restoreInstanceState ScrollView sw = " + sw);
 	        System.out.println("+++++++ restoreInstanceState LinearLayout quotes = " + quotes);
 	        
@@ -164,14 +171,14 @@ public class StrategyFragment extends Fragment {
 	
 	private void setListeners(View fragmentView) {
 		
-		startFeedButton = (ImageButton)fragmentView.findViewById(R.id.start_feed_button);
-		if(startFeedButton != null) {
-			startFeedButton.setOnClickListener(new OnClickListener() {
+		startStrategyButton = (ImageButton)fragmentView.findViewById(R.id.start_strategy_button);
+		if(startStrategyButton != null) {
+			startStrategyButton.setOnClickListener(new OnClickListener() {
 				
 				@Override
 				public void onClick(View v) {
 				        switch(v.getId()) {
-				           case R.id.start_feed_button:
+				           case R.id.start_strategy_button:
 				              startFeed(v, null, null);   
 				              break;
 				           default:
@@ -181,14 +188,14 @@ public class StrategyFragment extends Fragment {
 			});
 		}
 
-		stopFeedButton = (ImageButton)fragmentView.findViewById(R.id.stop_feed_button);
-		if(stopFeedButton != null) {
-			stopFeedButton.setOnClickListener(new OnClickListener() {
+		stopStrategyButton = (ImageButton)fragmentView.findViewById(R.id.stop_strategy_button);
+		if(stopStrategyButton != null) {
+			stopStrategyButton.setOnClickListener(new OnClickListener() {
 				
 				@Override
 				public void onClick(View v) {
 				        switch(v.getId()) {
-				           case R.id.stop_feed_button:
+				           case R.id.stop_strategy_button:
 				              stopFeed(v);   
 				              break;
 				           default:
@@ -227,18 +234,18 @@ public class StrategyFragment extends Fragment {
 	public void setFeedActive(boolean isFeedActive) {
 		this.isFeedActive = isFeedActive;
 		if(!isFeedActive) {
-			if(startFeedButton != null) {
-				startFeedButton.setVisibility(View.VISIBLE);
+			if(startStrategyButton != null) {
+				startStrategyButton.setVisibility(View.VISIBLE);
 			}
-			if(stopFeedButton != null) {
-				stopFeedButton.setVisibility(View.GONE);
+			if(stopStrategyButton != null) {
+				stopStrategyButton.setVisibility(View.GONE);
 			}
 		} else {
-			if(stopFeedButton != null) {
-				stopFeedButton.setVisibility(View.VISIBLE);
+			if(stopStrategyButton != null) {
+				stopStrategyButton.setVisibility(View.VISIBLE);
 			}
-			if(startFeedButton != null) {
-				startFeedButton.setVisibility(View.GONE);
+			if(startStrategyButton != null) {
+				startStrategyButton.setVisibility(View.GONE);
 			}
 		}
 	}
@@ -248,7 +255,7 @@ public class StrategyFragment extends Fragment {
 	   private void startFeed(View view, final ScrollView sw, final LinearLayout quotes) {
 
 			setFeedActive(true);
-			chr = (Chronometer)getActivity().findViewById(R.id.chronometer1);
+			chr = (Chronometer)getActivity().findViewById(R.id.strategy_chronometer1);
 			if(count == 0 && chr != null) {
 				chr.setBase(SystemClock.elapsedRealtime());
 				chr.start();
@@ -259,7 +266,7 @@ public class StrategyFragment extends Fragment {
 //			if(quotes == null) {
 //				quotes = (LinearLayout)getActivity().findViewById(R.id.quotes);
 //			}
-			System.out.println("$$$$$$$$$$$ ScrollView sw = " + sw);
+			System.out.println("$$$$$$$$$$$ Strategy ScrollView sw = " + sw);
 	        System.out.println("$$$$$$$$$$$ LinearLayout quotes = " + quotes);
 
 			
@@ -271,7 +278,7 @@ public class StrategyFragment extends Fragment {
 		            @Override
 		            public void onOpen() {
 		               Log.d(TAG, "Status: Connected to " + wsuri);
-					      System.out.println("$$$$$$$$$$$ Sending message to WebSocket");
+					      System.out.println("$$$$$$$$$$$ Sending message to Strategy WebSocket");
 						  String msg = "{ \"msgType\":\"STRATEGY_REQ\", \"payload\":\"Android Payload\" }";
 //					  	  mWebSocketClient.send(msg);
 					  	  mConnection.sendTextMessage(msg);
@@ -279,40 +286,59 @@ public class StrategyFragment extends Fragment {
 
 		            @Override
 		            public void onTextMessage(String payload) {
-					    System.out.println("$$$$$$$$$$$ Receiving message from WebSocket");
+					    System.out.println("$$$$$$$$$$$ Receiving message from Strategy WebSocket");
 		                Log.d(TAG, "Got echo: " + payload);
 		                if(getActivity() != null) {
 				    		TextView tw = new TextView(getActivity());
 				    		tw.setGravity(Gravity.BOTTOM);
-				    		tw.setText(payload);
-				    		tw.setTextColor(getResources().getColor(R.color.white));
-				    		if(quotes == null) {
-				    			LinearLayout quotes2 = (LinearLayout)getActivity().findViewById(R.id.quotes);
-				    			quotes2.addView(tw);
-				    		} else {
-					    		quotes.addView(tw);
-				    		}
-				    		if(sw == null) {
-				    			ScrollView sw2 = (ScrollView)getActivity().findViewById(R.id.scrollView1);
-				    			sw2.post(new ScrollSW(sw2,tw));
-				    		} else {
-					    		sw.post(new ScrollSW(sw,tw));
-				    		}
+				    		try {
+								JSONObject json = new JSONObject(payload);
+								StrategyVO strategyVO = new StrategyVO(
+										json.getString("id"), 
+										json.getString("msgType"), 
+										json.getString("client"), 
+										json.getString("payload"), 
+										json.getString("timestamp"), 
+										json.getString("sequenceNum"), 
+										json.getString("signal")
+								);
+								
+					    		tw.setText(Utils.lPad(strategyVO.getSequenceNum(), 10) + Utils.lPad(strategyVO.getPayload(), 10) + Utils.lPad(strategyVO.getSignal(), 10));
+					    		tw.setTextColor(getResources().getColor(R.color.white));
+					    		if(quotes == null) {
+					    			LinearLayout quotes2 = (LinearLayout)getActivity().findViewById(R.id.strategy_quotes);
+					    			quotes2.addView(tw);
+					    		} else {
+						    		quotes.addView(tw);
+					    		}
+					    		if(sw == null) {
+					    			ScrollView sw2 = (ScrollView)getActivity().findViewById(R.id.strategy_scrollView1);
+					    			sw2.post(new ScrollSW(sw2,tw));
+					    		} else {
+						    		sw.post(new ScrollSW(sw,tw));
+					    		}
+								
+							} catch (JSONException e) {
+								// TODO Auto-generated catch block
+								
+				                Log.d(TAG, "String is not  valid json: " + payload);
+								e.printStackTrace();
+							}
 		                } else {
-		                	putTextInScroll(quotes, sw, "??? Restoring connection ...");
+		                	putTextInScroll(quotes, sw, "??? Restoring Strategy connection ...");
 		                }
 		            }
 
 		            @Override
 		            public void onClose(int code, String reason) {
-				       putTextInScroll(quotes, sw, "Connection to server closed.");
+				       putTextInScroll(quotes, sw, "Connection to Strategy server closed.");
 		               Log.d(TAG, "Connection lost.");
 		            }
 		         });
 		      } catch (WebSocketException e) {
 
-		    	putTextInScroll(quotes, sw, "Websocket Error: " + e.getMessage());
-			    System.out.println("###### Error in WebSocket");
+		    	putTextInScroll(quotes, sw, "Strategy Websocket Error: " + e.getMessage());
+			    System.out.println("###### Error in Strategy WebSocket");
 		         Log.d(TAG, e.toString());
 		      }
 		   }
@@ -320,10 +346,10 @@ public class StrategyFragment extends Fragment {
 		void stopFeed(View view) {
 			setFeedActive(false);
 			
-			chr = (Chronometer)getActivity().findViewById(R.id.chronometer1);
+			chr = (Chronometer)getActivity().findViewById(R.id.strategy_chronometer1);
 			chr.setBase(SystemClock.elapsedRealtime());
 			chr.stop();
-			System.out.println("$$$$$$$$$$$ Sending stop message to WebSocket");
+			System.out.println("$$$$$$$$$$$ Sending stop strategy message to WebSocket");
 			if(mConnection != null) {
 				mConnection.disconnect();
 			}
@@ -338,13 +364,13 @@ public class StrategyFragment extends Fragment {
 				tw.setTextColor(getResources().getColor(R.color.white));
 
 	    		if(quotes == null) {
-	    			LinearLayout quotes2 = (LinearLayout)getActivity().findViewById(R.id.quotes);
+	    			LinearLayout quotes2 = (LinearLayout)getActivity().findViewById(R.id.strategy_quotes);
 	    			quotes2.addView(tw);
 	    		} else {
 		    		quotes.addView(tw);
 	    		}
 	    		if(sw == null) {
-	    			ScrollView sw2 = (ScrollView)getActivity().findViewById(R.id.scrollView1);
+	    			ScrollView sw2 = (ScrollView)getActivity().findViewById(R.id.strategy_scrollView1);
 	    			sw2.post(new ScrollSW(sw2,tw));
 	    		} else {
 		    		sw.post(new ScrollSW(sw,tw));
@@ -354,5 +380,5 @@ public class StrategyFragment extends Fragment {
 //				sw.post(new ScrollSW(sw,tw));
 			}
 		}
-	
+		
 }

@@ -1,5 +1,8 @@
 package com.pvnsys.ttts.clients.android;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Fragment;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -18,6 +21,10 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
+import com.pvnsys.ttts.clients.android.util.Utils;
+import com.pvnsys.ttts.clients.android.vo.FeedVO;
+
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
 import de.tavendo.autobahn.WebSocketHandler;
@@ -400,7 +407,7 @@ public class BkActionFragment extends Fragment {
 		            public void onOpen() {
 		               Log.d(TAG, "Status: Connected to " + wsuri);
 					      System.out.println("$$$$$$$$$$$ Sending message to WebSocket");
-						  String msg = "{ \"id\":\"ID-1\", \"msgType\":\"FEED_REQ\", \"client\":\"TBD_ON_SERVER\", \"payload\":\"Omg, Android, wtf, WTF ???\" }";
+						  String msg = "{ \"msgType\":\"FEED_REQ\", \"payload\":\"Android Feed payload\" }";
 //					  	  mWebSocketClient.send(msg);
 					  	  mConnection.sendTextMessage(msg);
 		            }
@@ -412,20 +419,39 @@ public class BkActionFragment extends Fragment {
 		                if(getActivity() != null) {
 				    		TextView tw = new TextView(getActivity());
 				    		tw.setGravity(Gravity.BOTTOM);
-				    		tw.setText(payload);
-				    		tw.setTextColor(getResources().getColor(R.color.white));
-				    		if(quotes == null) {
-				    			LinearLayout quotes2 = (LinearLayout)getActivity().findViewById(R.id.quotes);
-				    			quotes2.addView(tw);
-				    		} else {
-					    		quotes.addView(tw);
-				    		}
-				    		if(sw == null) {
-				    			ScrollView sw2 = (ScrollView)getActivity().findViewById(R.id.scrollView1);
-				    			sw2.post(new ScrollSW(sw2,tw));
-				    		} else {
-					    		sw.post(new ScrollSW(sw,tw));
-				    		}
+				    		
+							JSONObject json;
+							try {
+								json = new JSONObject(payload);
+								FeedVO feedVO = new FeedVO(
+										json.getString("id"), 
+										json.getString("msgType"), 
+										json.getString("client"), 
+										json.getString("payload"), 
+										json.getString("timestamp"), 
+										json.getString("sequenceNum") 
+								);
+								
+					    		tw.setText(Utils.rPad(feedVO.getSequenceNum(), 10) + Utils.rPad(feedVO.getPayload(), 10));
+					    		
+//					    		tw.setText(payload);
+					    		tw.setTextColor(getResources().getColor(R.color.white));
+					    		if(quotes == null) {
+					    			LinearLayout quotes2 = (LinearLayout)getActivity().findViewById(R.id.quotes);
+					    			quotes2.addView(tw);
+					    		} else {
+						    		quotes.addView(tw);
+					    		}
+					    		if(sw == null) {
+					    			ScrollView sw2 = (ScrollView)getActivity().findViewById(R.id.scrollView1);
+					    			sw2.post(new ScrollSW(sw2,tw));
+					    		} else {
+						    		sw.post(new ScrollSW(sw,tw));
+					    		}
+							} catch (JSONException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 		                } else {
 		                	putTextInScroll(quotes, sw, "??? Restoring connection ...");
 		                }
@@ -482,5 +508,5 @@ public class BkActionFragment extends Fragment {
 //				sw.post(new ScrollSW(sw,tw));
 			}
 		}
-	
+
 }
