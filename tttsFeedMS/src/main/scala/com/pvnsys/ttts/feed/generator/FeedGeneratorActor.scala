@@ -14,6 +14,7 @@ import scala.util.Random
 import akka.actor.ActorRef
 import scala.concurrent.duration._
 import com.pvnsys.ttts.feed.util.Utils
+import scala.io.Source
 
 object FeedGeneratorActor {
 
@@ -23,7 +24,7 @@ object FeedGeneratorActor {
   case class StartFeedGeneratorServicesMessage(req: TttsFeedMessage) extends FeedGeneratorMessage
   case object StopFeedGeneratorMessage extends FeedGeneratorMessage
   
-  case class StartFakeFeedGeneratorMessage(msg: TttsFeedMessage) extends FeedGeneratorMessage
+  case class StartFakeFeedGeneratorMessage(msg: TttsFeedMessage, initSize: Int, count: Int) extends FeedGeneratorMessage
   case object StopFakeFeedGeneratorMessage extends FeedGeneratorMessage
   
 }
@@ -38,6 +39,7 @@ class FeedGeneratorActor extends Actor with ActorLogging {
   import Utils._
   
   var isActive = false
+  var count = 0
 	
   override def receive = {
     case req: RequestFeedFacadeTopicMessage => {
@@ -75,7 +77,15 @@ class FeedGeneratorActor extends Actor with ActorLogging {
   private def getFakeFeed(msg: TttsFeedMessage) = {
 	val fakeFeedActor = context.actorOf(Props(classOf[FakeFeedActor]))
 	// Simple scheduler that every second sends StartFakeFeedGeneratorMessage to fakeFeedActor with sender specified as 'self'
-    context.system.scheduler.schedule(0.seconds, 1.second, fakeFeedActor, StartFakeFeedGeneratorMessage(msg))(context.system.dispatcher, self)
+	
+	  val filename = "in/quotes.csv"
+  	  val initSize = Source.fromFile(filename).getLines.length
+	 
+    context.system.scheduler.schedule(0.seconds, 1.second, fakeFeedActor, StartFakeFeedGeneratorMessage(msg, initSize, increment(count)))(context.system.dispatcher, self)
+  }
+  private def increment(i: Int) = {
+    count += 1
+    count
   }
   
 }
@@ -89,22 +99,26 @@ class FakeFeedActor extends Actor with ActorLogging {
 	var counter = 0
 	
 	override def receive = {
-		case StartFakeFeedGeneratorMessage(msg) => 
+		case StartFakeFeedGeneratorMessage(mess, initSize, count) => 
 
 	        // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
 	        val messageTraits = Utils.generateMessageTraits
-	        log.debug(s"FakeFeedActor, Gettin message: {}", msg)
-  		    counter += 1
+	        log.debug(s"FakeFeedActor, Gettin message: {}", mess)
+//  		    counter += 1
 		    
-		    msg match {
+		    mess match {
 				case msg: RequestFeedFacadeTopicMessage => {
-			    	val fakeQuote = "%.2f".format(Random.nextDouble() + 22)
+//			    	val fakeQuote = "%.2f".format(Random.nextDouble() + 22)
+				  counter += 1
+			    	val fakeQuote = getQuoteFromFile(initSize, counter)
 				    val fakeMessage = ResponseFeedFacadeTopicMessage(messageTraits._1, FEED_RESPONSE_MESSAGE_TYPE, msg.client , s"$fakeQuote", messageTraits._2, s"$counter")
 				    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
 				    kafkaFacadeTopicProducerActor ! fakeMessage
 				}
 				case msg: RequestFeedServicesTopicMessage => {
-			    	val fakeQuote = "%.2f".format(Random.nextDouble() + 55)
+				  counter += 1
+//			    	val fakeQuote = "%.2f".format(Random.nextDouble() + 55)
+			    	val fakeQuote = getQuoteFromFile(initSize, counter)
 				    val fakeMessage = ResponseFeedServicesTopicMessage(messageTraits._1, FEED_RESPONSE_MESSAGE_TYPE, msg.client , s"$fakeQuote", messageTraits._2, s"$counter", msg.serviceId)
 				    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
 				    kafkaServicesTopicProducerActor ! fakeMessage
@@ -118,5 +132,34 @@ class FakeFeedActor extends Actor with ActorLogging {
 	      context.stop(self)
 		case _ => log.error("FakeFeedActor Received unknown message")
 	}
+	
+  
+	// returns close price from file one at a time. When reaches the EOF, restarts from the beginning. Skips first 'headers' line
+	final def getQuoteFromFile(z: Int, count: Int) = {
+		  val filename = "in/quotes.csv"
+		  val iter = Source.fromFile(filename).getLines
+          var n = count%z
+          if(n != 0) {
+			  val line = iter.drop(n).next.toString.split(",")
+//			  println(line)
+//			  print(s"date: ${line(0)}    ")
+//			  print(s"open: ${line(1)}    ")
+//			  print(s"high: ${line(2)}    ")
+//			  print(s"low: ${line(3)}     ")
+//			  print(s"close: ${line(4)}   ")
+//			  println(s"vol: ${line(5)}")
+			  val is = iter.size
+			  val closePrice = line(4)
+//			  println(is)
+//		      Thread.sleep(1000)
+		      is match {
+		        case 0 => Source.fromFile(filename).reset
+		        case _ => 
+		      }
+	//	      n += 1
+              closePrice
+          }
+    
+  }
   
 }
