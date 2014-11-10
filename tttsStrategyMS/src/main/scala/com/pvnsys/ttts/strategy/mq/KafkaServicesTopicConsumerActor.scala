@@ -139,6 +139,9 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 		        		if(responseServicesMessage.serviceId equals serviceId) {
 				        	// If message is in registered clients map, it was initiated from services topic. Otherwise, request came from Facade Topic 
 				        	if(clients contains responseServicesMessage.client) {
+				        	    // Here we need to sub serviceId that came from FeedMS to serviceId of the Microservice that requested StrategyMS at the beginning
+				        	    val callerServiceId = clients(responseServicesMessage.client).asInstanceOf[RequestStrategyServicesTopicMessage].serviceId
+				        	    val reassignedResponseServiceMessage = ResponseFeedServicesTopicMessage(responseServicesMessage.id, responseServicesMessage.msgType, responseServicesMessage.client, responseServicesMessage.payload, responseServicesMessage.timestamp, responseServicesMessage.sequenceNum, callerServiceId)
 		        				consumer.handleDelivery(responseServicesMessage)
 		        			} else {
 		        				val responseServicesMessage = msgJsonObj.convertTo[ResponseFeedFacadeTopicMessage]

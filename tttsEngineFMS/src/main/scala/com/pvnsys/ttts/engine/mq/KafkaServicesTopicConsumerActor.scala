@@ -2,7 +2,7 @@ package com.pvnsys.ttts.engine.mq
 
 import akka.actor.{Actor, ActorRef, ActorLogging, Props, AllForOneStrategy}
 import com.pvnsys.ttts.engine.messages.TttsEngineMessages
-import com.pvnsys.ttts.engine.messages.TttsEngineMessages.{StartListeningServicesTopicMessage, ServicesTopicMessage, RequestEngineServicesTopicMessage, RequestStrategyServicesTopicMessage, TttsEngineMessage, ResponseStrategyServicesTopicMessage}
+import com.pvnsys.ttts.engine.messages.TttsEngineMessages.{StartListeningServicesTopicMessage, ServicesTopicMessage, RequestEngineServicesTopicMessage, RequestStrategyServicesTopicMessage, TttsEngineMessage, ResponseStrategyServicesTopicMessage, ResponseStrategyFacadeTopicMessage}
 import kafka.consumer.ConsumerConfig
 import java.util.Properties
 import kafka.consumer.Consumer
@@ -28,11 +28,11 @@ object KafkaServicesTopicConsumerActor {
 object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
   implicit val responseStrategyServicesTopicMessageFormat = jsonFormat8(ResponseStrategyServicesTopicMessage)
   implicit val requestEngineServicesTopicMessageFormat = jsonFormat7(RequestEngineServicesTopicMessage)
-//  implicit val responseFeedFacadeTopicMessageFormat = jsonFormat7(ResponseFeedFacadeTopicMessage)
+  implicit val responseStrategyFacadeTopicMessageFormat = jsonFormat8(ResponseStrategyFacadeTopicMessage)
 }
 
 /**
- * This actor will register itself to consume messages from the AkkaMQ server. 
+ * This actor will register itself to consume messages from the Kafka server. 
  */
 class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: String) extends Actor with ActorLogging {
   
@@ -109,7 +109,7 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 					 * KafkaGenericConsumerActor listens for three message types from Services Topic: 
 					 * 1. ENGINE_REQUEST_MESSAGE_TYPE of RequestEngineServicesTopicMessage
 					 * 2. ENGINE_STOP_REQUEST_MESSAGE_TYPE of RequestEngineServicesTopicMessage
-					 * 3. FEED_RESPONSE_MESSAGE_TYPE of ResponseFeedServicesTopicMessage
+					 * 3. STRATEGY_RESPONSE_MESSAGE_TYPE of ResponseStrategyServicesTopicMessage
 					 */ 
 			        msgStr match {
 				      case result if(msgStr.contains(ENGINE_REQUEST_MESSAGE_TYPE)) => {
@@ -132,28 +132,21 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 				      }
 				      case result if(msgStr.contains(STRATEGY_RESPONSE_MESSAGE_TYPE)) => {
 			        	val responseServicesMessage = msgJsonObj.convertTo[ResponseStrategyServicesTopicMessage]
-			        	log.debug("KafkaServicesTopicConsumerActor received FEED_RESPONSE_MESSAGE_TYPE from Kafka Services Topic: {}", responseServicesMessage)
-		        	    // Only process FEED_RSP messages intended to this Service instance
+			        	log.debug("KafkaServicesTopicConsumerActor received STRATEGY_RESPONSE_MESSAGE_TYPE from Kafka Services Topic: {}", responseServicesMessage)
+		        	    // Only process STRATEGY_RSP messages intended to this Service instance
 		        		if(responseServicesMessage.serviceId equals serviceId) {
 				        	// If message is in registered clients map, it was initiated from services topic. Otherwise, request came from Facade Topic 
 				        	if(clients contains responseServicesMessage.client) {
 		        				consumer.handleDelivery(responseServicesMessage)
 		        			} else {
-//		        				val responseServicesMessage = msgJsonObj.convertTo[ResponseFeedFacadeTopicMessage]
-//		        				consumer.handleDelivery(responseServicesMessage)
+		        			    // This STRATEGY_RESP response intended for the FacadeMS
+		        				val responseServicesMessage = msgJsonObj.convertTo[ResponseStrategyFacadeTopicMessage]
+		        				consumer.handleDelivery(responseServicesMessage)
 		        			}
 			        	}
 				      }
 				      case _ => log.debug("KafkaServicesTopicConsumerActor skipping UNKNOWN message type from Kafka Services Topic: {}", msgStr)
 				    }
-			        
-			        
-//				    val servicesTopicMessage = msgJsonObj.convertTo[ServicesTopicMessage]
-//				    log.debug("KafkaServicesTopicConsumerActor received message from Kafka Services Topic: {}", servicesTopicMessage)
-//				    matchRequest(servicesTopicMessage) match {
-//				      case Some(servicesTopicMessage) => consumer.handleDelivery(servicesTopicMessage)
-//				      case None => "Lets do nothing"
-//				    }
 		      }
 		} catch {
 		  case e: Throwable => log.error("KafkaServicesTopicConsumerActor Error processing message, stop consuming: " + e)
@@ -161,16 +154,5 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 	  
 	}
 	
-//  private def matchRequest(message: ServicesTopicMessage): Option[ServicesTopicMessage] = message.msgType match {
-//  	  case ENGINE_REQUEST_MESSAGE_TYPE => Some(message)
-//  	  case FEED_RESPONSE_MESSAGE_TYPE => Some(message)
-////  	  case ENGINE_STOP_REQUEST_MESSAGE_TYPE => Some(message)
-//  	  case _ => {
-//  	    log.debug("KafkaServicesTopicConsumerActorJsonProtocol - not Engine Service request, skipping Kafka message") 
-//  	    None
-//  	  }
-//  }
-	
-   
 	override def postStop() = {}
 }

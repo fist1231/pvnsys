@@ -25,18 +25,18 @@ object ServicesMessageFlow extends LazyLogging {
 	    map { msg =>
 	      val messageType = msg match {
 	        case x: RequestEngineServicesTopicMessage => x.asInstanceOf[RequestEngineServicesTopicMessage].msgType 
-//	        case x: ResponseFeedFacadeTopicMessage => x.asInstanceOf[ResponseFeedFacadeTopicMessage].msgType 
+	        case x: ResponseStrategyFacadeTopicMessage => x.asInstanceOf[ResponseStrategyFacadeTopicMessage].msgType 
 	        case x: ResponseStrategyServicesTopicMessage => x.asInstanceOf[ResponseStrategyServicesTopicMessage].msgType 
 	        case _ => "UNKNOWN"
 	      }
-	      logger.debug("EngineMS ServicesMessageFlow duct step 1; received Message Type is: {}", messageType)
+	      logger.debug("EngineFMS ServicesMessageFlow duct step 1; received Message Type is: {}", messageType)
 	      msg
 	    }.
 	    
 	    map { msg =>
 	      val messageClient = msg match {
 	        case x: RequestEngineServicesTopicMessage => x.asInstanceOf[RequestEngineServicesTopicMessage].client 
-//	        case x: ResponseFeedFacadeTopicMessage => x.asInstanceOf[ResponseFeedFacadeTopicMessage].client
+	        case x: ResponseStrategyFacadeTopicMessage => x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client
 	        case x: ResponseStrategyServicesTopicMessage => x.asInstanceOf[ResponseStrategyServicesTopicMessage].client
 	        case _ => "UNKNOWN"
 	      }
@@ -49,18 +49,18 @@ object ServicesMessageFlow extends LazyLogging {
 	        /*
 	         * Returns either:
 	         * - RequestEngineServicesTopicMessage of type TttsEngineMessage - Engine intended for Services Topic
-	         * - ResponseFeedFacadeTopicMessage of type TttsEngineMessage - Feed intended for Facade Topic
-	         * - ResponseFeedServicesTopicMessage of type TttsEngineMessage - Feed intended for Services Topic
+	         * - ResponseStrategyFacadeTopicMessage of type TttsEngineMessage - Strategy intended for Facade Topic
+	         * - ResponseStrategyServicesTopicMessage of type TttsEngineMessage - Strategy intended for Services Topic
 	         */
 	        EngineService.convertServicesMessage
 	    }.
 	    
 	    groupBy {
 	      // Splits stream of Messages by message type and returns map(String -> org.reactivestreams.api.Producer[TttsEngineMessage]) 
-//	      case msg: ResponseFeedFacadeTopicMessage => "FeedFacade"
-	      case msg: ResponseStrategyServicesTopicMessage => "FeedServices"
+	      case msg: ResponseStrategyFacadeTopicMessage => "StrategyFacade"
+	      case msg: ResponseStrategyServicesTopicMessage => "StrategyServices"
 	      case msg: RequestEngineServicesTopicMessage => "EngineServices"
-	      case _ => "Garbage"
+	      case _ => "Trash"
 	    }
   
 }
@@ -82,8 +82,8 @@ class ServicesMessageFlow(engineServicesActor: ActorRef, serviceUniqueID: String
 	val producerDuct: Duct[TttsEngineMessage, Unit] = 
 			Duct[TttsEngineMessage] foreach {msg =>
 				  /*
-				   * For every new feed request add client -> feedActor to the Map
-				   * For every feed termination request, find feedActor in the Map, stop it and remove entry from the Map 
+				   * For every new engine request add client -> engineActor to the Map
+				   * For every engine termination request, find engineActor in the Map, stop it and remove entry from the Map 
 				   */
 				msg match {
 					case x: RequestEngineServicesTopicMessage => {
@@ -112,22 +112,22 @@ class ServicesMessageFlow(engineServicesActor: ActorRef, serviceUniqueID: String
 						    case _ =>
 					  } 
 					}
-//			        case x: ResponseFeedFacadeTopicMessage => {
-//			          x.asInstanceOf[ResponseFeedFacadeTopicMessage].msgType match {
-//						    case FEED_RESPONSE_MESSAGE_TYPE => {
-//						    	logger.debug("Got FEED_RESPONSE_MESSAGE_TYPE. Key {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client)	          
-//							    val engineExecutorActor = context.actorOf(EngineExecutorActor.props(serviceUniqueID))
-//							    logger.debug("Starting EngineExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client, engineExecutorActor)
-//	//						    strategies += (msg.client -> engineExecutorActor)
-//							    engineExecutorActor ! x
-//						    }
-//						    case _ =>
-//			          }
-//			        }
+			        case x: ResponseStrategyFacadeTopicMessage => {
+			          x.asInstanceOf[ResponseStrategyFacadeTopicMessage].msgType match {
+						    case STRATEGY_RESPONSE_MESSAGE_TYPE => {
+						    	logger.debug("Got STRATEGY_RESPONSE_MESSAGE_TYPE. Key {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client)	          
+							    val engineExecutorActor = context.actorOf(EngineExecutorActor.props(serviceUniqueID))
+							    logger.debug("Starting EngineExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client, engineExecutorActor)
+	//						    strategies += (msg.client -> engineExecutorActor)
+							    engineExecutorActor ! x
+						    }
+						    case _ =>
+			          }
+			        }
 			        case x: ResponseStrategyServicesTopicMessage => {
 			          x.asInstanceOf[ResponseStrategyServicesTopicMessage].msgType match {
 						    case STRATEGY_RESPONSE_MESSAGE_TYPE => {
-						    	logger.debug("Got FEED_RESPONSE_MESSAGE_TYPE. Key {}", x.asInstanceOf[ResponseStrategyServicesTopicMessage].client)	          
+						    	logger.debug("Got STRATEGY_RESPONSE_MESSAGE_TYPE. Key {}", x.asInstanceOf[ResponseStrategyServicesTopicMessage].client)	          
 							    val engineExecutorActor = context.actorOf(EngineExecutorActor.props(serviceUniqueID))
 							    logger.debug("Starting EngineExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyServicesTopicMessage].client, engineExecutorActor)
 	//						    strategies += (msg.client -> engineExecutorActor)

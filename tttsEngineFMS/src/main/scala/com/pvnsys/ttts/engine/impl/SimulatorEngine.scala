@@ -14,21 +14,26 @@ object FakeEngine {
 class SimulatorEngine extends Engine with LazyLogging {
 
   import TttsEngineMessages._
+  import Engine._
 
-  override def process(msg: TttsEngineMessage) = {
+  var resultStatus = false
+
+  override def process(msg: TttsEngineMessage, isInTrade: Boolean): EngineType = {
     
     /*
      * Do Engine processing, create ResponseEngineFacadeTopicMessage (reply to FacadeMS)
      * 
      */ 
+    resultStatus = isInTrade
+
     
     // 1. Do some fake Engine processing here. Replace with real code.
-    val fraction = msg.asInstanceOf[ResponseEngineFacadeTopicMessage].payload.toDouble - msg.asInstanceOf[ResponseEngineFacadeTopicMessage].payload.toDouble.intValue
-    val signal = fraction match {
-      case x if(x < 0.2) => "BUY"
-      case x if(x > 0.8) => "SELL"
-      case _ => "HOLD"
-    }
+//    val fraction = msg.asInstanceOf[ResponseEngineFacadeTopicMessage].payload.toDouble - msg.asInstanceOf[ResponseEngineFacadeTopicMessage].payload.toDouble.intValue
+//    val signal = fraction match {
+//      case x if(x < 0.2) => "BUY"
+//      case x if(x > 0.8) => "SELL"
+//      case _ => "HOLD"
+//    }
     
     // 2. Create ResponseEngineFacadeTopicMessage
 
@@ -43,18 +48,36 @@ class SimulatorEngine extends Engine with LazyLogging {
      * - Return ResponseEngineFacadeTopicMessage or ResponseEngineServiceTopicMessage, depending on incoming message type.
      */ 
     msg match {
-	    case x: ResponseEngineFacadeTopicMessage => {
-	       ResponseEngineFacadeTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, x.payload, messageTraits._2, x.sequenceNum, signal)
+	    case x: ResponseStrategyFacadeTopicMessage => {
+	       val payload = s"${x.payload} ==> ${play(x.signal)}"
+	       (ResponseEngineFacadeTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, payload, messageTraits._2, x.sequenceNum, x.signal), resultStatus)
 	    }
-	    case x: ResponseEngineServicesTopicMessage => {
-	       ResponseEngineServicesTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, x.payload, messageTraits._2, x.sequenceNum, signal, x.serviceId)	      
+	    case x: ResponseStrategyServicesTopicMessage => {
+	       val payload = s"${x.payload} ==> ${play(x.signal)}"
+	       (ResponseEngineServicesTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, payload, messageTraits._2, x.sequenceNum, x.signal, x.serviceId), resultStatus)	      
 	    }
 	    case _ =>  {
 	      logger.error("FakeEngine Received unsupported message type")
-	      msg
+	      (msg, resultStatus)
 	    }
     }
 
+  }
+  
+  def play(signal: String) = {
+    signal match {
+      case "BUY" => if(!resultStatus) {
+        resultStatus = true
+        "BOUGHT"
+      }
+      case "SELL" => if(resultStatus) {
+        resultStatus = false
+        "SOLD"
+      }
+      case "HOLD" => "PASS"
+      case _ => "Nothing"
+    }
+    
   }
 
 }

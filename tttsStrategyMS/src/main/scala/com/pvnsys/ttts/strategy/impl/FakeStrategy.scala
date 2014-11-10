@@ -21,9 +21,17 @@ class FakeStrategy extends Strategy with LazyLogging {
      * Do Strategy processing, create ResponseStrategyFacadeTopicMessage (reply to FacadeMS)
      * 
      */ 
-    
+    val fraction = msg match {
+      case x: ResponseFeedFacadeTopicMessage => {
+    	  msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload.toDouble - msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload.toDouble.intValue
+      }
+      case x: ResponseFeedServicesTopicMessage => {
+    	  msg.asInstanceOf[ResponseFeedServicesTopicMessage].payload.toDouble - msg.asInstanceOf[ResponseFeedServicesTopicMessage].payload.toDouble.intValue
+      }
+      case _ => 0.00
+    }
     // 1. Do some fake Strategy processing here. Replace with real code.
-    val fraction = msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload.toDouble - msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload.toDouble.intValue
+//    val fraction = msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload.toDouble - msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload.toDouble.intValue
     val signal = fraction match {
       case x if(x < 0.2) => "BUY"
       case x if(x > 0.8) => "SELL"

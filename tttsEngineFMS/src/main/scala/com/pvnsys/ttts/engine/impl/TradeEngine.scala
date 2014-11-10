@@ -13,13 +13,14 @@ object TradeEngine {
 class TradeEngine extends Engine with LazyLogging {
 
   import TttsEngineMessages._
-
-  override def process(msg: TttsEngineMessage) = {
+  import Engine._
+  
+  override def process(msg: TttsEngineMessage, status: Boolean): EngineType = {
     
 	  /*
 	   * Insert code here
 	   */
-    msg
+    (msg, false)
   }
 
 }

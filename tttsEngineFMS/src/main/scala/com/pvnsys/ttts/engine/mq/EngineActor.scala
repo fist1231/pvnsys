@@ -52,14 +52,14 @@ class EngineActor extends ActorProducer[TttsEngineMessage] with ActorLogging {
 		        //requeue the message
 		        //message ordering might not be preserved
 		      }
-//		case msg: ResponseFeedFacadeTopicMessage => 
-//			  log.debug(s"EngineActor, Gettin ResponseFeedServicesTopicMessage: {} - {}", msg.client, msg.msgType)
-//		      if (isActive && totalDemand > 0) {
-//		        onNext(msg)
-//		      } else {
-//		        //requeue the message
-//		        //message ordering might not be preserved
-//		      }
+		case msg: ResponseStrategyFacadeTopicMessage => 
+			  log.debug(s"EngineActor, Gettin ResponseStrategyFacadeTopicMessage: {} - {}", msg.client, msg.msgType)
+		      if (isActive && totalDemand > 0) {
+		        onNext(msg)
+		      } else {
+		        //requeue the message
+		        //message ordering might not be preserved
+		      }
 	
 	
 		case StopMessage => {

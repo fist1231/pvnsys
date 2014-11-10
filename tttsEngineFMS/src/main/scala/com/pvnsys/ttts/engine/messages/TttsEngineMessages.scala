@@ -30,6 +30,7 @@ object TttsEngineMessages {
 	case class ResponseEngineFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String) extends TttsEngineMessage
 //	case class RequestFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage
 //	case class ResponseFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage
+	case class ResponseStrategyFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsEngineMessage
 
 	case class ServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsEngineMessage
 //	case class RequestFeedServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage

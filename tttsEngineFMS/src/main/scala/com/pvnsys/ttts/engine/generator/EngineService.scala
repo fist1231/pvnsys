@@ -22,18 +22,18 @@ object EngineService {
 	            case _ => msg
 	          }
 	        }
-//	        case x: ResponseFeedFacadeTopicMessage => {
-//	          x.asInstanceOf[ResponseFeedFacadeTopicMessage].msgType match {
-//	            case FEED_RESPONSE_MESSAGE_TYPE => ResponseFeedFacadeTopicMessage(msg.asInstanceOf[ResponseFeedFacadeTopicMessage].id, msg.asInstanceOf[ResponseFeedFacadeTopicMessage].msgType, msg.asInstanceOf[ResponseFeedFacadeTopicMessage].client, msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload, msg.asInstanceOf[ResponseFeedFacadeTopicMessage].timestamp, msg.asInstanceOf[ResponseFeedFacadeTopicMessage].sequenceNum, msg.asInstanceOf[ResponseFeedFacadeTopicMessage].serviceId)
-//	            case _ => msg
-//	          }
-//	        }
-//	        case x: ResponseFeedServicesTopicMessage => {
-//	          x.asInstanceOf[ResponseFeedServicesTopicMessage].msgType match {
-//	            case FEED_RESPONSE_MESSAGE_TYPE => ResponseFeedServicesTopicMessage(msg.asInstanceOf[ResponseFeedServicesTopicMessage].id, msg.asInstanceOf[ResponseFeedServicesTopicMessage].msgType, msg.asInstanceOf[ResponseFeedServicesTopicMessage].client, msg.asInstanceOf[ResponseFeedServicesTopicMessage].payload, msg.asInstanceOf[ResponseFeedServicesTopicMessage].timestamp, msg.asInstanceOf[ResponseFeedServicesTopicMessage].sequenceNum, msg.asInstanceOf[ResponseFeedServicesTopicMessage].serviceId)
-//	            case _ => msg
-//	          }
-//	        }
+	        case x: ResponseStrategyFacadeTopicMessage => {
+	          x.asInstanceOf[ResponseStrategyFacadeTopicMessage].msgType match {
+	            case STRATEGY_RESPONSE_MESSAGE_TYPE => ResponseStrategyFacadeTopicMessage(msg.asInstanceOf[ResponseStrategyFacadeTopicMessage].id, msg.asInstanceOf[ResponseStrategyFacadeTopicMessage].msgType, msg.asInstanceOf[ResponseStrategyFacadeTopicMessage].client, msg.asInstanceOf[ResponseStrategyFacadeTopicMessage].payload, msg.asInstanceOf[ResponseStrategyFacadeTopicMessage].timestamp, msg.asInstanceOf[ResponseStrategyFacadeTopicMessage].sequenceNum, msg.asInstanceOf[ResponseStrategyFacadeTopicMessage].signal, msg.asInstanceOf[ResponseStrategyFacadeTopicMessage].serviceId)
+	            case _ => msg
+	          }
+	        }
+	        case x: ResponseStrategyServicesTopicMessage => {
+	          x.asInstanceOf[ResponseStrategyServicesTopicMessage].msgType match {
+	            case STRATEGY_RESPONSE_MESSAGE_TYPE => ResponseStrategyServicesTopicMessage(msg.asInstanceOf[ResponseStrategyServicesTopicMessage].id, msg.asInstanceOf[ResponseStrategyServicesTopicMessage].msgType, msg.asInstanceOf[ResponseStrategyServicesTopicMessage].client, msg.asInstanceOf[ResponseStrategyServicesTopicMessage].payload, msg.asInstanceOf[ResponseStrategyServicesTopicMessage].timestamp, msg.asInstanceOf[ResponseStrategyServicesTopicMessage].sequenceNum, msg.asInstanceOf[ResponseStrategyServicesTopicMessage].signal, msg.asInstanceOf[ResponseStrategyServicesTopicMessage].serviceId)
+	            case _ => msg
+	          }
+	        }
 	        case _ => msg
 	    }
      

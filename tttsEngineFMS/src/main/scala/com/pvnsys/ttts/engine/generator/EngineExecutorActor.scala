@@ -44,6 +44,7 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
 
   
   var isActive = false
+  var isInTrade = false
 	
   override def receive = {
     case req: RequestEngineFacadeTopicMessage => {
@@ -64,8 +65,14 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
       }
     }
 
+    case req: ResponseStrategyFacadeTopicMessage => {
+      log.debug("EngineExecutorActor Received ResponseStrategyFacadeTopicMessage: {}", req)
+      isActive = true
+      startEngine(req)
+    }
+
     case req: ResponseStrategyServicesTopicMessage => {
-      log.debug("EngineExecutorActor Received ResponseFeedServicesTopicMessage: {}", req)
+      log.debug("EngineExecutorActor Received ResponseStrategyServicesTopicMessage: {}", req)
       isActive = true
       startEngine(req)
     }
@@ -96,11 +103,13 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
      */ 
     
     // Put a real engine call here
-    val message = new SimulatorEngine().process(msg)
+    val engineAction = new SimulatorEngine().process(msg, isInTrade)
+    
+    isInTrade  = engineAction._2 
     
     // Publish results back to Facade Topic
     val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
-    kafkaFacadeTopicProducerActor ! message
+    kafkaFacadeTopicProducerActor ! engineAction._1 
     
   }
 
@@ -129,16 +138,16 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
      * Create FeedRequestServiceTopicMessage and publish it to Kafka Services Topic (request feed from FeedMS)
      * 
      */ 
-    getQuotesFeed(msg)
+    getStrategyFeed(msg)
   }
   
     private def stopEngineFeed(msg: TttsEngineMessage) = {
       // Send FEED_STOP_REQ message to services topic here
         // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
         val messageTraits = Utils.generateMessageTraits
-        // Sending one and only FEED_REQ message to Services topic, thus sequenceNum is hardcoded "0"
-        val strategyRequestMessage = RequestStrategyServicesTopicMessage(messageTraits._1, ENGINE_STOP_REQUEST_MESSAGE_TYPE, msg.asInstanceOf[RequestEngineFacadeTopicMessage].client, msg.asInstanceOf[RequestEngineFacadeTopicMessage].payload, messageTraits._2, "0", serviceId)
-        log.debug("******* EngineExecutorActor publishing FEED_STOP_REQUEST to KafkaServicesTopicProducerActor: {}", strategyRequestMessage)
+        // Sending one and only STRATEGY_REQ message to Services topic, thus sequenceNum is hardcoded "0"
+        val strategyRequestMessage = RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_STOP_REQUEST_MESSAGE_TYPE, msg.asInstanceOf[RequestEngineFacadeTopicMessage].client, msg.asInstanceOf[RequestEngineFacadeTopicMessage].payload, messageTraits._2, "0", serviceId)
+        log.debug("******* EngineExecutorActor publishing STRATEGY_STOP_REQUEST to KafkaServicesTopicProducerActor: {}", strategyRequestMessage)
     
         // Publishing message to Services Topic
         val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
@@ -146,7 +155,7 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
    }
   
   
-  private def getQuotesFeed(msg: TttsEngineMessage) = {
+  private def getStrategyFeed(msg: TttsEngineMessage) = {
         // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
         val messageTraits = Utils.generateMessageTraits
         // Sending one and only STRATEGY_REQ message to Services topic, thus sequenceNum is hardcoded "0"

@@ -154,13 +154,31 @@ class StrategyExecutorActor(serviceId: String) extends Actor with ActorLogging {
   private def getQuotesFeed(msg: TttsStrategyMessage) = {
         // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
         val messageTraits = Utils.generateMessageTraits
-        // Sending one and only FEED_REQ message to Services topic, thus sequenceNum is hardcoded "0"
-        val feedRequestMessage = RequestFeedServicesTopicMessage(messageTraits._1, FEED_REQUEST_MESSAGE_TYPE, msg.asInstanceOf[RequestStrategyFacadeTopicMessage].client, msg.asInstanceOf[RequestStrategyFacadeTopicMessage].payload, messageTraits._2 , "0", serviceId)
-    
-        log.debug("StrategyExecutorActor publishing FEED_REQUEST to KafkaServicesTopicProducerActor: {}", feedRequestMessage)
-        // Publishing message to Services Topic
-        val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
-        kafkaServicesTopicProducerActor ! feedRequestMessage
+        
+        msg match {
+          case x: RequestStrategyFacadeTopicMessage => {
+		        // Sending one and only FEED_REQ message to Services topic, thus sequenceNum is hardcoded "0"
+		        val feedRequestMessage = RequestFeedServicesTopicMessage(messageTraits._1, FEED_REQUEST_MESSAGE_TYPE, msg.asInstanceOf[RequestStrategyFacadeTopicMessage].client, msg.asInstanceOf[RequestStrategyFacadeTopicMessage].payload, messageTraits._2 , "0", serviceId)
+		    
+		        log.debug("StrategyExecutorActor publishing FEED_REQUEST to KafkaServicesTopicProducerActor: {}", feedRequestMessage)
+		        // Publishing message to Services Topic
+		        val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+		        kafkaServicesTopicProducerActor ! feedRequestMessage
+            
+          }
+          case x: RequestStrategyServicesTopicMessage => {
+		        // Sending one and only FEED_REQ message to Services topic, thus sequenceNum is hardcoded "0"
+		        val feedRequestMessage = RequestFeedServicesTopicMessage(messageTraits._1, FEED_REQUEST_MESSAGE_TYPE, msg.asInstanceOf[RequestStrategyServicesTopicMessage].client, msg.asInstanceOf[RequestStrategyServicesTopicMessage].payload, messageTraits._2 , "0", serviceId)
+		    
+		        log.debug("StrategyExecutorActor publishing FEED_REQUEST to KafkaServicesTopicProducerActor: {}", feedRequestMessage)
+		        // Publishing message to Services Topic
+		        val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+		        kafkaServicesTopicProducerActor ! feedRequestMessage
+            
+          }
+          case _ => "Do nothing"
+        }
+        
   }
   
   
