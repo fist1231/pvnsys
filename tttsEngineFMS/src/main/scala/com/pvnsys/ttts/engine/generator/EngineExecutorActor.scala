@@ -107,9 +107,20 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
     
     isInTrade  = engineAction._2 
     
-    // Publish results back to Facade Topic
-    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
-    kafkaFacadeTopicProducerActor ! engineAction._1 
+    engineAction._1 match {
+      case x: ResponseEngineFacadeTopicMessage => {
+	    // Publish results back to Facade Topic
+	    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+	    kafkaFacadeTopicProducerActor ! x 
+      }
+      case x: ResponseEngineServicesTopicMessage => {
+	    // Publish results back to Facade Topic
+	    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+	    kafkaServicesTopicProducerActor ! x 
+      }
+      case _ => "Do nothing"
+    }
+
     
   }
 

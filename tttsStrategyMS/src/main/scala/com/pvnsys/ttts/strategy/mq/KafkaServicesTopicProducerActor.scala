@@ -57,7 +57,6 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
   
   
   def produceKafkaMsg(msg: TttsStrategyMessage) = {
-    log.debug("KafkaServicesTopicProducerActor publishing message to Kafka Services Topic: {}", msg)
 	val props = new Properties()
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
 	props.put("serializer.class", Configuration.serializerClassProducer)
@@ -71,6 +70,7 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
 	    val jsonStrMessage = x.asInstanceOf[RequestFeedServicesTopicMessage].toJson.compactPrint
 	//    log.debug("KafkaServicesTopicProducerActor converted message to JSON: {}", jsonStrMessage)
 	    // Send it to Kafka Services Topic
+        log.info("Services Producer sent {}", x)
 	   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
       }
       case x: ResponseStrategyServicesTopicMessage => {
@@ -78,9 +78,10 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
 	    val jsonStrMessage = x.asInstanceOf[ResponseStrategyServicesTopicMessage].toJson.compactPrint
 	//    log.debug("KafkaServicesTopicProducerActor converted message to JSON: {}", jsonStrMessage)
 	    // Send it to Kafka Services Topic
+        log.info("Services Producer sent {}", x)
 	   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
       }
-      case _ => "Donothing"
+      case _ => "Do nothing"
     }
     
 

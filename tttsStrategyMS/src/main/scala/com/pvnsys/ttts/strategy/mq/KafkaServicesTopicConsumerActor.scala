@@ -12,8 +12,6 @@ import akka.actor.SupervisorStrategy.{Restart, Stop}
 import spray.json._
 import scala.collection.mutable
 import scala.collection.mutable.Map
-//import akka.event.LogSource
-//import akka.event.Logging
 
 
 object KafkaServicesTopicConsumerActor {
@@ -120,7 +118,7 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 				        // 2. Register client id and topic to the map (WebSocket address -> topic)
 					    clients += (requestStrategyServicesTopicMessage.client -> requestStrategyServicesTopicMessage)
 					    // 3. Log and handle delivery
-					    log.debug("KafkaServicesTopicConsumerActor received STRATEGY_REQUEST_MESSAGE_TYPE from Kafka Services Topic: {}", requestStrategyServicesTopicMessage)
+					    log.info("Services Consumer got {}", requestStrategyServicesTopicMessage)
 					    consumer.handleDelivery(requestStrategyServicesTopicMessage)
 				      }
 				      case result if(msgStr.contains(STRATEGY_STOP_REQUEST_MESSAGE_TYPE)) => {
@@ -129,19 +127,19 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 				        // 2. Unregister client id from clients Map
 					    clients -= requestStrategyServicesTopicMessage.client
 					    // 3. Log and handle delivery
-					    log.debug("KafkaServicesTopicConsumerActor received STRATEGY_STOP_REQUEST_MESSAGE_TYPE from Kafka Services Topic: {}", requestStrategyServicesTopicMessage)
+					    log.info("Services Consumer got {}", requestStrategyServicesTopicMessage)
 					    consumer.handleDelivery(requestStrategyServicesTopicMessage)
 				      }
 				      case result if(msgStr.contains(FEED_RESPONSE_MESSAGE_TYPE)) => {
 			        	val responseServicesMessage = msgJsonObj.convertTo[ResponseFeedServicesTopicMessage]
-			        	log.debug("KafkaServicesTopicConsumerActor received FEED_RESPONSE_MESSAGE_TYPE from Kafka Services Topic: {}", responseServicesMessage)
 		        	    // Only process FEED_RSP messages intended to this Service instance
 		        		if(responseServicesMessage.serviceId equals serviceId) {
 				        	// If message is in registered clients map, it was initiated from services topic. Otherwise, request came from Facade Topic 
+		        			log.info("Services Consumer got {}", responseServicesMessage)
 				        	if(clients contains responseServicesMessage.client) {
 				        	    // Here we need to sub serviceId that came from FeedMS to serviceId of the Microservice that requested StrategyMS at the beginning
 				        	    val callerServiceId = clients(responseServicesMessage.client).asInstanceOf[RequestStrategyServicesTopicMessage].serviceId
-				        	    log.debug("!!!!!!!!!!!!!! reassigning FEED SERVICEid {} TO original serviceID {}", responseServicesMessage.serviceId, callerServiceId)
+				        	    log.debug("!!!!!!!!!!!!!! reassigning FEED serviceId {} to original serviceID {}", responseServicesMessage.serviceId, callerServiceId)
 				        	    val reassignedResponseServiceMessage = ResponseFeedServicesTopicMessage(responseServicesMessage.id, responseServicesMessage.msgType, responseServicesMessage.client, responseServicesMessage.payload, responseServicesMessage.timestamp, responseServicesMessage.sequenceNum, callerServiceId)
 		        				consumer.handleDelivery(reassignedResponseServiceMessage)
 		        			} else {

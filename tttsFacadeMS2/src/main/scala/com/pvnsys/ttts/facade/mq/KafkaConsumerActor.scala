@@ -70,20 +70,23 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 	        
 	        if(msgStr.contains(FEED_RESPONSE_MESSAGE_TYPE)) {
 	        	val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
+	        	log.info("Facade Consumer got {}", responseFacadeMessage)
 			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
 			    feedPushActor ! responseFacadeMessage
 			    feedPushActor ! StopMessage
 		    }
 	        if(msgStr.contains(STRATEGY_RESPONSE_MESSAGE_TYPE)) {
 	        	val responseFacadeMessage = msgJsonObj.convertTo[ResponseStrategyFacadeMessage]
+	        	log.info("Facade Consumer got {}", responseFacadeMessage)
 			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
 			    feedPushActor ! responseFacadeMessage
 			    feedPushActor ! StopMessage
 		    }
 	        if(msgStr.contains(ENGINE_RESPONSE_MESSAGE_TYPE)) {
-	        	val responseEngineMessage = msgJsonObj.convertTo[ResponseEngineFacadeMessage]
+	        	val responseFacadeMessage = msgJsonObj.convertTo[ResponseEngineFacadeMessage]
+	        	log.info("Facade Consumer got {}", responseFacadeMessage)
 			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
-			    feedPushActor ! responseEngineMessage
+			    feedPushActor ! responseFacadeMessage
 			    feedPushActor ! StopMessage
 		    }
 		    
@@ -135,7 +138,7 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
   	  case STRATEGY_RESPONSE_MESSAGE_TYPE => Some(message)
   	  case ENGINE_RESPONSE_MESSAGE_TYPE => Some(message)
   	  case _ => {
-  	    log.info("KafkaConsumerActor - not Facade MQ Response, skipping Kafka message") 
+  	    log.error("KafkaConsumerActor - not Facade MQ Response, skipping Kafka message") 
   	    None
   	  }
   }

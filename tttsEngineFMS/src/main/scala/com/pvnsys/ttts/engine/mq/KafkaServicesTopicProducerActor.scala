@@ -6,7 +6,7 @@ import kafka.producer.ProducerConfig
 import kafka.javaapi.producer.Producer
 import java.util.Properties
 import com.pvnsys.ttts.engine.Configuration
-import com.pvnsys.ttts.engine.messages.TttsEngineMessages.RequestStrategyServicesTopicMessage
+import com.pvnsys.ttts.engine.messages.TttsEngineMessages.{TttsEngineMessage, RequestStrategyServicesTopicMessage, ResponseEngineServicesTopicMessage}
 import spray.json._
 
 
@@ -15,6 +15,7 @@ object KafkaServicesTopicProducerActor {
 
 object KafkaServicesTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
   implicit val requestStrategyServicesTopicMessageFormat = jsonFormat7(RequestStrategyServicesTopicMessage)
+  implicit val responseEngineServicesTopicMessageFormat = jsonFormat8(ResponseEngineServicesTopicMessage)
 }
 
 /**
@@ -33,10 +34,15 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
   override def receive = {
     /*
      * KafkaServicesTopicProducerActor sends out only two message types: 
-     * 1. FEED_REQ of RequestFeedServicesTopicMessage
-     * 2. FEED_STOP_REQ of RequestFeedServicesTopicMessage
+     * 1. STRATEGY_REQ of RequestStrategyServicesTopicMessage
+     * 2. STRATEGY_STOP_REQ of RequestStrategyServicesTopicMessage
+     * 3. ENGINE_RSP of ResponseEngineServicesTopicMessage
      */ 
     case msg: RequestStrategyServicesTopicMessage => {
+      produceKafkaMsg(msg)
+      self ! StopMessage
+    }
+    case msg: ResponseEngineServicesTopicMessage => {
       produceKafkaMsg(msg)
       self ! StopMessage
     }
@@ -50,8 +56,7 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
   }
   
   
-  def produceKafkaMsg(msg: RequestStrategyServicesTopicMessage) = {
-    log.debug("KafkaServicesTopicProducerActor publishing message to Kafka Services Topic: {}", msg)
+  def produceKafkaMsg(msg: TttsEngineMessage) = {
 	val props = new Properties()
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
 	props.put("serializer.class", Configuration.serializerClassProducer)
@@ -59,11 +64,24 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
 	val producer = new Producer[Integer, String](new ProducerConfig(props))
     val topic = Configuration.servicesTopic 
 
-    // Convert RequestServicesMessage back to JsValue
-    val jsonStrMessage = msg.toJson.compactPrint
-//    log.debug("KafkaServicesTopicProducerActor converted message to JSON: {}", jsonStrMessage)
-    // Send it to Kafka Services Topic
-   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+    msg match {
+      case x: RequestStrategyServicesTopicMessage => {
+	    // Convert RequestServicesMessage back to JsValue
+	    val jsonStrMessage = x.asInstanceOf[RequestStrategyServicesTopicMessage].toJson.compactPrint
+	    // Send it to Kafka Services Topic
+	    log.info("Services Producer sent {}", msg)
+	   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+      }
+      case x: ResponseEngineServicesTopicMessage => {
+	    // Convert RequestServicesMessage back to JsValue
+	    val jsonStrMessage = x.asInstanceOf[ResponseEngineServicesTopicMessage].toJson.compactPrint
+	    // Send it to Kafka Services Topic
+	    log.info("Services Producer sent {}", msg)
+	   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+      }
+      case _ => "Do nothing"
+	}
+    
 
     producer.close
   }

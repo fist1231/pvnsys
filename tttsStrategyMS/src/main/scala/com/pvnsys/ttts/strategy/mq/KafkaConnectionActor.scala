@@ -43,7 +43,7 @@ class KafkaConnectionActor(address: InetSocketAddress) extends Actor with ActorL
 		
 		val config = new ConsumerConfig(prps)
 		val connector = Consumer.create(config)
-		log.info("Connected to Kafka server on {}", Configuration.metadataBrokerListProducer)
+		log.debug("Connected to Kafka server on {}", Configuration.metadataBrokerListProducer)
 
 		val client = sender()
 	    connectors = connector :: connectors
@@ -54,7 +54,7 @@ class KafkaConnectionActor(address: InetSocketAddress) extends Actor with ActorL
   
   override def postStop() = {
     connectors foreach { connector => 
-	    log.info("Closing connectors")
+	    log.debug("Closing connectors")
 	    connector.shutdown
     }
   }

@@ -118,7 +118,7 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 				        // 2. Register client id and topic to the map (WebSocket address -> topic)
 					    clients += (requestEngineServicesTopicMessage.client -> requestEngineServicesTopicMessage)
 					    // 3. Log and handle delivery
-					    log.debug("KafkaServicesTopicConsumerActor received ENGINE_REQUEST_MESSAGE_TYPE from Kafka Services Topic: {}", requestEngineServicesTopicMessage)
+					    log.info("Services Consumer got {}", requestEngineServicesTopicMessage)
 					    consumer.handleDelivery(requestEngineServicesTopicMessage)
 				      }
 				      case result if(msgStr.contains(ENGINE_STOP_REQUEST_MESSAGE_TYPE)) => {
@@ -127,17 +127,21 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 				        // 2. Unregister client id from clients Map
 					    clients -= requestEngineServicesTopicMessage.client
 					    // 3. Log and handle delivery
-					    log.debug("KafkaServicesTopicConsumerActor received ENGINE_STOP_REQUEST_MESSAGE_TYPE from Kafka Services Topic: {}", requestEngineServicesTopicMessage)
+					    log.info("Services Consumer got {}", requestEngineServicesTopicMessage)
 					    consumer.handleDelivery(requestEngineServicesTopicMessage)
 				      }
 				      case result if(msgStr.contains(STRATEGY_RESPONSE_MESSAGE_TYPE)) => {
 			        	val responseServicesMessage = msgJsonObj.convertTo[ResponseStrategyServicesTopicMessage]
-			        	log.debug("KafkaServicesTopicConsumerActor received STRATEGY_RESPONSE_MESSAGE_TYPE from Kafka Services Topic: {}", responseServicesMessage)
 		        	    // Only process STRATEGY_RSP messages intended to this Service instance
 		        		if(responseServicesMessage.serviceId equals serviceId) {
 				        	// If message is in registered clients map, it was initiated from services topic. Otherwise, request came from Facade Topic 
+		        			log.info("Services Consumer got {}", responseServicesMessage)
 				        	if(clients contains responseServicesMessage.client) {
-		        				consumer.handleDelivery(responseServicesMessage)
+				        	    // Here we need to sub serviceId that came from StrategyMS to serviceId of the Microservice that requested EngineMS at the beginning
+				        	    val callerServiceId = clients(responseServicesMessage.client).asInstanceOf[RequestEngineServicesTopicMessage].serviceId
+				        	    log.debug("!!!!!!!!!!!!!! reassigning STRATEGY serviceId {} to original serviceID {}", responseServicesMessage.serviceId, callerServiceId)
+				        	    val reassignedResponseServiceMessage = ResponseStrategyServicesTopicMessage(responseServicesMessage.id, responseServicesMessage.msgType, responseServicesMessage.client, responseServicesMessage.payload, responseServicesMessage.timestamp, responseServicesMessage.sequenceNum, responseServicesMessage.signal, callerServiceId)
+		        				consumer.handleDelivery(reassignedResponseServiceMessage)
 		        			} else {
 		        			    // This STRATEGY_RESP response intended for the FacadeMS
 		        				val responseServicesMessage = msgJsonObj.convertTo[ResponseStrategyFacadeTopicMessage]

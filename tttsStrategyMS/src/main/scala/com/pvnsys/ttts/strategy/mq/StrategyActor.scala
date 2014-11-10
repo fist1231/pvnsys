@@ -62,23 +62,6 @@ class StrategyActor extends ActorProducer[TttsStrategyMessage] with ActorLogging
 		      }
 	
 	
-//		case msg: FacadeTopicMessage => 
-//			  log.debug(s"StrategyActor, Gettin FacadeTopicMessage: {} - {}", msg.client, msg.msgType)
-//		      if (isActive && totalDemand > 0) {
-//		        onNext(msg)
-//		      } else {
-//		        //requeue the message
-//		        //message ordering might not be preserved
-//		      }
-//		
-//		case msg: ServicesTopicMessage => 
-//			  log.debug(s"StrategyActor, Gettin ServicesTopicMessage: {} - {}", msg.client, msg.msgType)
-//		      if (isActive && totalDemand > 0) {
-//		        onNext(msg)
-//		      } else {
-//		        //requeue the message
-//		        //message ordering might not be preserved
-//		      }
 		case StopMessage => {
 			log.debug("StrategyActor StopMessage")
 		}

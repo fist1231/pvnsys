@@ -110,9 +110,11 @@ class KafkaFacadeTopicConsumerActor(processorActorRef: ActorRef, serviceId: Stri
 			        val msgStr = msgJsonObj.compactPrint
 				    
 				    val requestEngineFacadeTopicMessage = msgJsonObj.convertTo[RequestEngineFacadeTopicMessage]
-				    log.debug("KafkaFacadeTopicConsumerActor received message from Kafka Facade Topic: {}", requestEngineFacadeTopicMessage)
 				    matchRequest(requestEngineFacadeTopicMessage) match {
-				      case Some(facadeTopicMessage) => consumer.handleDelivery(requestEngineFacadeTopicMessage)
+				      case Some(facadeTopicMessage) => {
+				    	log.info("Facade Consumer got {}", requestEngineFacadeTopicMessage)
+				        consumer.handleDelivery(requestEngineFacadeTopicMessage)
+				      }
 				      case None => "Do nothing"
 				    }
 		      }

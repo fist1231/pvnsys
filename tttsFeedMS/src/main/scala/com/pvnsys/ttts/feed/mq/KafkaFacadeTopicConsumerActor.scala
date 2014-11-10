@@ -91,9 +91,11 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 			        val msgStr = msgJsonObj.compactPrint
 				    
 				    val facadeTopicMessage = msgJsonObj.convertTo[FacadeTopicMessage]
-				    log.debug("KafkaFacadeTopicConsumerActor received message from Kafka Facade Topic: {}", facadeTopicMessage)
 				    matchRequest(facadeTopicMessage) match {
-				      case Some(facadeTopicMessage) => consumer.handleDelivery(facadeTopicMessage)
+				      case Some(facadeTopicMessage) => {
+				    	log.info("Facade Consumer got {}", facadeTopicMessage)
+				        consumer.handleDelivery(facadeTopicMessage)
+				      }
 				      case None => "Lets do nothing"
 				    }
 		      }
@@ -107,7 +109,7 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 		case FEED_REQUEST_MESSAGE_TYPE => Some(message)
 		case FEED_STOP_REQUEST_MESSAGE_TYPE => Some(message)
 		case _ => {
-			log.debug("KafkaFacadeTopicConsumerActorJsonProtocol - not Feed Service request, skipping Kafka message") 
+//			log.debug("KafkaFacadeTopicConsumerActorJsonProtocol - not Feed Service request, skipping Kafka message") 
 			None
 		}
 	}

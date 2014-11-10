@@ -19,8 +19,6 @@ import kafka.consumer.Consumer
 import kafka.consumer.ConsumerConfig
 import spray.json.DefaultJsonProtocol
 import spray.json.pimpString
-//import akka.event.LogSource
-//import akka.event.Logging
 
 
 object KafkaFacadeTopicConsumerActor {
@@ -112,9 +110,11 @@ class KafkaFacadeTopicConsumerActor(processorActorRef: ActorRef, serviceId: Stri
 			        val msgStr = msgJsonObj.compactPrint
 				    
 				    val requestStrategyFacadeTopicMessage = msgJsonObj.convertTo[RequestStrategyFacadeTopicMessage]
-				    log.debug("KafkaFacadeTopicConsumerActor received message from Kafka Facade Topic: {}", requestStrategyFacadeTopicMessage)
 				    matchRequest(requestStrategyFacadeTopicMessage) match {
-				      case Some(facadeTopicMessage) => consumer.handleDelivery(requestStrategyFacadeTopicMessage)
+				      case Some(facadeTopicMessage) => {
+				    	log.info("Facade Consumer got {}", requestStrategyFacadeTopicMessage)
+				        consumer.handleDelivery(requestStrategyFacadeTopicMessage)
+				      }
 				      case None => "Do nothing"
 				    }
 		      }

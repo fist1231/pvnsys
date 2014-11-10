@@ -88,9 +88,11 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 			        val msgStr = msgJsonObj.compactPrint
 				    
 				    val servicesTopicMessage = msgJsonObj.convertTo[ServicesTopicMessage]
-				    log.debug("KafkaServicesTopicConsumerActor received message from Kafka Services Topic: {}", servicesTopicMessage)
 				    matchRequest(servicesTopicMessage) match {
-				      case Some(servicesTopicMessage) => consumer.handleDelivery(servicesTopicMessage)
+				      case Some(servicesTopicMessage) => {
+				    	log.info("Services Consumer got {}", servicesTopicMessage)
+				        consumer.handleDelivery(servicesTopicMessage)
+				      }
 				      case None => "Lets do nothing"
 				    }
 		      }
@@ -104,7 +106,7 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
   	  case FEED_REQUEST_MESSAGE_TYPE => Some(message)
   	  case FEED_STOP_REQUEST_MESSAGE_TYPE => Some(message)
   	  case _ => {
-  	    log.debug("KafkaServicesTopicConsumerActorJsonProtocol - not Feed Service request, skipping Kafka message") 
+//  	    log.debug("KafkaServicesTopicConsumerActor - not Feed Service request, skipping Kafka message") 
   	    None
   	  }
   }
