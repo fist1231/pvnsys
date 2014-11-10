@@ -141,8 +141,9 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 				        	if(clients contains responseServicesMessage.client) {
 				        	    // Here we need to sub serviceId that came from FeedMS to serviceId of the Microservice that requested StrategyMS at the beginning
 				        	    val callerServiceId = clients(responseServicesMessage.client).asInstanceOf[RequestStrategyServicesTopicMessage].serviceId
+				        	    log.debug("!!!!!!!!!!!!!! reassigning FEED SERVICEid {} TO original serviceID {}", responseServicesMessage.serviceId, callerServiceId)
 				        	    val reassignedResponseServiceMessage = ResponseFeedServicesTopicMessage(responseServicesMessage.id, responseServicesMessage.msgType, responseServicesMessage.client, responseServicesMessage.payload, responseServicesMessage.timestamp, responseServicesMessage.sequenceNum, callerServiceId)
-		        				consumer.handleDelivery(responseServicesMessage)
+		        				consumer.handleDelivery(reassignedResponseServiceMessage)
 		        			} else {
 		        				val responseServicesMessage = msgJsonObj.convertTo[ResponseFeedFacadeTopicMessage]
 		        				consumer.handleDelivery(responseServicesMessage)
