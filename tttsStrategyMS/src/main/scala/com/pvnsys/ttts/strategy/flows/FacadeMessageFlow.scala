@@ -29,7 +29,7 @@ object FacadeMessageFlow extends LazyLogging {
 	    
 	    map { msg =>
 	      val x = msg.client 
-	      logger.debug("FacadeMessageFlow duct step 2; converting FacadeTopicMessage to RequestFeedFacadeTopicMessage for Client is: {}", x)
+	      logger.debug("FacadeMessageFlow duct step 2; converting FacadeTopicMessage to RequestStrategyFacadeTopicMessage for msg: {}", msg)
 	      msg
 	    }.
 	

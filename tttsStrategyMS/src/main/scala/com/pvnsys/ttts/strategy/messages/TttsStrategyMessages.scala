@@ -16,22 +16,20 @@ object TttsStrategyMessages {
 	case object StartStrategyServiceMessage extends TttsStrategyMessage
 	case object StopStrategyServiceMessage extends TttsStrategyMessage
 
-	// ======= Deprecated and will be removed soon
 	case object StartListeningFacadeTopicMessage extends TttsStrategyMessage
 	case object StartListeningServicesTopicMessage extends TttsStrategyMessage
-	// =======
 	
-	case class StartListeningStrategyRequestFlowFacadeTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
-	case class StartListeningStrategyRequestFlowServicesTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
-	case class StartListeningFeedResponseToFacadeFlowServicesTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
-	case class StartListeningFeedResponseToServicesFlowServicesTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
+//	case class StartListeningStrategyRequestFlowFacadeTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
+//	case class StartListeningStrategyRequestFlowServicesTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
+//	case class StartListeningFeedResponseToFacadeFlowServicesTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
+//	case class StartListeningFeedResponseToServicesFlowServicesTopicMessage(actorRef: ActorRef) extends TttsStrategyMessage
 	
 	case object StartKafkaServicesTopicConsumerMessage extends TttsStrategyMessage
 
 	case class FacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsStrategyMessage
 	case class RequestStrategyFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsStrategyMessage
 	case class ResponseStrategyFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String) extends TttsStrategyMessage
-	case class RequestFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsStrategyMessage
+//	case class RequestFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsStrategyMessage
 	case class ResponseFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsStrategyMessage
 
 	case class ServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsStrategyMessage
