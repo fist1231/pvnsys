@@ -116,10 +116,18 @@ class ServicesMessageFlow(engineServicesActor: ActorRef, serviceUniqueID: String
 			          x.asInstanceOf[ResponseStrategyFacadeTopicMessage].msgType match {
 						    case STRATEGY_RESPONSE_MESSAGE_TYPE => {
 						    	logger.debug("Got STRATEGY_RESPONSE_MESSAGE_TYPE. Key {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client)	          
-							    val engineExecutorActor = context.actorOf(EngineExecutorActor.props(serviceUniqueID))
-							    logger.debug("Starting EngineExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client, engineExecutorActor)
-	//						    strategies += (msg.client -> engineExecutorActor)
-							    engineExecutorActor ! x
+						        strategies.get(x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client) match {
+								  case Some(engineExecActor) => {
+									  logger.debug("Starting EngineExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client, engineExecActor)
+									  engineExecActor ! x
+								  }
+								  case None => logger.debug("No such Engine to process. Key {}", x.asInstanceOf[RequestEngineServicesTopicMessage].client)
+								}
+
+//						    	val engineExecutorActor = context.actorOf(EngineExecutorActor.props(serviceUniqueID))
+//							    logger.debug("Starting EngineExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client, engineExecutorActor)
+//	//						    strategies += (msg.client -> engineExecutorActor)
+//							    engineExecutorActor ! x
 						    }
 						    case _ =>
 			          }
@@ -128,10 +136,18 @@ class ServicesMessageFlow(engineServicesActor: ActorRef, serviceUniqueID: String
 			          x.asInstanceOf[ResponseStrategyServicesTopicMessage].msgType match {
 						    case STRATEGY_RESPONSE_MESSAGE_TYPE => {
 						    	logger.debug("Got STRATEGY_RESPONSE_MESSAGE_TYPE. Key {}", x.asInstanceOf[ResponseStrategyServicesTopicMessage].client)	          
-							    val engineExecutorActor = context.actorOf(EngineExecutorActor.props(serviceUniqueID))
-							    logger.debug("Starting EngineExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyServicesTopicMessage].client, engineExecutorActor)
-	//						    strategies += (msg.client -> engineExecutorActor)
-							    engineExecutorActor ! x
+						        strategies.get(x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client) match {
+								  case Some(engineExecActor) => {
+									  logger.debug("Starting EngineExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyServicesTopicMessage].client, engineExecActor)
+									  engineExecActor ! x
+								  }
+								  case None => logger.debug("No such Engine to process. Key {}", x.asInstanceOf[ResponseStrategyServicesTopicMessage].client)
+								}
+
+//						    	val engineExecutorActor = context.actorOf(EngineExecutorActor.props(serviceUniqueID))
+//							    logger.debug("Starting EngineExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyServicesTopicMessage].client, engineExecutorActor)
+//	//						    strategies += (msg.client -> engineExecutorActor)
+//							    engineExecutorActor ! x
 						    }
 						    case _ =>
 			          }

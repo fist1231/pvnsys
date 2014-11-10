@@ -59,7 +59,7 @@ class StrategyExecutorActor(serviceId: String) extends Actor with ActorLogging {
       isActive = true
 	  req.msgType match {
 		    case STRATEGY_REQUEST_MESSAGE_TYPE => startStrategyFeed(req)
-		    case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => stopStrategyFeed(req)
+		    case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => stopStrategyServicesFeed(req)
       }
     }
 
@@ -160,7 +160,20 @@ class StrategyExecutorActor(serviceId: String) extends Actor with ActorLogging {
         val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
         kafkaServicesTopicProducerActor ! feedRequestMessage
    }
-  
+
+    private def stopStrategyServicesFeed(msg: TttsStrategyMessage) = {
+      // Send FEED_STOP_REQ message to services topic here
+        // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
+        val messageTraits = Utils.generateMessageTraits
+        // Sending one and only FEED_REQ message to Services topic, thus sequenceNum is hardcoded "0"
+        val feedRequestMessage = RequestFeedServicesTopicMessage(messageTraits._1, FEED_STOP_REQUEST_MESSAGE_TYPE, msg.asInstanceOf[RequestStrategyServucesTopicMessage].client, msg.asInstanceOf[RequestStrategyServicesTopicMessage].payload, messageTraits._2, "0", serviceId)
+        log.debug("******* StrategyExecutorActor publishing FEED_STOP_REQUEST to KafkaServicesTopicProducerActor: {}", feedRequestMessage)
+    
+        // Publishing message to Services Topic
+        val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+        kafkaServicesTopicProducerActor ! feedRequestMessage
+   }
+    
   
   private def getQuotesFeed(msg: TttsStrategyMessage) = {
         // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.

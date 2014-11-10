@@ -69,11 +69,15 @@ class SimulatorEngine extends Engine with LazyLogging {
       case "BUY" => if(!resultStatus) {
         resultStatus = true
         "BOUGHT"
-      }
+      	} else {
+      	  "POSITION OPENED ALREADY"
+      	}
       case "SELL" => if(resultStatus) {
         resultStatus = false
         "SOLD"
-      }
+      	} else {
+      	  "NOT IN A POSITION"
+      	}
       case "HOLD" => "PASS"
       case _ => "Nothing"
     }
