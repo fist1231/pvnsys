@@ -3,6 +3,10 @@ package com.pvnsys.ttts.engine.impl
 import com.pvnsys.ttts.engine.messages.TttsEngineMessages
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import com.pvnsys.ttts.engine.util.Utils
+import java.sql._
+import kx.c
+import kx.c._
+import kx.c.Flip
 
 object FakeEngine {
 }
@@ -17,6 +21,8 @@ class SimulatorEngine extends Engine with LazyLogging {
   import Engine._
 
   var resultStatus = false
+  
+  type KdbType = (Float, Float, Int, Boolean)
 
   override def process(msg: TttsEngineMessage, isInTrade: Boolean): EngineType = {
     
@@ -26,6 +32,44 @@ class SimulatorEngine extends Engine with LazyLogging {
      */ 
     resultStatus = isInTrade
 
+//try{c c=new c("localhost",5001);                    // connect                                    
+// Object[]x={new Time(System.currentTimeMillis()%86400000),"xx",new Double(93.5),new Integer(300)};
+// c.k("insert","trade",x);                           // insert                                     
+// Object r=c.k("select sum size by sym from trade"); // select                                     
+//}catch(Exception e){}                                                                             
+ 
+      val c: c = new c("localhost", 5555)
+      val res = c.k("select from engine")
+      println(s"+++++++++++++++++++++++ res = $res")
+      val tabres: Flip = res.asInstanceOf[Flip]
+      val colNames = tabres.x
+      colNames.foreach(println)
+//      println(s"+++++++++++++++++++++++ colNames = $colNames")
+      val colData = tabres.y
+      val firstRowData = colData(0)
+//      firstRowData.at
+      colData.foreach(println)
+//      println(s"+++++++++++++++++++++++ colData = $colData")
+    
+      
+      println(s"+++++++++++++++++++++++ firstRowData.asInstanceOf[Float] = ${firstRowData.asInstanceOf[Float]}") 
+      println(s"+++++++++++++++++++++++ colData(1) = ${colData(1).asInstanceOf[Float]}") 
+      println(s"+++++++++++++++++++++++ colData(2) = ${colData(2).asInstanceOf[Int]}") 
+      println(s"+++++++++++++++++++++++ colData(3) = ${colData(3).asInstanceOf[Boolean]}") 
+      
+//      println(s"+++++++++++++++++++++++ tabres.at(colNames(0)) = ${tabres.at(colNames(0))}") 
+//      println(s"+++++++++++++++++++++++ tabres.at(colNames(1)) = ${tabres.at(colNames(1))}") 
+//      println(s"+++++++++++++++++++++++ tabres.at(colNames(2)) = ${tabres.at(colNames(2))}") 
+//      println(s"+++++++++++++++++++++++ tabres.at(colNames(3)) = ${tabres.at(colNames(3))}") 
+      
+//      val kdb: KdbType = (colData(0).asInstanceOf[Float], colData(1).asInstanceOf[Float], colData(2).asInstanceOf[Int], colData(3).asInstanceOf[Boolean])
+//      println(s"+++++++++++++++++++++++ kdb = $kdb")
+
+      c close
+    
+    
+//    val kdb: KdbType = "select from engine"
+    
     
     // 1. Do some fake Engine processing here. Replace with real code.
 //    val fraction = msg.asInstanceOf[ResponseEngineFacadeTopicMessage].payload.toDouble - msg.asInstanceOf[ResponseEngineFacadeTopicMessage].payload.toDouble.intValue

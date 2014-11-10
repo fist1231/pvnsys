@@ -16,6 +16,7 @@ import akka.actor.ActorRef
 import com.pvnsys.ttts.engine.mq.EngineActor
 import com.pvnsys.ttts.engine.flows.{FacadeMessageFlow, ServicesMessageFlow}
 import com.pvnsys.ttts.engine.util.Utils
+import com.pvnsys.ttts.engine.db.KdbActor
 
 
 object TttsEngineFService extends LazyLogging {
@@ -25,6 +26,7 @@ class TttsEngineFService extends Actor with ActorLogging {
   
   import TttsEngineFService._
   import TttsEngineMessages._
+  import KdbActor._
   
   val serviceUniqueID = Utils.generateUuid
   
@@ -36,6 +38,11 @@ class TttsEngineFService extends Actor with ActorLogging {
   
     
     private def startService() = {
+
+		// Start kdb database server
+		val kdbActor = context.actorOf(KdbActor.props(serviceUniqueID), "kdbActor")
+		kdbActor ! StartKdbMessage
+      
       
 		val engineFacadeActor = context.actorOf(Props(classOf[EngineActor]), "engineFacadeConsumer")
 		
