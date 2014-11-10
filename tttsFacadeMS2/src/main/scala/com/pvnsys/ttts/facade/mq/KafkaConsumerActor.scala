@@ -12,7 +12,7 @@ import com.pvnsys.ttts.facade.feed.FeedActor
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
 import spray.json._
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{ResponseFacadeMessage, ResponseStrategyFacadeMessage}
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{ResponseFacadeMessage, ResponseStrategyFacadeMessage, ResponseEngineFacadeMessage}
 
 object KafkaConsumerActor {
   sealed trait FacadeConsumerMessage
@@ -24,6 +24,7 @@ object KafkaConsumerActor {
 object KafkaConsumerActorJsonProtocol extends DefaultJsonProtocol {
   implicit val responseFacadeMessageFormat = jsonFormat6(ResponseFacadeMessage)
   implicit val responseStrategyFacadeMessageFormat = jsonFormat7(ResponseStrategyFacadeMessage)
+  implicit val responseEngineFacadeMessageFormat = jsonFormat7(ResponseEngineFacadeMessage)
 }
 
 /**
@@ -79,6 +80,12 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 			    feedPushActor ! responseFacadeMessage
 			    feedPushActor ! StopMessage
 		    }
+	        if(msgStr.contains(ENGINE_RESPONSE_MESSAGE_TYPE)) {
+	        	val responseEngineMessage = msgJsonObj.convertTo[ResponseEngineFacadeMessage]
+			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
+			    feedPushActor ! responseEngineMessage
+			    feedPushActor ! StopMessage
+		    }
 		    
 //		    val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
 //	        log.debug("KafkaConsumerActor received message from Facade Topic: {}", responseFacadeMessage)
@@ -126,6 +133,7 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
   private def matchRequest(message: ResponseFacadeMessage): Option[ResponseFacadeMessage] = message.msgType match {
   	  case FEED_RESPONSE_MESSAGE_TYPE => Some(message)
   	  case STRATEGY_RESPONSE_MESSAGE_TYPE => Some(message)
+  	  case ENGINE_RESPONSE_MESSAGE_TYPE => Some(message)
   	  case _ => {
   	    log.info("KafkaConsumerActor - not Facade MQ Response, skipping Kafka message") 
   	    None
@@ -147,6 +155,10 @@ class FeedPushActor extends Actor with ActorLogging {
     }
     case msg: ResponseStrategyFacadeMessage => {
 	      context.actorSelection("/user/strategy") ! msg
+	      self ! StopMessage
+    }
+    case msg: ResponseEngineFacadeMessage => {
+	      context.actorSelection("/user/engine") ! msg
 	      self ! StopMessage
     }
     case StopMessage => {

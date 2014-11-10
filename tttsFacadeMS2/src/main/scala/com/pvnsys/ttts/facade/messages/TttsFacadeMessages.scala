@@ -9,6 +9,10 @@ object TttsFacadeMessages {
 	val STRATEGY_REQUEST_MESSAGE_TYPE = "STRATEGY_REQ"
 	val STRATEGY_STOP_REQUEST_MESSAGE_TYPE = "STRATEGY_STOP_REQ"
 	val STRATEGY_RESPONSE_MESSAGE_TYPE = "STRATEGY_RSP"
+
+	val ENGINE_REQUEST_MESSAGE_TYPE = "ENGINE_REQ"
+	val ENGINE_STOP_REQUEST_MESSAGE_TYPE = "ENGINE_STOP_REQ"
+	val ENGINE_RESPONSE_MESSAGE_TYPE = "ENGINE_RSP"
 	  
     sealed trait TttsFacadeMessage
 	case object Stop extends TttsFacadeMessage
@@ -24,6 +28,11 @@ object TttsFacadeMessages {
 	// Message received from Facade Topic MQ in response to services processing request
 	case class ResponseStrategyFacadeMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String) extends TttsFacadeMessage
 
+	// Message published to Facade Topic MQ to request services processing
+	case class RequestEngineFacadeMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsFacadeMessage
+	// Message received from Facade Topic MQ in response to services processing request
+	case class ResponseEngineFacadeMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String) extends TttsFacadeMessage
+	
 }
 
 

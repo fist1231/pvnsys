@@ -8,7 +8,7 @@ import kafka.javaapi.producer.Producer
 import java.util.Properties
 import com.pvnsys.ttts.facade.Configuration
 import com.pvnsys.ttts.facade.feed.FeedActor
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{RequestFacadeMessage, ResponseFacadeMessage, RequestStrategyFacadeMessage}
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{RequestFacadeMessage, ResponseFacadeMessage, RequestStrategyFacadeMessage, RequestEngineFacadeMessage}
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.TttsFacadeMessage
 import spray.json._
 import scala.util.Random
@@ -27,6 +27,7 @@ object KafkaProducerActorJsonProtocol extends DefaultJsonProtocol {
   implicit val requestFacadeMessageFormat = jsonFormat6(RequestFacadeMessage)
   implicit val responseFacadeMessageForman = jsonFormat6(ResponseFacadeMessage)
   implicit val requestStrategyFacadeMessageFormat = jsonFormat6(RequestStrategyFacadeMessage)
+  implicit val requestEngineFacadeMessageFormat = jsonFormat6(RequestEngineFacadeMessage)
 }
 
 /**
@@ -51,6 +52,12 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
 
   	case msg: RequestStrategyFacadeMessage => {
       log.debug("KafkaProducerActor received RequestStrategyFacadeMessage: {}", msg)
+      produceKafkaMsg(msg)
+      self ! StopMessage
+    }
+
+  	case msg: RequestEngineFacadeMessage => {
+      log.debug("KafkaProducerActor received RequestEngineFacadeMessage: {}", msg)
       produceKafkaMsg(msg)
       self ! StopMessage
     }
@@ -83,6 +90,11 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
 		   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
       }
       case x:RequestStrategyFacadeMessage => {
+		    val jsonStrMessage = x.toJson.compactPrint
+		    // Send it to Kafka facadeTopic
+		   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+      }
+      case x:RequestEngineFacadeMessage => {
 		    val jsonStrMessage = x.toJson.compactPrint
 		    // Send it to Kafka facadeTopic
 		   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));

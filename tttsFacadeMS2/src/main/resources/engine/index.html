@@ -11,39 +11,30 @@ http://paulirish.com/2010/the-protocol-relative-url/
   <meta charset="utf-8"/>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-  <title>Ttts PVN Systems</title>
+  <title>TTTS Facade -- Feed</title>
   <link rel='stylesheet' type='text/css' href='//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.min.css'/>
   <link rel='stylesheet' type='text/css' href='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/css/bootstrap.min.css'/>
   <link rel='stylesheet' type='text/css' href='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/css/bootstrap-theme.min.css'/>
   <script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/openlayers/2.12/OpenLayers.min.js'></script>
   <script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js'></script>
   <script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/js/bootstrap.min.js'></script>
-  <style type="text/css">
-    .container{width:1240px;padding:0}
-    iframe{width:610px;height:640px;border:0}
-    #footer{width:100%;height:80px;background-color:rgb(242,242,242);z-index:-10;position:absolute;bottom:0;text-align:center}
-    #footer .container{padding:5px}
-    #footer .container p{margin:10px 0}
-  </style>
+  <link rel='stylesheet' type='text/css' href='../css/panel.css'/>
 </head>
 <body>
-  <div class="navbar navbar-inverse">
-    <div class="container">
-      <div class='navbar-header'>
-        <a class="navbar-brand" href="/">TTTS PVN Systems</a>
-      </div>
-      <div class="navbar-collapse collapse"></div>
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <h3 class="panel-title">Engine</h3>
+    </div>
+    <div>
+	    <div class="alert alert-danger alert-block fade in hide">
+	      <a class="close" data-dismiss="alert" href="#">×</a>
+          <h4 class="alert-heading"><strong> Oy vey! </strong> You got an error!</h4>
+          <p style="float:right"><a class='btn btn-xs btn-danger' href='index.html'>Reload</a></p>
+          <p>The server is down</p>
+	    </div>
+      <div id="log" class="well" style="width:90%; height:400px"></div>
     </div>
   </div>
-  <div class="container">
-    <iframe id='feed' src="/feed/index.html"></iframe>
-    <iframe id='strategy' src="/strategy/index.html"></iframe>
-    <iframe id='engine' src="/engine/index.html"></iframe>
-  </div>
-  <div id="footer">
-    <div class="container">
-	    <p><a class="text-muted" target="_blank" href='https://www.pvnsys.com/'>PVN Systems, Ltd.</a></p>
-    </div>
-  </div>
+  <script type='text/javascript' src='engine.js'></script>
 </body>
 </html>

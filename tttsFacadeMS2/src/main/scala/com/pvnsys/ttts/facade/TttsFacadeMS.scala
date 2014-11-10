@@ -17,6 +17,7 @@ object TttsFacadeMS extends App with MainActors with TttsFacadeApi {
   private val rs = new TttsFacadeMSServer(Configuration.portWs)
   rs.forResource("/feed/ws", Some(feed))
   rs.forResource("/strategy/ws", Some(strategy))
+  rs.forResource("/engine/ws", Some(engine))
   rs.start
   sys.addShutdownHook({system.shutdown;rs.stop})
   

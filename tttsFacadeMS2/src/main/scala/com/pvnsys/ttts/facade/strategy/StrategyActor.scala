@@ -38,7 +38,7 @@ class StrategyActor extends Actor with ActorLogging {
 
   override val supervisorStrategy = OneForOneStrategy(loggingEnabled = false) {
     case e =>
-      log.error("Unexpected failure in FeedActor: {}", e.getMessage)
+      log.error("Unexpected failure in StrategyActor: {}", e.getMessage)
       Restart
 //      Stop
   }
@@ -67,7 +67,7 @@ class StrategyActor extends Actor with ActorLogging {
 //        	sockets -= ws.getRemoteSocketAddress().toString()
         	sockets -= keyToKill
         	val messageTraits = Utils.generateMessageTraits
-	        val feedStopRequestMessage = RequestStrategyFacadeMessage(messageTraits._1, "STRATEGY_STOP_REQ", keyToKill, "", messageTraits._2, messageTraits._3)
+	        val feedStopRequestMessage = RequestStrategyFacadeMessage(messageTraits._1, STRATEGY_STOP_REQUEST_MESSAGE_TYPE, keyToKill, "", messageTraits._2, messageTraits._3)
 		    sendMessages(feedStopRequestMessage)
         }
 //        sockets.foreach { case (key, value) => log.debug("zzzzz key: {} ==> value: {}", key, value) }
