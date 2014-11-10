@@ -6,7 +6,7 @@ import kafka.producer.ProducerConfig
 import kafka.javaapi.producer.Producer
 import java.util.Properties
 import com.pvnsys.ttts.strategy.Configuration
-import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.RequestFeedServicesTopicMessage
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.{TttsStrategyMessage, RequestFeedServicesTopicMessage, ResponseStrategyServicesTopicMessage}
 import spray.json._
 
 
@@ -15,6 +15,7 @@ object KafkaServicesTopicProducerActor {
 
 object KafkaServicesTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
   implicit val requestFeedServicesTopicMessageFormat = jsonFormat7(RequestFeedServicesTopicMessage)
+  implicit val responseStrategyServicesTopicMessageFormat = jsonFormat8(ResponseStrategyServicesTopicMessage)
 }
 
 /**
@@ -35,8 +36,13 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
      * KafkaServicesTopicProducerActor sends out only two message types: 
      * 1. FEED_REQ of RequestFeedServicesTopicMessage
      * 2. FEED_STOP_REQ of RequestFeedServicesTopicMessage
+     * 3. STRATEGY_RSP of ResponseStrategyServicesTopicMessage
      */ 
     case msg: RequestFeedServicesTopicMessage => {
+      produceKafkaMsg(msg)
+      self ! StopMessage
+    }
+    case msg: ResponseStrategyServicesTopicMessage => {
       produceKafkaMsg(msg)
       self ! StopMessage
     }
@@ -50,7 +56,7 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
   }
   
   
-  def produceKafkaMsg(msg: RequestFeedServicesTopicMessage) = {
+  def produceKafkaMsg(msg: TttsStrategyMessage) = {
     log.debug("KafkaServicesTopicProducerActor publishing message to Kafka Services Topic: {}", msg)
 	val props = new Properties()
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
@@ -59,11 +65,24 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
 	val producer = new Producer[Integer, String](new ProducerConfig(props))
     val topic = Configuration.servicesTopic 
 
-    // Convert RequestServicesMessage back to JsValue
-    val jsonStrMessage = msg.toJson.compactPrint
-//    log.debug("KafkaServicesTopicProducerActor converted message to JSON: {}", jsonStrMessage)
-    // Send it to Kafka Services Topic
-   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+    msg match {
+      case x: RequestFeedServicesTopicMessage => {
+	    // Convert RequestServicesMessage back to JsValue
+	    val jsonStrMessage = x.asInstanceOf[RequestFeedServicesTopicMessage].toJson.compactPrint
+	//    log.debug("KafkaServicesTopicProducerActor converted message to JSON: {}", jsonStrMessage)
+	    // Send it to Kafka Services Topic
+	   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+      }
+      case x: ResponseStrategyServicesTopicMessage => {
+	    // Convert ResponseStrategyServicesTopicMessage back to JsValue
+	    val jsonStrMessage = x.asInstanceOf[ResponseStrategyServicesTopicMessage].toJson.compactPrint
+	//    log.debug("KafkaServicesTopicProducerActor converted message to JSON: {}", jsonStrMessage)
+	    // Send it to Kafka Services Topic
+	   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+      }
+      case _ => "Donothing"
+    }
+    
 
     producer.close
   }

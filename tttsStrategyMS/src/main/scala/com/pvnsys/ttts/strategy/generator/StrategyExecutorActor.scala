@@ -103,9 +103,20 @@ class StrategyExecutorActor(serviceId: String) extends Actor with ActorLogging {
     // Put a real strategy call here
     val message = new FakeStrategy().process(msg)
     
-    // Publish results back to Facade Topic
-    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
-    kafkaFacadeTopicProducerActor ! message
+    message match {
+      case x: ResponseStrategyFacadeTopicMessage => {
+	    // Publish results back to Facade Topic
+	    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+	    kafkaFacadeTopicProducerActor ! message
+      }
+      case x: ResponseStrategyServicesTopicMessage => {
+	    // Publish results back to Services Topic
+	    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+	    kafkaServicesTopicProducerActor ! message
+      }
+      case _ => "Do nothing"
+    }
+    
     
   }
 
