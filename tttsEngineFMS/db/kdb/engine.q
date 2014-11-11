@@ -4,8 +4,8 @@ trade:([]time:`time$();sym:`symbol$();price:`float$();size:`int$())
 
 select sum size by sym from trade
 
-engine:([]funds:`float$();balance:`float$();transnum:`int$();intrade:`boolean$())
+engine:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$())
 
-`engine insert(5000.00;5000.00;0;0b)
+`engine insert(5000.00;5000.00;0;0b;0)
 
 

@@ -7,6 +7,8 @@ import java.sql._
 import kx.c
 import kx.c._
 import kx.c.Flip
+import scala.Array
+
 
 object FakeEngine {
 }
@@ -22,7 +24,7 @@ class SimulatorEngine extends Engine with LazyLogging {
 
   var resultStatus = false
   
-  type KdbType = (Float, Float, Int, Boolean)
+  type KdbType = (Double, Double, Long, Boolean, Long)
 
   override def process(msg: TttsEngineMessage, isInTrade: Boolean): EngineType = {
     
@@ -30,47 +32,7 @@ class SimulatorEngine extends Engine with LazyLogging {
      * Do Engine processing, create ResponseEngineFacadeTopicMessage (reply to FacadeMS)
      * 
      */ 
-    resultStatus = isInTrade
 
-//try{c c=new c("localhost",5001);                    // connect                                    
-// Object[]x={new Time(System.currentTimeMillis()%86400000),"xx",new Double(93.5),new Integer(300)};
-// c.k("insert","trade",x);                           // insert                                     
-// Object r=c.k("select sum size by sym from trade"); // select                                     
-//}catch(Exception e){}                                                                             
- 
-      val c: c = new c("localhost", 5555)
-      val res = c.k("select from engine")
-      println(s"+++++++++++++++++++++++ res = $res")
-      val tabres: Flip = res.asInstanceOf[Flip]
-      val colNames = tabres.x
-      colNames.foreach(println)
-//      println(s"+++++++++++++++++++++++ colNames = $colNames")
-      val colData = tabres.y
-      val firstRowData = colData(0)
-//      firstRowData.at
-      colData.foreach(println)
-//      println(s"+++++++++++++++++++++++ colData = $colData")
-    
-      
-      println(s"+++++++++++++++++++++++ firstRowData.asInstanceOf[Float] = ${firstRowData.asInstanceOf[Float]}") 
-      println(s"+++++++++++++++++++++++ colData(1) = ${colData(1).asInstanceOf[Float]}") 
-      println(s"+++++++++++++++++++++++ colData(2) = ${colData(2).asInstanceOf[Int]}") 
-      println(s"+++++++++++++++++++++++ colData(3) = ${colData(3).asInstanceOf[Boolean]}") 
-      
-//      println(s"+++++++++++++++++++++++ tabres.at(colNames(0)) = ${tabres.at(colNames(0))}") 
-//      println(s"+++++++++++++++++++++++ tabres.at(colNames(1)) = ${tabres.at(colNames(1))}") 
-//      println(s"+++++++++++++++++++++++ tabres.at(colNames(2)) = ${tabres.at(colNames(2))}") 
-//      println(s"+++++++++++++++++++++++ tabres.at(colNames(3)) = ${tabres.at(colNames(3))}") 
-      
-//      val kdb: KdbType = (colData(0).asInstanceOf[Float], colData(1).asInstanceOf[Float], colData(2).asInstanceOf[Int], colData(3).asInstanceOf[Boolean])
-//      println(s"+++++++++++++++++++++++ kdb = $kdb")
-
-      c close
-    
-    
-//    val kdb: KdbType = "select from engine"
-    
-    
     // 1. Do some fake Engine processing here. Replace with real code.
 //    val fraction = msg.asInstanceOf[ResponseEngineFacadeTopicMessage].payload.toDouble - msg.asInstanceOf[ResponseEngineFacadeTopicMessage].payload.toDouble.intValue
 //    val signal = fraction match {
@@ -93,11 +55,11 @@ class SimulatorEngine extends Engine with LazyLogging {
      */ 
     msg match {
 	    case x: ResponseStrategyFacadeTopicMessage => {
-	       val payload = s"${x.payload} ==> ${play(x.signal)}"
+	       val payload = s"${x.payload} ==> ${play(x.signal, x.payload)}"
 	       (ResponseEngineFacadeTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, payload, messageTraits._2, x.sequenceNum, x.signal), resultStatus)
 	    }
 	    case x: ResponseStrategyServicesTopicMessage => {
-	       val payload = s"${x.payload} ==> ${play(x.signal)}"
+	       val payload = s"${x.payload} ==> ${play(x.signal, x.payload)}"
 	       (ResponseEngineServicesTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, payload, messageTraits._2, x.sequenceNum, x.signal, x.serviceId), resultStatus)	      
 	    }
 	    case _ =>  {
@@ -108,25 +70,126 @@ class SimulatorEngine extends Engine with LazyLogging {
 
   }
   
-  def play(signal: String) = {
+  def play(signal: String, payload: String) = {
+    val data = getEngineData()
     signal match {
-      case "BUY" => if(!resultStatus) {
-        resultStatus = true
-        "BOUGHT"
-      	} else {
-      	  "POSITION OPENED ALREADY"
-      	}
-      case "SELL" => if(resultStatus) {
-        resultStatus = false
-        "SOLD"
-      	} else {
-      	  "NOT IN A POSITION"
+      case "BUY" => if(!data._4) {
+	        val comission = 10
+	        val newPossize = ((data._2 - comission) / payload.toDouble).longValue
+	        if(newPossize > 0) {
+	            val newFunds = data._1 
+		        val position =  newPossize * payload.toDouble
+		        val newTransnum = data._3 + 1
+		        val newBalance =  data._2 - position 
+		        val newIntrade = true
+
+		        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize)
+		        setEngineData(newData)
+
+		        s"IN@$payload for [${position}]"
+		        
+	        } else {
+	        	"margin call"
+	        }
+	      	} else {
+	      	  "HOLD"
+	      	}
+      case "SELL" => if(data._4) {
+	        val comission = 10
+            val newFunds = data._1 
+	        
+	        val newTransnum = data._3 + 1
+	        val newBalance =  data._5 * payload.toDouble - comission + data._2 
+	        val newPossize = 0l
+	        val newIntrade = false
+
+	        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize)
+	        setEngineData(newData)
+
+	        s"OUT@$payload"
+
+        } else {
+      	  "NO POSITION"
       	}
       case "HOLD" => "PASS"
       case _ => "Nothing"
     }
     
   }
+  
+  def getEngineData(): KdbType = {
+      val conn: c = new c("localhost", 5555)
+      val res = conn.k("select from engine")
+      val tabres: Flip = res.asInstanceOf[Flip]
+      val colNames = tabres.x
+      val colData = tabres.y
+      
+      val funds: Double = (c.at(colData(0), 0)).asInstanceOf[Double]
+      val balance: Double = (c.at(colData(1), 0)).asInstanceOf[Double]
+      val transnum: Long = (c.at(colData(2), 0)).asInstanceOf[Long]
+      val intrade: Boolean = (c.at(colData(3), 0)).asInstanceOf[Boolean]
+      val possize: Long = (c.at(colData(4), 0)).asInstanceOf[Long]
+//      val kdb: KdbType = (c.at(colData(0), 0).asInstanceOf[Double], c.at(colData(1), 0).asInstanceOf[Double], c.at(colData(2), 0).asInstanceOf[Int], c.at(colData(3), 0).asInstanceOf[Boolean], c.at(colData(4), 0).asInstanceOf[Int])
+      val kdb: KdbType = (funds, balance, transnum, intrade, possize)
+      logger.info("^^^^^^^^^^^^ data = {}", kdb)
+      conn close
+      
+      kdb
+    
+  }
 
+  def setEngineData(data: KdbType) = {
+      val conn: c = new c("localhost", 5555)
+//      val res = conn.k(s"update engine set funds=${data._1}, balance=${data._2}, transnum=${data._3}, intrade=${data._4}, possize=${data._5}")
+      
+      var intradeStr = "0b"
+      if(data._4) {
+        intradeStr = "1b"
+      }
+      
+      conn.k(s"engine:update funds:${data._1},balance:${data._2},transnum:${data._3},intrade:${intradeStr},possize:${data._5} from engine")
+
+//    try {
+//
+//      val res = conn.k("select from engine")
+//      val tabres: Flip = res.asInstanceOf[Flip]
+//      val colNames = tabres.x
+//      val colData = tabres.y
+//
+//      
+////      val newColnames: Array[String] = Array("funds", "balance", "transnum", "intrade", "possize")
+////      val newData: Array[Object] = Array(data._1.asInstanceOf[Object], data._2.asInstanceOf[Object], data._3.asInstanceOf[Object], data._4.asInstanceOf[Object], data._5.asInstanceOf[Object])
+////      val newTabres: Flip = new Flip(new Dict(newColnames, newData))
+////      val updStatement: Array[Object] = Array(".u.upd", "engine", newTabres)
+////      conn.k(updStatement)
+//
+//      val newColnames = Array("funds", "balance", "transnum", "intrade", "possize")
+//      val newData = Array(data._1, data._2, data._3, data._4, data._5)
+//      val newTabres = new Flip(new Dict(newColnames, newData))
+//      val updStatement = Array(".u.upd", "engine", newTabres)
+//      conn.k(updStatement)
+//      
+//      
+////      conn.ks(updStatement)
+//      getEngineData()	
+//      
+//      c.set(colData(0), 0, data._1)
+//      c.set(colData(1), 0, data._2)
+//      c.set(colData(2), 0, data._3)
+//      c.set(colData(3), 0, data._4)
+//      c.set(colData(4), 0, data._5)
+//      
+//
+//	} catch {
+//	  case e: Throwable => logger.error("################## setEngineData Error updating engine: " + e)
+//	  e.printStackTrace()
+//	}
+  
+      getEngineData()	
+      conn close
+      
+  }
+  
+  
 }
   
