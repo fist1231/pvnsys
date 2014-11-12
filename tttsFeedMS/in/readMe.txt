@@ -1,0 +1,1 @@
+Fake feed data taken from quotes.csv file only.
