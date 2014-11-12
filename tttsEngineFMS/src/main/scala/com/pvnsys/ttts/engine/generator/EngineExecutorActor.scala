@@ -13,8 +13,13 @@ import scala.util.Random
 import akka.actor.ActorRef
 import scala.concurrent.duration._
 import com.pvnsys.ttts.engine.util.Utils
-import com.pvnsys.ttts.engine.impl.FakeEngine
-import com.pvnsys.ttts.engine.impl.SimulatorEngine
+import com.pvnsys.ttts.engine.impl.SimulatorEngineActor
+import akka.util.Timeout
+import scala.concurrent.duration._
+import akka.pattern.ask
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 object EngineExecutorActor {
 
@@ -41,6 +46,7 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
   import EngineExecutorActor._
   import Utils._
   import TttsEngineMessages._
+  import SimulatorEngineActor._
 
   
   var isActive = false
@@ -77,17 +83,23 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
       startEngine(req)
     }
     
-    case StopEngineExecutorMessage => {
-      log.debug("EngineExecutorActor Received StopEngineExecutorMessage. Terminating feed")
-      isActive = false
-      context stop self
-    }
+//    case req: SimulatorEngineResponseMessage => {
+//      log.debug("EngineExecutorActor Received SimulatorEngineResponseMessage.")
+//      processEngineResponse(req.message)
+//    }
 
 //    case req: ResponseFeedServicesTopicMessage => {
 //      log.debug("EngineExecutorActor Received ResponseFeedServicesTopicMessage: {}", req)
 //      isActive = true
 //      startEngineProducer(req)
 //    }
+    
+
+    case StopEngineExecutorMessage => {
+      log.debug("EngineExecutorActor Received StopEngineExecutorMessage. Terminating feed")
+      isActive = false
+      context stop self
+    }
     
     case msg => log.error(s"EngineExecutorActor Received unknown message $msg")
     
@@ -101,13 +113,38 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
      * Do Engine processing, create ResponseEngineFacadeTopicMessage and publish it to Kafka Facade Topic (reply to FacadeMS)
      * 
      */ 
+	  implicit val timeout = Timeout(2 seconds)
+    
+	  val engineActor = context.actorOf(Props(classOf[SimulatorEngineActor]))
+	  (engineActor ? StartSimulatorEngineMessage(msg, serviceId)).mapTo[TttsEngineMessage] map {msg =>
+//	    val msg = result.message
+	    processEngineResponse(msg)
+	  }
     
     // Put a real engine call here
-    val engineAction = new SimulatorEngine().process(msg, isInTrade)
+//    val engineResponseMessage = new SimulatorEngine().process(context, msg, serviceId)
+//    
+//    engineResponseMessage match {
+//      case x: ResponseEngineFacadeTopicMessage => {
+//	    // Publish results back to Facade Topic
+//	    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+//	    kafkaFacadeTopicProducerActor ! x 
+//      }
+//      case x: ResponseEngineServicesTopicMessage => {
+//	    // Publish results back to Facade Topic
+//	    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+//	    kafkaServicesTopicProducerActor ! x 
+//      }
+//      case _ => "Do nothing"
+//    }
+
     
-    isInTrade  = engineAction._2 
+  }
+
+
+  private def processEngineResponse(msg: TttsEngineMessage) = {
     
-    engineAction._1 match {
+    msg match {
       case x: ResponseEngineFacadeTopicMessage => {
 	    // Publish results back to Facade Topic
 	    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
@@ -123,8 +160,7 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
 
     
   }
-
-
+  
   
 //  private def startServicesEngineProducer(msg: ResponseFeedServicesTopicMessage) = {
 //    
