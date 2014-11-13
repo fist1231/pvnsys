@@ -141,7 +141,7 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 		startFeed.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-			    String msg = "{\"msgType\":\"FEED_REQ\", \"payload\":\"Sample Payload\" }";
+			    String msg = "{\"msgType\":\"FEED_REQ\", \"payload\":null }";
 			    if(feedSocket != null) {
 			    	feedSocket.send(msg);
 			    }
@@ -157,7 +157,7 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 		stopFeed.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-			    String msg = "{\"msgType\":\"FEED_STOP_REQ\", \"payload\":\"Sample Payload\" }";
+			    String msg = "{\"msgType\":\"FEED_STOP_REQ\", \"payload\":null }";
 			    if(feedSocket != null) {
 			    	feedSocket.send(msg);
 			    }
@@ -172,7 +172,7 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 		startStrategy.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-			    String msg = "{\"msgType\":\"STRATEGY_REQ\", \"payload\":\"Sample Payload\" }";
+			    String msg = "{\"msgType\":\"STRATEGY_REQ\", \"payload\":null }";
 			    if(strategySocket != null) {
 			    	strategySocket.send(msg);
 			    }
@@ -188,7 +188,7 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 		stopStrategy.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-			    String msg = "{\"msgType\":\"STRATEGY_STOP_REQ\", \"payload\":\"Sample Payload\" }";
+			    String msg = "{\"msgType\":\"STRATEGY_STOP_REQ\", \"payload\":null }";
 			    if(strategySocket != null) {
 			    	strategySocket.send(msg);
 			    }
