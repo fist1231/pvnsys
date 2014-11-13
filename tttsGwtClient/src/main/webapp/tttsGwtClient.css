@@ -71,7 +71,7 @@ body {
 }
 
 #stocksContainer {
-    height: 500px;
+    height: 600px;
 	display: block;
 	float: left;
 	padding: 10px;
@@ -100,7 +100,7 @@ div#welcomeContainer {
 }
 
 div#stocksContainer {
-    height: 450px;
+    height: 600px;
     position: relative;
     width: 60%;
     margin-top: 10px;

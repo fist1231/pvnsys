@@ -3,6 +3,7 @@ package com.pvnsys.ttts.tttsGwtClient.client.controller.stocks;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.pvnsys.ttts.tttsGwtClient.client.controller.common.Controller;
+import com.pvnsys.ttts.tttsGwtClient.client.event.stocks.StockSearchEvent;
 import com.pvnsys.ttts.tttsGwtClient.client.service.stocks.StockRequestFactory;
 import com.pvnsys.ttts.tttsGwtClient.client.view.stocks.StocksView;
 import com.pvnsys.ttts.tttsGwtClient.shared.StockVO;
@@ -35,6 +36,11 @@ public class StocksController implements Controller, StocksView.Controller<Stock
 
     container.add(view.asWidget());
   }
+
+@Override
+public void onQuoteArrived(String text) {
+    eventBus.fireEvent(new StockSearchEvent(text));
+}
 
 
 }

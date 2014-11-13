@@ -57,7 +57,7 @@ class FeedGeneratorActor extends Actor with ActorLogging {
     case StopFeedGeneratorMessage => {
       log.debug("FeedGeneratorActor Received StopFeedGeneratorMessage. Terminating feed")
       isActive = false
-      self ! PoisonPill
+      context stop self
     }
     
     case msg => log.error(s"FeedGeneratorActor Received unknown message $msg")
@@ -123,7 +123,7 @@ class FakeFeedActor extends Actor with ActorLogging {
 		
 	    case StopFakeFeedGeneratorMessage =>
 		  log.debug("FakeFeedActor Cancel")
-	      context.stop(self)
+	      context stop self
 		case _ => log.error("FakeFeedActor Received unknown message")
 	}
 	

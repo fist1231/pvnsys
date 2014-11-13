@@ -21,6 +21,8 @@
 	</ui:style>
 	<g:HTMLPanel>
 		<g:VerticalPanel width="100%">
+			<g:DecoratorPanel width="18em" ui:field="simulatorPanel">
+			</g:DecoratorPanel>
 			<g:VerticalPanel width="100%">
 				<g:Label ui:field="connectionValidationLabel"></g:Label>
 				<g:HorizontalPanel ui:field="hPanelWSConnection">
@@ -35,6 +37,8 @@
 				<g:Button ui:field="stopFeed">Stop Feed</g:Button>
 				<g:Button ui:field="startStrategy">Start Strategy</g:Button>
 				<g:Button ui:field="stopStrategy">Stop Strategy</g:Button>
+				<g:Button ui:field="startEngine">Start Engine</g:Button>
+				<g:Button ui:field="stopEngine">Stop Engine</g:Button>
 			</g:HorizontalPanel>
 			<g:ScrollPanel height="400px" width="100%" ui:field="sPanelWS">
 				<g:VerticalPanel height="" width="100%" ui:field="vPanelWS"></g:VerticalPanel>
