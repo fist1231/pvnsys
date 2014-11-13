@@ -23,10 +23,22 @@ class FakeStrategy extends Strategy with LazyLogging {
      */ 
     val fraction = msg match {
       case x: ResponseFeedFacadeTopicMessage => {
-    	  msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload.toDouble - msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload.toDouble.intValue
+          val payload =  msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload
+          payload match {
+            case Some(feedPayload) => {
+            	feedPayload.close.toDouble - feedPayload.close.toDouble.intValue
+            }
+            case None => 0.00
+          }
       }
       case x: ResponseFeedServicesTopicMessage => {
-    	  msg.asInstanceOf[ResponseFeedServicesTopicMessage].payload.toDouble - msg.asInstanceOf[ResponseFeedServicesTopicMessage].payload.toDouble.intValue
+          val payload =  msg.asInstanceOf[ResponseFeedFacadeTopicMessage].payload
+          payload match {
+            case Some(feedPayload) => {
+            	feedPayload.close.toDouble - feedPayload.close.toDouble.intValue
+            }
+            case None => 0.00
+          }
       }
       case _ => 0.00
     }
@@ -52,10 +64,24 @@ class FakeStrategy extends Strategy with LazyLogging {
      */ 
     msg match {
 	    case x: ResponseFeedFacadeTopicMessage => {
-	       ResponseStrategyFacadeTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, x.client, x.payload, messageTraits._2, x.sequenceNum, signal)
+	       x.payload match {
+	         case Some(feepPayload) => {
+	        	 val strategyPayload = StrategyPayload(feepPayload.datetime, feepPayload.ticker, feepPayload.open, feepPayload.high, feepPayload.low, feepPayload.close, feepPayload.volume, feepPayload.wap, feepPayload.size, "strategy response payload here")
+	        	 ResponseStrategyFacadeTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, x.client, Some(strategyPayload), messageTraits._2, x.sequenceNum, signal)
+	           
+	         }
+	         case None => msg
+	       }
+	      
 	    }
 	    case x: ResponseFeedServicesTopicMessage => {
-	       ResponseStrategyServicesTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, x.client, x.payload, messageTraits._2, x.sequenceNum, signal, x.serviceId)	      
+	       x.payload match {
+	         case Some(feepPayload) => {
+	        	 val strategyPayload = StrategyPayload(feepPayload.datetime, feepPayload.ticker, feepPayload.open, feepPayload.high, feepPayload.low, feepPayload.close, feepPayload.volume, feepPayload.wap, feepPayload.size, "strategy response payload here")
+	        	 ResponseStrategyServicesTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, x.client, Some(strategyPayload), messageTraits._2, x.sequenceNum, signal, x.serviceId)	      
+	         }
+	         case None => msg
+	       }
 	    }
 	    case _ =>  {
 	      logger.error("FakeStrategy Received unsupported message type")

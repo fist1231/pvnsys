@@ -11,7 +11,6 @@ import com.pvnsys.ttts.engine.messages.TttsEngineMessages
 import com.pvnsys.ttts.engine.mq.{KafkaFacadeTopicProducerActor, KafkaServicesTopicProducerActor}
 import scala.util.Random
 import akka.actor.ActorRef
-import scala.concurrent.duration._
 import com.pvnsys.ttts.engine.util.Utils
 import com.pvnsys.ttts.engine.impl.SimulatorEngineActor
 import akka.util.Timeout
@@ -190,28 +189,62 @@ class EngineExecutorActor(serviceId: String) extends Actor with ActorLogging {
   
     private def stopEngineFeed(msg: TttsEngineMessage) = {
       // Send FEED_STOP_REQ message to services topic here
-        // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
-        val messageTraits = Utils.generateMessageTraits
-        // Sending one and only STRATEGY_REQ message to Services topic, thus sequenceNum is hardcoded "0"
-        val strategyRequestMessage = RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_STOP_REQUEST_MESSAGE_TYPE, msg.asInstanceOf[RequestEngineFacadeTopicMessage].client, msg.asInstanceOf[RequestEngineFacadeTopicMessage].payload, messageTraits._2, "0", serviceId)
-        log.debug("******* EngineExecutorActor publishing STRATEGY_STOP_REQUEST to KafkaServicesTopicProducerActor: {}", strategyRequestMessage)
-    
-        // Publishing message to Services Topic
-        val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
-        kafkaServicesTopicProducerActor ! strategyRequestMessage
+
+	  	msg match {
+	  	  case x: RequestEngineFacadeTopicMessage => {
+		        // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
+		        val messageTraits = Utils.generateMessageTraits
+		        // Sending one and only STRATEGY_REQ message to Services topic, thus sequenceNum is hardcoded "0"
+		        val strategyRequestMessage = RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_STOP_REQUEST_MESSAGE_TYPE, x.client, None, messageTraits._2, "0", serviceId)
+		        log.debug("******* EngineExecutorActor publishing STRATEGY_STOP_REQUEST to KafkaServicesTopicProducerActor: {}", strategyRequestMessage)
+		    
+		        // Publishing message to Services Topic
+		        val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+		        kafkaServicesTopicProducerActor ! strategyRequestMessage
+	  	  }
+	  	  case x: RequestEngineServicesTopicMessage => {
+		        // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
+		        val messageTraits = Utils.generateMessageTraits
+		        // Sending one and only STRATEGY_REQ message to Services topic, thus sequenceNum is hardcoded "0"
+		        val strategyRequestMessage = RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_STOP_REQUEST_MESSAGE_TYPE, x.client, None, messageTraits._2, "0", serviceId)
+		        log.debug("******* EngineExecutorActor publishing STRATEGY_STOP_REQUEST to KafkaServicesTopicProducerActor: {}", strategyRequestMessage)
+		    
+		        // Publishing message to Services Topic
+		        val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+		        kafkaServicesTopicProducerActor ! strategyRequestMessage
+ 	  	  }
+	  	  case _ =>
+	  	}
    }
   
   
   private def getStrategyFeed(msg: TttsEngineMessage) = {
-        // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
-        val messageTraits = Utils.generateMessageTraits
-        // Sending one and only STRATEGY_REQ message to Services topic, thus sequenceNum is hardcoded "0"
-        val strategyRequestMessage = RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_REQUEST_MESSAGE_TYPE, msg.asInstanceOf[RequestEngineFacadeTopicMessage].client, msg.asInstanceOf[RequestEngineFacadeTopicMessage].payload, messageTraits._2 , "0", serviceId)
     
-        log.debug("EngineExecutorActor publishing STRATEGY_REQUEST to KafkaServicesTopicProducerActor: {}", strategyRequestMessage)
-        // Publishing message to Services Topic
-        val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
-        kafkaServicesTopicProducerActor ! strategyRequestMessage
+	  	msg match {
+	  	  case x: RequestEngineFacadeTopicMessage => {
+		        // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
+		        val messageTraits = Utils.generateMessageTraits
+		        // Sending one and only STRATEGY_REQ message to Services topic, thus sequenceNum is hardcoded "0"
+		        val strategyRequestMessage = RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_REQUEST_MESSAGE_TYPE, x.client, None, messageTraits._2 , "0", serviceId)
+		    
+		        log.debug("EngineExecutorActor publishing STRATEGY_REQUEST to KafkaServicesTopicProducerActor: {}", strategyRequestMessage)
+		        // Publishing message to Services Topic
+		        val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+		        kafkaServicesTopicProducerActor ! strategyRequestMessage
+	  	  }
+	  	  case x: RequestEngineServicesTopicMessage => {
+		        // Generate unique message ID, timestamp and sequence number to be assigned to every incoming message.
+		        val messageTraits = Utils.generateMessageTraits
+		        // Sending one and only STRATEGY_REQ message to Services topic, thus sequenceNum is hardcoded "0"
+		        val strategyRequestMessage = RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_REQUEST_MESSAGE_TYPE, x.client, None, messageTraits._2 , "0", serviceId)
+		    
+		        log.debug("EngineExecutorActor publishing STRATEGY_REQUEST to KafkaServicesTopicProducerActor: {}", strategyRequestMessage)
+		        // Publishing message to Services Topic
+		        val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+		        kafkaServicesTopicProducerActor ! strategyRequestMessage
+	  	  }
+	  	  case _ =>
+	  	}
   }
   
   

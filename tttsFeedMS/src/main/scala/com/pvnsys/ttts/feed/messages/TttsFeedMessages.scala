@@ -15,14 +15,17 @@ object TttsFeedMessages {
 	
 	case object StartKafkaServicesTopicConsumerMessage extends TttsFeedMessage
 
-	case class FacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsFeedMessage
-	case class RequestFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsFeedMessage
-	case class ResponseFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsFeedMessage
-
-	case class ServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsFeedMessage
-	case class RequestFeedServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsFeedMessage
-	case class ResponseFeedServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsFeedMessage
+	case class FacadePayload(payload: String) extends TttsFeedMessage
+	case class FeedPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsFeedMessage
 	
+	case class FacadeTopicMessage(id: String, msgType: String, client: String, payload: Option[FeedPayload], timestamp: String, sequenceNum: String) extends TttsFeedMessage
+	case class RequestFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: Option[FeedPayload], timestamp: String, sequenceNum: String) extends TttsFeedMessage
+	case class ResponseFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: Option[FeedPayload], timestamp: String, sequenceNum: String) extends TttsFeedMessage
+
+	case class ServicesTopicMessage(id: String, msgType: String, client: String, payload: Option[FeedPayload], timestamp: String, sequenceNum: String, serviceId: String) extends TttsFeedMessage
+	case class RequestFeedServicesTopicMessage(id: String, msgType: String, client: String, payload: Option[FeedPayload], timestamp: String, sequenceNum: String, serviceId: String) extends TttsFeedMessage
+	case class ResponseFeedServicesTopicMessage(id: String, msgType: String, client: String, payload: Option[FeedPayload], timestamp: String, sequenceNum: String, serviceId: String) extends TttsFeedMessage
+
 }
 
 

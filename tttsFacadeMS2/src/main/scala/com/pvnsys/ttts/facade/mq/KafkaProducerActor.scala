@@ -8,8 +8,7 @@ import kafka.javaapi.producer.Producer
 import java.util.Properties
 import com.pvnsys.ttts.facade.Configuration
 import com.pvnsys.ttts.facade.feed.FeedActor
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{RequestFacadeMessage, ResponseFacadeMessage, RequestStrategyFacadeMessage, RequestEngineFacadeMessage}
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.TttsFacadeMessage
+import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
 import spray.json._
 import scala.util.Random
 import com.pvnsys.ttts.facade.util.Utils
@@ -24,8 +23,13 @@ object KafkaProducerActor {
 }
 
 object KafkaProducerActorJsonProtocol extends DefaultJsonProtocol {
+  import TttsFacadeMessages._
+  implicit val facadePayloadFormat = jsonFormat1(FacadePayload)
+  implicit val feedPayloadFormat = jsonFormat10(FeedPayload)
+  implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
+  implicit val enginePayloadFormat = jsonFormat10(EnginePayload)
   implicit val requestFacadeMessageFormat = jsonFormat6(RequestFacadeMessage)
-  implicit val responseFacadeMessageForman = jsonFormat6(ResponseFacadeMessage)
+  implicit val responseFacadeMessageFormat = jsonFormat6(ResponseFacadeMessage)
   implicit val requestStrategyFacadeMessageFormat = jsonFormat6(RequestStrategyFacadeMessage)
   implicit val requestEngineFacadeMessageFormat = jsonFormat6(RequestEngineFacadeMessage)
 }
@@ -41,6 +45,7 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
   import KafkaProducerActor._
   import KafkaProducerActorJsonProtocol._
   import Utils._
+  import TttsFacadeMessages._
 	
   override def receive = {
 
@@ -86,19 +91,19 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
       case x:RequestFacadeMessage => {
 		    val jsonStrMessage = x.toJson.compactPrint
 		    // Send it to Kafka facadeTopic
-		    log.info("Facade Producersent {}", x)
+		    log.info("Facade Producer sent {}", x)
 		   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
       }
       case x:RequestStrategyFacadeMessage => {
 		    val jsonStrMessage = x.toJson.compactPrint
 		    // Send it to Kafka facadeTopic
-		    log.info("Facade Producersent {}", x)
+		    log.info("Facade Producer sent {}", x)
 		   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
       }
       case x:RequestEngineFacadeMessage => {
 		    val jsonStrMessage = x.toJson.compactPrint
 		    // Send it to Kafka facadeTopic
-		    log.info("Facade Producersent {}", x)
+		    log.info("Facade Producer sent {}", x)
 		   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
       }
       case _ =>

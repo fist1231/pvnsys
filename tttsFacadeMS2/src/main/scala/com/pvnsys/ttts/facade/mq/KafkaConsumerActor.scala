@@ -12,7 +12,6 @@ import com.pvnsys.ttts.facade.feed.FeedActor
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
 import spray.json._
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{ResponseFacadeMessage, ResponseStrategyFacadeMessage, ResponseEngineFacadeMessage}
 
 object KafkaConsumerActor {
   sealed trait FacadeConsumerMessage
@@ -22,7 +21,12 @@ object KafkaConsumerActor {
 }
 
 object KafkaConsumerActorJsonProtocol extends DefaultJsonProtocol {
-  implicit val responseFacadeMessageFormat = jsonFormat6(ResponseFacadeMessage)
+  import TttsFacadeMessages._
+  implicit val facadePayloadFormat = jsonFormat1(FacadePayload)
+  implicit val feedPayloadFormat = jsonFormat10(FeedPayload)
+  implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
+  implicit val enginePayloadFormat = jsonFormat10(EnginePayload)
+  implicit val responseFeedFacadeMessageFormat = jsonFormat6(ResponseFeedFacadeMessage)
   implicit val responseStrategyFacadeMessageFormat = jsonFormat7(ResponseStrategyFacadeMessage)
   implicit val responseEngineFacadeMessageFormat = jsonFormat7(ResponseEngineFacadeMessage)
 }
@@ -69,7 +73,7 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 	        val msgStr = msgJsonObj.compactPrint
 	        
 	        if(msgStr.contains(FEED_RESPONSE_MESSAGE_TYPE)) {
-	        	val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
+	        	val responseFacadeMessage = msgJsonObj.convertTo[ResponseFeedFacadeMessage]
 	        	log.info("Facade Consumer got {}", responseFacadeMessage)
 			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
 			    feedPushActor ! responseFacadeMessage
@@ -150,9 +154,10 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 class FeedPushActor extends Actor with ActorLogging {
 	import KafkaConsumerActor._
 	import FeedActor._
+	import TttsFacadeMessages._
   
   def receive = {
-    case msg: ResponseFacadeMessage => {
+    case msg: ResponseFeedFacadeMessage => {
 	      context.actorSelection("/user/feed") ! msg
 	      self ! StopMessage
     }

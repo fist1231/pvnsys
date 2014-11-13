@@ -6,7 +6,7 @@ import kafka.producer.ProducerConfig
 import kafka.javaapi.producer.Producer
 import java.util.Properties
 import com.pvnsys.ttts.feed.Configuration
-import com.pvnsys.ttts.feed.messages.TttsFeedMessages.ResponseFeedFacadeTopicMessage
+import com.pvnsys.ttts.feed.messages.TttsFeedMessages
 import spray.json._
 
 
@@ -14,6 +14,8 @@ object KafkaFacadeTopicProducerActor {
 }
 
 object KafkaFacadeTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
+  import TttsFeedMessages._
+  implicit val feedPayloadFormat = jsonFormat10(FeedPayload)
   implicit val responseFeedFacadeTopicMessageFormat = jsonFormat6(ResponseFeedFacadeTopicMessage)
 }
 
@@ -28,7 +30,7 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
   import KafkaFacadeTopicProducerActor._
   import FeedActor._
   import KafkaFacadeTopicProducerActorJsonProtocol._
-  
+  import TttsFeedMessages._
 	
   override def receive = {
     case msg: ResponseFeedFacadeTopicMessage => {

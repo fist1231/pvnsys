@@ -1,11 +1,11 @@
-package com.pvnsys.ttts.engine.db
+package com.pvnsys.ttts.strategy.db
 
 import java.util.Properties
 
 import scala.collection.JavaConversions.seqAsJavaList
 
-import com.pvnsys.ttts.engine.Configuration
-import com.pvnsys.ttts.engine.messages.TttsEngineMessages
+import com.pvnsys.ttts.strategy.Configuration
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
 
 import akka.actor.Actor
 import akka.actor.ActorLogging
@@ -24,13 +24,15 @@ object KdbActor {
   case object StopKdbMessage extends KdbMessages
 }
 
+
+
 /**
  * This actor will register itself to consume messages from the Kafka server. 
  */
 class KdbActor(serviceId: String) extends Actor with ActorLogging {
   
 	import KdbActor._
-	import TttsEngineMessages._
+	import TttsStrategyMessages._
 	
 //	override val log = Logging(context.system, this)
 	
@@ -56,7 +58,7 @@ class KdbActor(serviceId: String) extends Actor with ActorLogging {
 
 	final private def startKdb() = {
 		  log.debug("KdbActor starting kdb server ...")
-		  lazy val cmd = Seq("db/kdb/w32/q.exe", "db/kdb/engine.q", "-p", Configuration.kdbPort)
+		  lazy val cmd = Seq("db/kdb/w32/q.exe", "db/kdb/strategy.q", "-p", Configuration.kdbPort)
 		  cmd.lineStream
 		  
 //		  proc = Process(cmd).run(ProcessLogger(line => (), err => println("Uh-oh: "+err)))

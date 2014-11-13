@@ -2,7 +2,6 @@ package com.pvnsys.ttts.engine.mq
 
 import akka.actor.{Actor, ActorRef, ActorLogging, Props, AllForOneStrategy}
 import com.pvnsys.ttts.engine.messages.TttsEngineMessages
-import com.pvnsys.ttts.engine.messages.TttsEngineMessages.{StartListeningServicesTopicMessage, ServicesTopicMessage, RequestEngineServicesTopicMessage, RequestStrategyServicesTopicMessage, TttsEngineMessage, ResponseStrategyServicesTopicMessage, ResponseStrategyFacadeTopicMessage}
 import kafka.consumer.ConsumerConfig
 import java.util.Properties
 import kafka.consumer.Consumer
@@ -26,6 +25,9 @@ object KafkaServicesTopicConsumerActor {
 
 
 object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
+  import TttsEngineMessages._
+  implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
+  implicit val enginePayloadFormat = jsonFormat10(EnginePayload)
   implicit val responseStrategyServicesTopicMessageFormat = jsonFormat8(ResponseStrategyServicesTopicMessage)
   implicit val requestEngineServicesTopicMessageFormat = jsonFormat7(RequestEngineServicesTopicMessage)
   implicit val responseStrategyFacadeTopicMessageFormat = jsonFormat8(ResponseStrategyFacadeTopicMessage)

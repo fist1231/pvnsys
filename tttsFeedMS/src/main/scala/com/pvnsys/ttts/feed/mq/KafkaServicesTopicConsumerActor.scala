@@ -2,7 +2,6 @@ package com.pvnsys.ttts.feed.mq
 
 import akka.actor.{Actor, ActorRef, ActorLogging, Props, AllForOneStrategy}
 import com.pvnsys.ttts.feed.messages.TttsFeedMessages
-import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartListeningServicesTopicMessage, ServicesTopicMessage, RequestFeedServicesTopicMessage, TttsFeedMessage}
 import kafka.consumer.ConsumerConfig
 import java.util.Properties
 import kafka.consumer.Consumer
@@ -13,11 +12,12 @@ import spray.json._
 
 
 object KafkaServicesTopicConsumerActor {
-//  def props(address: InetSocketAddress, groupName: Option[String]) = Props(new KafkaConsumerActor(address, groupName))
   def props(toWhom: ActorRef) = Props(new KafkaServicesTopicConsumerActor(toWhom))
 }
 
 object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
+  import TttsFeedMessages._
+  implicit val feedPayloadFormat = jsonFormat10(FeedPayload)
   implicit val servicesTopicMessageFormat = jsonFormat7(ServicesTopicMessage)
 }
 
@@ -47,8 +47,6 @@ class KafkaServicesTopicConsumerActor(toWhom: ActorRef) extends Actor with Actor
 		}
 		register(consumer)
 	}
-
-	
 	
 	override def receive = {
 		case StopMessage => {

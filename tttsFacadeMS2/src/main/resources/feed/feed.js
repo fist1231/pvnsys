@@ -14,7 +14,7 @@ $(document).ready(function() {
 	
 	feedSocket.onopen = function(event) {
 		
-		var msg = '{ "msgType":"FEED_REQ" , "payload":"" }';
+		var msg = '{ "msgType":"FEED_REQ" , "payload":null }';
 //		var msgJson = JSON.parse(msg);
 		
 		feedSocket.send(msg)

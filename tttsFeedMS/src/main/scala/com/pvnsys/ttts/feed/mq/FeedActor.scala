@@ -6,16 +6,11 @@ import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.stream.actor.ActorProducer
 import akka.stream.actor.ActorProducer._
 
-
 object FeedActor {
   sealed trait FeedMessage
   case object StopMessage extends FeedMessage
 
 }
-
-//case class CustomException(smth:String)  extends Exception
-
-
 
 class FeedActor extends ActorProducer[TttsFeedMessage] with ActorLogging {
   import FeedActor._
@@ -25,7 +20,6 @@ class FeedActor extends ActorProducer[TttsFeedMessage] with ActorLogging {
       log.error("FeedActor Unexpected failure: {}", e.getMessage)
       Restart
   	}
-  
   
 	override def receive = {
 		case msg: FacadeTopicMessage => 

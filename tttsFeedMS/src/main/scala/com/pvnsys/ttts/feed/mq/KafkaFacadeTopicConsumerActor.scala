@@ -2,7 +2,6 @@ package com.pvnsys.ttts.feed.mq
 
 import akka.actor.{Actor, ActorRef, ActorLogging, Props, AllForOneStrategy}
 import com.pvnsys.ttts.feed.messages.TttsFeedMessages
-import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartListeningFacadeTopicMessage, FacadeTopicMessage, RequestFeedFacadeTopicMessage, TttsFeedMessage}
 import kafka.consumer.ConsumerConfig
 import java.util.Properties
 import kafka.consumer.Consumer
@@ -13,11 +12,12 @@ import spray.json._
 
 
 object KafkaFacadeTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
+  import TttsFeedMessages._
+  implicit val feedPayloadFormat = jsonFormat10(FeedPayload)
   implicit val facadeTopicMessageFormat = jsonFormat6(FacadeTopicMessage)
 }
 
 object KafkaFacadeTopicConsumerActor {
-//  def props(address: InetSocketAddress, groupName: Option[String]) = Props(new KafkaConsumerActor(address, groupName))
   def props(toWhom: ActorRef) = Props(new KafkaFacadeTopicConsumerActor(toWhom))
 }
 
@@ -87,10 +87,12 @@ class KafkaFacadeTopicConsumerActor(toWhom: ActorRef) extends Actor with ActorLo
 	    try {
 		      stream map {arr =>
 				    val mess = new String(arr.message, "UTF-8")
+				    log.debug("KafkaFacadeTopicConsumerActor received String from Facade: {}", mess)
 				    val msgJsonObj = mess.parseJson
 			        val msgStr = msgJsonObj.compactPrint
-				    
+				    log.debug("KafkaFacadeTopicConsumerActor received JSON from Facade: {}", msgStr)
 				    val facadeTopicMessage = msgJsonObj.convertTo[FacadeTopicMessage]
+				    log.debug("KafkaFacadeTopicConsumerActor converted JSON from Facade to: {}", facadeTopicMessage)
 				    matchRequest(facadeTopicMessage) match {
 				      case Some(facadeTopicMessage) => {
 				    	log.info("Facade Consumer got {}", facadeTopicMessage)

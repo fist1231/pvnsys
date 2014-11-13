@@ -7,7 +7,7 @@ import akka.stream.actor.ActorProducer
 import scala.concurrent.duration._
 import com.pvnsys.ttts.feed.mq.KafkaFacadeTopicConsumerActor
 import com.typesafe.scalalogging.slf4j.LazyLogging
-import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{StartFeedServiceMessage, StopFeedServiceMessage, StartListeningFacadeTopicMessage, StartListeningServicesTopicMessage, FacadeTopicMessage, RequestFeedFacadeTopicMessage, TttsFeedMessage}
+import com.pvnsys.ttts.feed.messages.TttsFeedMessages
 import spray.json._
 import org.reactivestreams.api.Producer
 import com.pvnsys.ttts.feed.mq.{KafkaFacadeTopicConsumerActor, KafkaServicesTopicConsumerActor}
@@ -29,6 +29,7 @@ object TttsFeedService extends LazyLogging {
 class TttsFeedService extends Actor with ActorLogging {
   
   import TttsFeedService._
+  import TttsFeedMessages._
   
     override val supervisorStrategy = OneForOneStrategy(loggingEnabled = true) {
 //	    case e: CustomException =>

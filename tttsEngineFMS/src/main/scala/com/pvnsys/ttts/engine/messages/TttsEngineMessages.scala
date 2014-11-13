@@ -4,10 +4,6 @@ import akka.actor.ActorRef
 
 object TttsEngineMessages {
   
-//	val FEED_REQUEST_MESSAGE_TYPE = "FEED_REQ"
-//	val FEED_RESPONSE_MESSAGE_TYPE = "FEED_RSP"
-//	val FEED_STOP_REQUEST_MESSAGE_TYPE = "FEED_STOP_REQ"
-
 	val STRATEGY_REQUEST_MESSAGE_TYPE = "STRATEGY_REQ"
 	val STRATEGY_RESPONSE_MESSAGE_TYPE = "STRATEGY_RSP"
 	val STRATEGY_STOP_REQUEST_MESSAGE_TYPE = "STRATEGY_STOP_REQ"
@@ -19,27 +15,25 @@ object TttsEngineMessages {
 	sealed trait TttsEngineMessage
 	case object StartEngineServiceMessage extends TttsEngineMessage
 	case object StopEngineServiceMessage extends TttsEngineMessage
-
 	case object StartListeningFacadeTopicMessage extends TttsEngineMessage
 	case object StartListeningServicesTopicMessage extends TttsEngineMessage
-	
 	case object StartKafkaServicesTopicConsumerMessage extends TttsEngineMessage
 
-	case class FacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsEngineMessage
-	case class RequestEngineFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsEngineMessage
-	case class ResponseEngineFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String) extends TttsEngineMessage
-//	case class RequestFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage
-//	case class ResponseFeedFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage
-	case class ResponseStrategyFacadeTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsEngineMessage
+	case class FacadePayload(payload: String) extends TttsEngineMessage
+	case class StrategyPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsEngineMessage
+	case class EnginePayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsEngineMessage
+	
+	case class FacadeTopicMessage(id: String, msgType: String, client: String, payload: Option[FacadePayload], timestamp: String, sequenceNum: String) extends TttsEngineMessage
+	case class RequestEngineFacadeTopicMessage(id: String, msgType: String, client: String, payload: Option[EnginePayload], timestamp: String, sequenceNum: String) extends TttsEngineMessage
+	case class ResponseEngineFacadeTopicMessage(id: String, msgType: String, client: String, payload: Option[EnginePayload], timestamp: String, sequenceNum: String, signal: String) extends TttsEngineMessage
+	case class ResponseStrategyFacadeTopicMessage(id: String, msgType: String, client: String, payload: Option[StrategyPayload], timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsEngineMessage
 
-	case class ServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsEngineMessage
-//	case class RequestFeedServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage
-//	case class ResponseFeedServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage
-	case class RequestStrategyServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage
-	case class ResponseStrategyServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsEngineMessage
+	case class ServicesTopicMessage(id: String, msgType: String, client: String, payload: Option[EnginePayload], timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsEngineMessage
+	case class RequestStrategyServicesTopicMessage(id: String, msgType: String, client: String, payload: Option[StrategyPayload], timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage
+	case class ResponseStrategyServicesTopicMessage(id: String, msgType: String, client: String, payload: Option[StrategyPayload], timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsEngineMessage
 
-	case class RequestEngineServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage
-	case class ResponseEngineServicesTopicMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsEngineMessage
+	case class RequestEngineServicesTopicMessage(id: String, msgType: String, client: String, payload: Option[EnginePayload], timestamp: String, sequenceNum: String, serviceId: String) extends TttsEngineMessage
+	case class ResponseEngineServicesTopicMessage(id: String, msgType: String, client: String, payload: Option[EnginePayload], timestamp: String, sequenceNum: String, signal: String, serviceId: String) extends TttsEngineMessage
 	
 }
 

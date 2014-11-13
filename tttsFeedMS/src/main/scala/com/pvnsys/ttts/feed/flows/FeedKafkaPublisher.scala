@@ -16,13 +16,6 @@ class FeedKafkaPublisher {
     }
   
   def startFeedStream(msg: RequestFeedFacadeTopicMessage) = {
-    
-    // Creating Producer Actor to post outgoing message to facade topic MQ. Creating new Actor for every message
-//    val kafkaProducerActor = system.actorOf(KafkaProducerActor.props(new InetSocketAddress("127.0.0.1", 5672)))
-//    kafkaProducerActor ! msg
-//    kafkaProducerActor ! FacadeOutgoingMessage(wid)
-//	kafkaProducerActor ! FeedActorStopMessage
-
   }
   
 }

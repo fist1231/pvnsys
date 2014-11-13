@@ -11,7 +11,6 @@ import akka.stream.actor.ActorProducer._
 object EngineActor {
   sealed trait EngineMessage
   case object StopMessage extends EngineMessage
-
 }
 
 

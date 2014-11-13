@@ -2,7 +2,6 @@ package com.pvnsys.ttts.strategy.mq
 
 import akka.actor.{Actor, ActorRef, ActorLogging, Props, AllForOneStrategy}
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
-import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.{StartListeningServicesTopicMessage, ServicesTopicMessage, RequestStrategyServicesTopicMessage, TttsStrategyMessage, ResponseFeedServicesTopicMessage, ResponseFeedFacadeTopicMessage}
 import kafka.consumer.ConsumerConfig
 import java.util.Properties
 import kafka.consumer.Consumer
@@ -15,7 +14,6 @@ import scala.collection.mutable.Map
 
 
 object KafkaServicesTopicConsumerActor {
-//  def props(address: InetSocketAddress, groupName: Option[String]) = Props(new KafkaConsumerActor(address, groupName))
   def props(processorActorRef: ActorRef, serviceId: String) = Props(new KafkaServicesTopicConsumerActor(processorActorRef, serviceId))
 
 //  implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {
@@ -26,6 +24,9 @@ object KafkaServicesTopicConsumerActor {
 
 
 object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
+  import TttsStrategyMessages._
+  implicit val feedPayloadFormat = jsonFormat10(FeedPayload)
+  implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
   implicit val responseFeedServicesTopicMessageFormat = jsonFormat7(ResponseFeedServicesTopicMessage)
   implicit val requestStrategyServicesTopicMessageFormat = jsonFormat7(RequestStrategyServicesTopicMessage)
   implicit val responseFeedFacadeTopicMessageFormat = jsonFormat7(ResponseFeedFacadeTopicMessage)

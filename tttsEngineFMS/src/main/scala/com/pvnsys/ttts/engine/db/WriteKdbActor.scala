@@ -124,9 +124,8 @@ class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
   def setTransactionData(data: TransactionKdbType) = {
       val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
       val updateStr = s"`trade insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6})" 
- 	  log.info("================ Update Statement = {}", updateStr)
+ 	  log.debug("WriteKdbActor updating TRADE table data with: {}", updateStr)
       conn.k(updateStr)
- 	  log.debug("WriteKdbActor updated transaction data with: {}", updateStr)
       conn close
   }
   

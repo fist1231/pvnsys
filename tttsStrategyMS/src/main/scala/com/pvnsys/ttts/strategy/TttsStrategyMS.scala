@@ -54,4 +54,8 @@ object Configuration {
   val autocommitIntervalConsumer = config.getString("kafka-consumer.autocommit-interval-ms")
   val autooffsetResetConsumer = config.getString("kafka-consumer.autooffset-reset")
 
+  val kdbHost = config.getString("kdb.host")
+  val kdbPort = config.getString("kdb.port")
+  
+  
 }

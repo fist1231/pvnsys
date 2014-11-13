@@ -9,8 +9,6 @@ import org.java_websocket.WebSocket
 import com.pvnsys.ttts.facade.mq.KafkaProducerActor
 import java.net.InetSocketAddress
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{FacadeClientMessage, RequestStrategyFacadeMessage, ResponseStrategyFacadeMessage}
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.TttsFacadeMessage
 import spray.json._
 import com.pvnsys.ttts.facade.util.Utils
 
@@ -23,6 +21,9 @@ object StrategyActor {
 }
 
 object StrategyActorJsonProtocol extends DefaultJsonProtocol {
+  import TttsFacadeMessages._
+  implicit val facadePayloadFormat = jsonFormat1(FacadePayload)
+  implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
   implicit val facadeClientMessageFormat = jsonFormat2(FacadeClientMessage)
   implicit val requestFacadeMessageFormat = jsonFormat6(RequestStrategyFacadeMessage)
   implicit val responseFacadeMessageFormat = jsonFormat7(ResponseStrategyFacadeMessage)
@@ -67,7 +68,7 @@ class StrategyActor extends Actor with ActorLogging {
 //        	sockets -= ws.getRemoteSocketAddress().toString()
         	sockets -= keyToKill
         	val messageTraits = Utils.generateMessageTraits
-	        val feedStopRequestMessage = RequestStrategyFacadeMessage(messageTraits._1, STRATEGY_STOP_REQUEST_MESSAGE_TYPE, keyToKill, "", messageTraits._2, messageTraits._3)
+	        val feedStopRequestMessage = RequestStrategyFacadeMessage(messageTraits._1, STRATEGY_STOP_REQUEST_MESSAGE_TYPE, keyToKill, None, messageTraits._2, messageTraits._3)
 		    sendMessages(feedStopRequestMessage)
         }
 //        sockets.foreach { case (key, value) => log.debug("zzzzz key: {} ==> value: {}", key, value) }
@@ -140,8 +141,8 @@ class StrategyActor extends Actor with ActorLogging {
   }
   
   def matchRequest(clientReq: FacadeClientMessage, webSocketId: String, messageTraits: MessageTraits): Option[TttsFacadeMessage] = clientReq.msgType match {
-  	  case STRATEGY_REQUEST_MESSAGE_TYPE => Some(RequestStrategyFacadeMessage(messageTraits._1 , clientReq.msgType, webSocketId, clientReq.payload, messageTraits._2, messageTraits._3))
-  	  case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => Some(RequestStrategyFacadeMessage(messageTraits._1, clientReq.msgType, webSocketId, clientReq.payload, messageTraits._2, messageTraits._3))
+  	  case STRATEGY_REQUEST_MESSAGE_TYPE => Some(RequestStrategyFacadeMessage(messageTraits._1 , clientReq.msgType, webSocketId, None, messageTraits._2, messageTraits._3))
+  	  case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => Some(RequestStrategyFacadeMessage(messageTraits._1, clientReq.msgType, webSocketId, None, messageTraits._2, messageTraits._3))
   	  case _ => {
   	    log.debug("TttsFacadeMS StrategyActor received unknown message type from the client: [{}]", clientReq.msgType) 
   	    None

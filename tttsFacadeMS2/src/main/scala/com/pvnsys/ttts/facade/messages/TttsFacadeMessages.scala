@@ -17,22 +17,32 @@ object TttsFacadeMessages {
     sealed trait TttsFacadeMessage
 	case object Stop extends TttsFacadeMessage
 	// Message received from UI clients from WebSocket
-	case class FacadeClientMessage(msgType: String, payload: String) extends TttsFacadeMessage
+	case class FacadePayload(payload: String) extends TttsFacadeMessage
+	case class FeedPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsFacadeMessage
+	case class StrategyPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsFacadeMessage
+	case class EnginePayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsFacadeMessage
+
+	case class FacadeClientMessage(msgType: String, payload: Option[FacadePayload]) extends TttsFacadeMessage
 	// Message published to Facade Topic MQ to request services processing
-	case class RequestFacadeMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsFacadeMessage
+	case class RequestFacadeMessage(id: String, msgType: String, client: String, payload: Option[FacadePayload], timestamp: String, sequenceNum: String) extends TttsFacadeMessage
 	// Message received from Facade Topic MQ in response to services processing request
-	case class ResponseFacadeMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsFacadeMessage
+	case class ResponseFacadeMessage(id: String, msgType: String, client: String, payload: Option[FacadePayload], timestamp: String, sequenceNum: String) extends TttsFacadeMessage
 
 	// Message published to Facade Topic MQ to request services processing
-	case class RequestStrategyFacadeMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsFacadeMessage
+	case class RequestFeedFacadeMessage(id: String, msgType: String, client: String, payload: Option[FeedPayload], timestamp: String, sequenceNum: String) extends TttsFacadeMessage
 	// Message received from Facade Topic MQ in response to services processing request
-	case class ResponseStrategyFacadeMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String) extends TttsFacadeMessage
-
-	// Message published to Facade Topic MQ to request services processing
-	case class RequestEngineFacadeMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String) extends TttsFacadeMessage
-	// Message received from Facade Topic MQ in response to services processing request
-	case class ResponseEngineFacadeMessage(id: String, msgType: String, client: String, payload: String, timestamp: String, sequenceNum: String, signal: String) extends TttsFacadeMessage
+	case class ResponseFeedFacadeMessage(id: String, msgType: String, client: String, payload: Option[FeedPayload], timestamp: String, sequenceNum: String) extends TttsFacadeMessage
 	
+	// Message published to Facade Topic MQ to request services processing
+	case class RequestStrategyFacadeMessage(id: String, msgType: String, client: String, payload: Option[StrategyPayload], timestamp: String, sequenceNum: String) extends TttsFacadeMessage
+	// Message received from Facade Topic MQ in response to services processing request
+	case class ResponseStrategyFacadeMessage(id: String, msgType: String, client: String, payload: Option[StrategyPayload], timestamp: String, sequenceNum: String, signal: String) extends TttsFacadeMessage
+
+	// Message published to Facade Topic MQ to request services processing
+	case class RequestEngineFacadeMessage(id: String, msgType: String, client: String, payload: Option[EnginePayload], timestamp: String, sequenceNum: String) extends TttsFacadeMessage
+	// Message received from Facade Topic MQ in response to services processing request
+	case class ResponseEngineFacadeMessage(id: String, msgType: String, client: String, payload: Option[EnginePayload], timestamp: String, sequenceNum: String, signal: String) extends TttsFacadeMessage
+
 }
 
 

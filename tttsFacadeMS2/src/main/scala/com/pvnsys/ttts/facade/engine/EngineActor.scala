@@ -9,8 +9,6 @@ import org.java_websocket.WebSocket
 import com.pvnsys.ttts.facade.mq.KafkaProducerActor
 import java.net.InetSocketAddress
 import com.pvnsys.ttts.facade.messages.TttsFacadeMessages
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.{FacadeClientMessage, RequestEngineFacadeMessage, ResponseEngineFacadeMessage}
-import com.pvnsys.ttts.facade.messages.TttsFacadeMessages.TttsFacadeMessage
 import spray.json._
 import com.pvnsys.ttts.facade.util.Utils
 
@@ -23,6 +21,9 @@ object EngineActor {
 }
 
 object EngineActorJsonProtocol extends DefaultJsonProtocol {
+  import TttsFacadeMessages._
+  implicit val facadePayloadFormat = jsonFormat1(FacadePayload)
+  implicit val enginePayloadFormat = jsonFormat10(EnginePayload)
   implicit val facadeClientMessageFormat = jsonFormat2(FacadeClientMessage)
   implicit val requestFacadeMessageFormat = jsonFormat6(RequestEngineFacadeMessage)
   implicit val responseFacadeMessageFormat = jsonFormat7(ResponseEngineFacadeMessage)
@@ -67,7 +68,7 @@ class EngineActor extends Actor with ActorLogging {
 //        	sockets -= ws.getRemoteSocketAddress().toString()
         	sockets -= keyToKill
         	val messageTraits = Utils.generateMessageTraits
-	        val engineStopRequestMessage = RequestEngineFacadeMessage(messageTraits._1, ENGINE_STOP_REQUEST_MESSAGE_TYPE, keyToKill, "", messageTraits._2, messageTraits._3)
+	        val engineStopRequestMessage = RequestEngineFacadeMessage(messageTraits._1, ENGINE_STOP_REQUEST_MESSAGE_TYPE, keyToKill, None, messageTraits._2, messageTraits._3)
 		    sendMessages(engineStopRequestMessage)
         }
 //        sockets.foreach { case (key, value) => log.debug("zzzzz key: {} ==> value: {}", key, value) }
@@ -140,8 +141,8 @@ class EngineActor extends Actor with ActorLogging {
   }
   
   def matchRequest(clientReq: FacadeClientMessage, webSocketId: String, messageTraits: MessageTraits): Option[TttsFacadeMessage] = clientReq.msgType match {
-  	  case ENGINE_REQUEST_MESSAGE_TYPE => Some(RequestEngineFacadeMessage(messageTraits._1 , clientReq.msgType, webSocketId, clientReq.payload, messageTraits._2, messageTraits._3))
-  	  case ENGINE_STOP_REQUEST_MESSAGE_TYPE => Some(RequestEngineFacadeMessage(messageTraits._1, clientReq.msgType, webSocketId, clientReq.payload, messageTraits._2, messageTraits._3))
+  	  case ENGINE_REQUEST_MESSAGE_TYPE => Some(RequestEngineFacadeMessage(messageTraits._1 , clientReq.msgType, webSocketId, None, messageTraits._2, messageTraits._3))
+  	  case ENGINE_STOP_REQUEST_MESSAGE_TYPE => Some(RequestEngineFacadeMessage(messageTraits._1, clientReq.msgType, webSocketId, None, messageTraits._2, messageTraits._3))
   	  case _ => {
   	    log.debug("TttsFacadeMS EngineActor received unknown message type from the client: [{}]", clientReq.msgType) 
   	    None

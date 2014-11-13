@@ -14,7 +14,7 @@ $(document).ready(function() {
 	
 	strategySocket.onopen = function(event) {
 		
-		var msg = '{ "msgType":"ENGINE_REQ" , "payload":"" }';
+		var msg = '{ "msgType":"ENGINE_REQ" , "payload":null }';
 //		var msgJson = JSON.parse(msg);
 		
 		strategySocket.send(msg)

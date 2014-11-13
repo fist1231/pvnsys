@@ -6,7 +6,7 @@ import kafka.producer.ProducerConfig
 import kafka.javaapi.producer.Producer
 import java.util.Properties
 import com.pvnsys.ttts.strategy.Configuration
-import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.ResponseStrategyFacadeTopicMessage
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
 import spray.json._
 
 
@@ -14,6 +14,8 @@ object KafkaFacadeTopicProducerActor {
 }
 
 object KafkaFacadeTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
+  import TttsStrategyMessages._
+  implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
   implicit val responseStrategyFacadeTopicMessageFormat = jsonFormat7(ResponseStrategyFacadeTopicMessage)
 }
 
@@ -28,6 +30,7 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
   import KafkaFacadeTopicProducerActor._
   import StrategyActor._
   import KafkaFacadeTopicProducerActorJsonProtocol._
+  import TttsStrategyMessages._
   
 	
   override def receive = {

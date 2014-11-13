@@ -9,9 +9,7 @@ import kx.c._
 import kx.c.Flip
 import scala.Array
 import com.pvnsys.ttts.engine.db.ReadKdbActor
-import com.pvnsys.ttts.engine.db.ReadKdbActor.{ReadKdbMessage, ReadKdbResultMessage}
 import com.pvnsys.ttts.engine.db.WriteKdbActor
-import com.pvnsys.ttts.engine.db.WriteKdbActor.{WriteEngineKdbMessage, WriteTransactionKdbMessage}
 import akka.util.Timeout
 import scala.concurrent.duration._
 import akka.pattern.ask
@@ -54,13 +52,15 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 
   import TttsEngineMessages._
   import SimulatorEngineActor._
-
+  import ReadKdbActor._
+  import WriteKdbActor._
   
   override def receive = {
     case m: StartSimulatorEngineMessage => {
       log.debug("SimulatorEngineActor received StartSimulatorEngineMessage: {}", m)
 	  val client = sender()
-      val result = execute(client, m.message, m.serviceId)
+	  val host = self
+      val result = execute(client, host, m.message, m.serviceId)
 //      client ! result
       
     }
@@ -80,7 +80,7 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
  * Do Engine processing, create ResponseEngineFacadeTopicMessage (reply to FacadeMS)
  * 
  */ 
-  def execute(client: ActorRef, msg: TttsEngineMessage, serviceId: String) = {
+  def execute(client: ActorRef, host: ActorRef, msg: TttsEngineMessage, serviceId: String) = {
     
 //    var response: TttsEngineMessage = msg 
     // Generate unique message ID, timestamp and sequence number to be assigned to every message.
@@ -95,37 +95,47 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
     msg match {
 	    case x: ResponseStrategyFacadeTopicMessage => {
 	      
-	    	val engineResult: Future[String] = play(serviceId, x.signal, x.payload)
-	    	engineResult.onComplete {
-	    	  case Success(result) => {
-			       val payload = s"${x.payload} ==> ${result}"
-			       val response = ResponseEngineFacadeTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, payload, messageTraits._2, x.sequenceNum, x.signal)
-	    	       log.debug("Execute ResponseStrategyFacadeTopicMessage:client: {} ; message: {}", client, response)
-			       client ! response
-//			       context.sender() ! SimulatorEngineResponseMessage(response)
-	    	  }
-	    	  case Failure(error) => {
-	    	    log.error("SimulatorEngine process method error: {}", error.getMessage())
-	    	  }
-	    	}
-	      
+	        x.payload match {
+		          case Some(payload) => {
+			    	val engineResult: Future[String] = play(serviceId, x.signal, payload)
+			    	engineResult.onComplete {
+			    	  case Success(result) => {
+					       val payloadStr = s"${result}"
+					       val payloadRsp = EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr)
+					       val response = ResponseEngineFacadeTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, Some(payloadRsp), messageTraits._2, x.sequenceNum, x.signal)
+			    	       log.debug("Execute ResponseStrategyFacadeTopicMessage:client: {} ; message: {}", client, response)
+					       client ! response
+					       host ! StopSimulatorEngineMessage
+			    	  }
+			    	  case Failure(error) => {
+			    	    log.error("SimulatorEngine process method error: {}", error.getMessage())
+			    	  }
+			    	}
+	          }
+	          case None => 
+	        }
 	    }
 	    case x: ResponseStrategyServicesTopicMessage => {
 
-	    	val engineResult = play(serviceId, x.signal, x.payload)
-	    	engineResult.onComplete {
-	    	  case Success(result) => {
-	    		   val payload = s"${x.payload} ==> ${result}"
-			       val response = ResponseEngineServicesTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, payload, messageTraits._2, x.sequenceNum, x.signal, x.serviceId)	 
-	    	       log.debug("Execute ResponseStrategyServicesTopicMessage: {} ; message: {}", client, response)
-			       client ! response
-//			       context.sender() ! SimulatorEngineResponseMessage(response)
-	    	  }
-	    	  case Failure(error) => {
-	    	    log.error("SimulatorEngine process method error: {}", error.getMessage())
-	    	  }
-	    	}
-	      
+	        x.payload match {
+		          case Some(payload) => {
+			    	val engineResult: Future[String] = play(serviceId, x.signal, payload)
+			    	engineResult.onComplete {
+			    	  case Success(result) => {
+					       val payloadStr = s"${result}"
+					       val payloadRsp = EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr)
+					       val response = ResponseEngineServicesTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, Some(payloadRsp), messageTraits._2, x.sequenceNum, x.signal, x.serviceId)	 
+			    	       log.debug("Execute ResponseStrategyServicesTopicMessage: {} ; message: {}", client, response)
+					       client ! response
+					       host ! StopSimulatorEngineMessage
+			    	  }
+			    	  case Failure(error) => {
+			    	    log.error("SimulatorEngine process method error: {}", error.getMessage())
+			    	  }
+			    	}
+	          }
+	          case None => 
+	        }
 	    }
 	    case _ =>  {
 	      log.error("SimulatorEngine Received unsupported message type")
@@ -134,7 +144,7 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 //    response
   }
   
-  def play(serviceId: String, signal: String, payload: String): Future[String] = {
+  def play(serviceId: String, signal: String, payload: StrategyPayload): Future[String] = {
 //    val data = getEngineData()
     
 	implicit val timeout = Timeout(2 seconds)
@@ -151,10 +161,10 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 	    signal match {
 	      case "BUY" => if(!data._4) {
 		        val comission = 10
-		        val newPossize = ((data._2 - comission) / payload.toDouble).longValue
+		        val newPossize = ((data._2 - comission) / payload.close).longValue
 		        if(newPossize > 0) {
 		            val newFunds = data._1 
-			        val position =  newPossize * payload.toDouble + comission
+			        val position =  newPossize * payload.close + comission
 			        val newTransnum = data._3 + 1
 			        val newBalance =  data._2 - position 
 			        val newIntrade = true
@@ -166,7 +176,7 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 			         * trade:([]time:`time$();sym:`symbol$();price:`float$();size:`int$();oper:`symbol$();cost:`float$())
 			         */
 			        
-			        val transactionData = ("09:30:00.000", "AA", payload.toDouble, newPossize, "buy", -1 * position)
+			        val transactionData = ("09:30:00.000", "AA", payload.close, newPossize, "buy", -1 * position)
 			        writeTransactionData(serviceId, transactionData)
 			        s"IN@$payload for [${position}]"
 			        
@@ -181,15 +191,15 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 	            val newFunds = data._1 
 		        
 		        val newTransnum = data._3 + 1
-		        val sellProceeds = data._5 * payload.toDouble - comission
-		        val newBalance =  data._5 * payload.toDouble - comission + data._2 
+		        val sellProceeds = data._5 * payload.close - comission
+		        val newBalance =  data._5 * payload.close - comission + data._2 
 		        val newPossize = 0l
 		        val newIntrade = false
 	
 		        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize)
 		        writeEngineData(serviceId, newData)
 	
-		        val transactionData = ("15:59:00.000", "AA", payload.toDouble, newPossize, "sell", sellProceeds)
+		        val transactionData = ("15:59:00.000", "AA", payload.close, newPossize, "sell", sellProceeds)
 		        writeTransactionData(serviceId, transactionData)
 		        s"OUT@$payload"
 	
@@ -207,6 +217,7 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 
     val writeKdbActor = context.actorOf(WriteKdbActor.props(serviceId))
     writeKdbActor ! WriteEngineKdbMessage(data)
+    writeKdbActor ! StopWriteKdbActor
   
   }  
 
@@ -214,6 +225,7 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 
     val writeKdbActor = context.actorOf(WriteKdbActor.props(serviceId))
     writeKdbActor ! WriteTransactionKdbMessage(data)
+    writeKdbActor ! StopWriteKdbActor
   
   }  
   

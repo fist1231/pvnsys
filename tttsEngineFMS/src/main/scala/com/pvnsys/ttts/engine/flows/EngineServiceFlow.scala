@@ -5,7 +5,5 @@ import akka.stream.scaladsl.Duct
 import com.pvnsys.ttts.engine.messages.TttsEngineMessages.TttsEngineMessage
 
 trait EngineServiceFlow {
-  
   def startFlow()
-  
 }

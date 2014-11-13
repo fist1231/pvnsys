@@ -8,7 +8,6 @@ import java.util.Properties
 import com.pvnsys.ttts.feed.Configuration
 import com.pvnsys.ttts.feed.mq.FeedActor
 import com.pvnsys.ttts.feed.messages.TttsFeedMessages
-import com.pvnsys.ttts.feed.messages.TttsFeedMessages.{TttsFeedMessage, RequestFeedFacadeTopicMessage, ResponseFeedFacadeTopicMessage, RequestFeedServicesTopicMessage}
 import com.pvnsys.ttts.feed.mq.{KafkaFacadeTopicProducerActor, KafkaServicesTopicProducerActor}
 import scala.util.Random
 import akka.actor.ActorRef
@@ -18,16 +17,15 @@ import scala.io.Source
 import com.pvnsys.ttts.feed.impl.FakeFeed
 
 object FeedGeneratorActor {
+  
+  import TttsFeedMessages._
 
   sealed trait FeedGeneratorMessage
-
   case class StartFeedGeneratorFacadeMessage(req: TttsFeedMessage) extends FeedGeneratorMessage
   case class StartFeedGeneratorServicesMessage(req: TttsFeedMessage) extends FeedGeneratorMessage
   case object StopFeedGeneratorMessage extends FeedGeneratorMessage
-  
   case class StartFakeFeedGeneratorMessage(msg: TttsFeedMessage, initSize: Int) extends FeedGeneratorMessage
   case object StopFakeFeedGeneratorMessage extends FeedGeneratorMessage
-  
 }
 
 /**
@@ -38,6 +36,7 @@ class FeedGeneratorActor extends Actor with ActorLogging {
 
   import FeedGeneratorActor._
   import Utils._
+  import TttsFeedMessages._
   
   var isActive = false
 //  var count = 0

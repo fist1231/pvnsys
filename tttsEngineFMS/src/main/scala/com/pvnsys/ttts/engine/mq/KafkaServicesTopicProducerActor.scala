@@ -6,7 +6,7 @@ import kafka.producer.ProducerConfig
 import kafka.javaapi.producer.Producer
 import java.util.Properties
 import com.pvnsys.ttts.engine.Configuration
-import com.pvnsys.ttts.engine.messages.TttsEngineMessages.{TttsEngineMessage, RequestStrategyServicesTopicMessage, ResponseEngineServicesTopicMessage}
+import com.pvnsys.ttts.engine.messages.TttsEngineMessages
 import spray.json._
 
 
@@ -14,6 +14,9 @@ object KafkaServicesTopicProducerActor {
 }
 
 object KafkaServicesTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
+  import TttsEngineMessages._
+  implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
+  implicit val enginePayloadFormat = jsonFormat10(EnginePayload)
   implicit val requestStrategyServicesTopicMessageFormat = jsonFormat7(RequestStrategyServicesTopicMessage)
   implicit val responseEngineServicesTopicMessageFormat = jsonFormat8(ResponseEngineServicesTopicMessage)
 }
@@ -29,7 +32,7 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
   import KafkaServicesTopicProducerActor._
   import EngineActor._
   import KafkaServicesTopicProducerActorJsonProtocol._
-  
+  import TttsEngineMessages._
 	
   override def receive = {
     /*
