@@ -16,6 +16,7 @@ import akka.pattern.ask
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
+import java.util.Date
 
 
 
@@ -153,7 +154,13 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
       
 	    data._1 match {
 	      case 5000.00 => {
-		        val data = (payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size)
+
+		    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+		    	val inputDate = inputSdf.parse(payload.datetime)
+		    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
+		    	val outputDateStr = outputSdf.format(inputDate)
+		    	
+	            val data = (outputDateStr, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size)
 		        writeQuotesData(serviceId, data)
 		        "HOLD"
 	      }
