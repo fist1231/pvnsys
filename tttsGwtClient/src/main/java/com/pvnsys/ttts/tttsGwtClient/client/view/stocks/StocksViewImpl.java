@@ -407,40 +407,37 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 				sPanelWS.scrollToBottom();
 				
 				try {
-					vPanelWS.add(new Label("__________________ before parse"));
-					sPanelWS.scrollToBottom();
 					JSONValue value = JSONParser.parseStrict(msg);
-					vPanelWS.add(new Label("__________________ after parse"));
-					sPanelWS.scrollToBottom();
 					
 					JSONObject msgObj = value.isObject();
-					vPanelWS.add(new Label("__________________ before isObj"));
-					sPanelWS.scrollToBottom();
 
 					JSONValue pld = msgObj.get("payload");
-					
-					vPanelWS.add(new Label("__________________ before payload; pld.toString() = " + pld.toString()));
-					sPanelWS.scrollToBottom();
 					
 					String sts = pld.toString();
 
 					int startIdx = sts.indexOf("funds");
 					String remained = sts.substring(startIdx);
-					int endIdx = remained.indexOf(":");
-					String fnd = sts.substring(startIdx, endIdx);
-					funds.setText(fnd);
+					int endIdx = remained.indexOf(",");
+					String fnd = remained.substring(8, endIdx);
+					if(fnd != null && fnd.trim().length() > 0) {
+						funds.setText(fnd);
+					}
 
 					int startIdx2 = sts.indexOf("balance");
 					String remained2 = sts.substring(startIdx2);
-					int endIdx2 = remained2.indexOf(":");
-					String bal = sts.substring(startIdx2, endIdx2);
-					balance.setText(bal);
+					int endIdx2 = remained2.indexOf(",");
+					String bal = remained2.substring(10, endIdx2);
+					if(bal != null && bal.trim().length() > 0) {
+						balance.setText(bal);
+					}
 
 					int startIdx3 = sts.indexOf("transnum");
 					String remained3 = sts.substring(startIdx3);
 					int endIdx3 = remained3.indexOf(":");
-					String tn = sts.substring(startIdx3, endIdx3);
-					numberOfTrades.setText(tn);
+					String tn = remained3.substring(11, endIdx3);
+					if(tn != null && tn.trim().length() > 0) {
+						numberOfTrades.setText(tn);
+					}
 					
 					
 //					vPanelWS.add(new Label("__________________ before payload; pld.isString().toString() = " + pld.isString().toString()));
@@ -515,14 +512,14 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 //					positionSize.setText(ps);
 					
 				} catch (JSONException e) {
-					vPanelWS.add(new Label("JSONException --------> " + e.getMessage()));
-					sPanelWS.scrollToBottom();
+//					vPanelWS.add(new Label("JSONException --------> " + e.getMessage()));
+//					sPanelWS.scrollToBottom();
 
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (Exception e) {
-					vPanelWS.add(new Label("ERROR ==========> " + e.getMessage()));
-					sPanelWS.scrollToBottom();
+//					vPanelWS.add(new Label("ERROR ==========> " + e.getMessage()));
+//					sPanelWS.scrollToBottom();
 
 					// TODO Auto-generated catch block
 					e.printStackTrace();
