@@ -15,6 +15,7 @@ import com.pvnsys.ttts.strategy.impl.AbxStrategyActor
 import kx.c
 import kx.c._
 import kx.c.Flip
+import java.lang.reflect.Array
 
 object ReadKdbActor {
   
@@ -22,7 +23,7 @@ object ReadKdbActor {
   def props(serviceId: String) = Props(new ReadKdbActor(serviceId))
   sealed trait ReadKdbMessages
   case object ReadKdbMessage extends ReadKdbMessages
-  case class ReadKdbResultMessage(result: StrategyKdbType) extends ReadKdbMessages
+  case class ReadKdbResultMessage(result: List[Option[Double]]) extends ReadKdbMessages
   case object StopReadKdbActor extends ReadKdbMessages
 }
 
@@ -44,7 +45,7 @@ class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
 	override def receive = {
 		case ReadKdbMessage => {
 			log.debug("ReadKdbActor received ReadKdbMessage")
-			val result = getStrategyData()
+			val result = getQuotesData()
 			val client = sender()
 			log.debug("Sending result back: {}", result)
 		    client ! ReadKdbResultMessage(result)
@@ -77,6 +78,46 @@ class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
 		  log.debug("^^^^^^^^^^^^ data = {}", kdb)
 	      conn.close
 	      kdb
+	}
+
+	def getQuotesData(): List[Option[Double]] = {
+	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
+		  log.debug("Connected to KDB server. Retrieving data")
+		  val res = conn.k("select [-2] high, low, close from quotes")
+		  val tabres: Flip = res.asInstanceOf[Flip]
+		  val colNames = tabres.x
+		  val colData = tabres.y
+		  
+		  Array.getLength(colData(0))
+		  
+//		  log.debug("^^^^^^^^^^^^ colData.size = {}", colData.size)
+//		  log.debug("^^^^^^^^^^^^ colData.length = {}", colData.length)
+//		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(0)) = {}", Array.getLength(colData(0)))
+//		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(1)) = {}", Array.getLength(colData(1)))
+//		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(2)) = {}", Array.getLength(colData(2)))
+		  
+		  val result= if(Array.getLength(colData(0)) > 1	) {
+			  val l2h: Option[Double] = Some((c.at(colData(0), 0)).asInstanceOf[Double])
+			  val l2l: Option[Double] = Some((c.at(colData(1), 0)).asInstanceOf[Double])
+			  val l2c: Option[Double] = Some((c.at(colData(2), 0)).asInstanceOf[Double])
+			  val l1h: Option[Double] = Some((c.at(colData(0), 1)).asInstanceOf[Double])
+			  val l1l: Option[Double] = Some((c.at(colData(1), 1)).asInstanceOf[Double])
+			  val l1c: Option[Double] = Some((c.at(colData(2), 1)).asInstanceOf[Double])
+//			  val kdb: KdbType = (c.at(colData(0), 0).asInstanceOf[Double], c.at(colData(1), 0).asInstanceOf[Double], c.at(colData(2), 0).asInstanceOf[Int], c.at(colData(3), 0).asInstanceOf[Boolean], c.at(colData(4), 0).asInstanceOf[Int])
+		      List(l2h, l2l, l2c, l1h, l1l, l1c)
+//			  log.debug("^^^^^^^^^^^^ data = {}", result)
+//		      conn.close
+//		      result
+		  } else {
+			  List(None, None, None, None, None, None)
+//			  log.debug("^^^^^^^^^^^^ data = {}", result)
+//		      conn.close
+//		      result
+		  }
+		  log.debug("^^^^^^^^^^^^ data = {}", result)
+	      conn.close
+	      result
+		  
 	}
 	
 	override def postStop() = {

@@ -407,7 +407,7 @@ public class BkActionFragment extends Fragment {
 		            public void onOpen() {
 		               Log.d(TAG, "Status: Connected to " + wsuri);
 					      System.out.println("$$$$$$$$$$$ Sending message to WebSocket");
-						  String msg = "{ \"msgType\":\"FEED_REQ\", \"payload\":\"Android Feed payload\" }";
+						  String msg = "{ \"msgType\":\"FEED_REQ\", \"payload\":null }";
 //					  	  mWebSocketClient.send(msg);
 					  	  mConnection.sendTextMessage(msg);
 		            }

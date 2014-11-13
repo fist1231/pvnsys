@@ -27,6 +27,8 @@ object AbxStrategyActor {
    *   
    */ 
   type StrategyKdbType = (Double, Double, Long, Boolean, Long)
+
+//  type QuotesKdbType = (Option[Double], Option[Double], Option[Double], Option[Double], Option[Double], Option[Double])
   
   // quotes:([]datetime:`timestamp$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$()) 
   type TransactionKdbType = (String, String, Double, Double, Double, Double, Long, Double, Long)
@@ -49,6 +51,57 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
   import WriteKdbActor._
   import ReadKdbActor._
   
+
+  /*
+   * ################################# Strategy business logic goes here #################################################
+   */
+  
+  override def process(serviceId: String, payload: FeedPayload): Future[String] = {
+//    val data = getQuotesData()
+    
+	implicit val timeout = Timeout(2 seconds)
+    val readKdbActor = context.actorOf(ReadKdbActor.props(serviceId))
+    
+    (readKdbActor ? ReadKdbMessage).mapTo[ReadKdbResultMessage] map {resultMessage =>
+      	
+        val data = resultMessage.result 
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+
+    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    	val inputDate = inputSdf.parse(payload.datetime)
+    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
+    	val outputDateStr = outputSdf.format(inputDate)
+    	
+        // Store Feed Quote to Quotes table
+    	val writeData = (outputDateStr, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size)
+        writeQuotesData(serviceId, writeData)
+		
+		
+		if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00) {
+		  if(l1c > l2h) {
+		    "BUY"
+		  } else if(l1c < l2l) {
+		    "SELL"
+		  } else {
+		    "HOLD"
+		  }
+		} else {
+		  "NOT ENOUGH DATA"
+		}
+        
+	}
+    
+  }
+  /*
+   * ################################# Strategy business logic ends here #################################################
+   */
+  
+  
   override def receive = {
     case m: StartAbxStrategyMessage => {
       log.debug("AbxStrategyActor received StartAbxStrategyMessage: {}", m)
@@ -65,16 +118,11 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
   }  
   
   
-  override def process(msg: TttsStrategyMessage): TttsStrategyMessage = {
-    msg
-  }
-  
-  
 /*
  * Do Strategy processing, create ResponseStrategyFacadeTopicMessage (reply to FacadeMS)
  * 
  */ 
-  def execute(client: ActorRef, host: ActorRef, msg: TttsStrategyMessage, serviceId: String) = {
+  private def execute(client: ActorRef, host: ActorRef, msg: TttsStrategyMessage, serviceId: String) = {
     
 //    var response: TttsStrategyMessage = msg 
     // Generate unique message ID, timestamp and sequence number to be assigned to every message.
@@ -91,7 +139,7 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
 	      
 	        x.payload match {
 	          case Some(payload) => {
-			    	val strategyResult: Future[String] = play(serviceId, payload)
+			    	val strategyResult: Future[String] = process(serviceId, payload)
 			    	strategyResult.onComplete {
 			    	  case Success(result) => {
 					       val payloadStr = s"${result}"
@@ -113,7 +161,7 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
 
 	        x.payload match {
 	          case Some(payload) => {
-			    	val strategyResult = play(serviceId, payload)
+			    	val strategyResult = process(serviceId, payload)
 			    	strategyResult.onComplete {
 			    	  case Success(result) => {
 					       val payloadStr = s"${result}"
@@ -138,39 +186,7 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
 //    response
   }
   
-  def play(serviceId: String, payload: FeedPayload): Future[String] = {
-//    val data = getStrategyData()
-    
-	implicit val timeout = Timeout(2 seconds)
-//	implicit val executor = context.system.dispatcher
-
-    val readKdbActor = context.actorOf(ReadKdbActor.props(serviceId))
-    
-    (readKdbActor ? ReadKdbMessage).mapTo[ReadKdbResultMessage] map {resultMessage =>
-      	
-	//    val data = (0f, 0f, 0l, true, 0l)
-	    
-        val data = resultMessage.result 
-      
-	    data._1 match {
-	      case 5000.00 => {
-
-		    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-		    	val inputDate = inputSdf.parse(payload.datetime)
-		    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
-		    	val outputDateStr = outputSdf.format(inputDate)
-		    	
-	            val data = (outputDateStr, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size)
-		        writeQuotesData(serviceId, data)
-		        "HOLD"
-	      }
-	      case _ => "PASS"
-	    }
-	}
-    
-  }
-
-  def writeStrategyData(serviceId: String, data: StrategyKdbType): Unit = {
+  private def writeStrategyData(serviceId: String, data: StrategyKdbType): Unit = {
 
     val writeKdbActor = context.actorOf(WriteKdbActor.props(serviceId))
     writeKdbActor ! WriteStrategyKdbMessage(data)
@@ -178,7 +194,7 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
   
   }  
 
-  def writeQuotesData(serviceId: String, data: TransactionKdbType): Unit = {
+  private def writeQuotesData(serviceId: String, data: TransactionKdbType): Unit = {
 
     val writeKdbActor = context.actorOf(WriteKdbActor.props(serviceId))
     writeKdbActor ! WriteTransactionKdbMessage(data)

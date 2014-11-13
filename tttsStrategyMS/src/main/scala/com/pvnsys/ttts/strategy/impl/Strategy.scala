@@ -1,6 +1,8 @@
 package com.pvnsys.ttts.strategy.impl
 
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.TttsStrategyMessage
+import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.FeedPayload
+import scala.concurrent.Future
 
 trait Strategy {
   
@@ -37,7 +39,7 @@ trait Strategy {
    * 
    * 
    */
-  def process(msg: TttsStrategyMessage): TttsStrategyMessage
+  def process(serviceId: String, payload: FeedPayload): Future[String]
   
 }
 

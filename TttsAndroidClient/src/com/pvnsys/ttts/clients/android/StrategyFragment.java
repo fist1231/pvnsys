@@ -279,7 +279,7 @@ public class StrategyFragment extends Fragment {
 		            public void onOpen() {
 		               Log.d(TAG, "Status: Connected to " + wsuri);
 					      System.out.println("$$$$$$$$$$$ Sending message to Strategy WebSocket");
-						  String msg = "{ \"msgType\":\"STRATEGY_REQ\", \"payload\":\"Android Payload\" }";
+						  String msg = "{ \"msgType\":\"STRATEGY_REQ\", \"payload\":null }";
 //					  	  mWebSocketClient.send(msg);
 					  	  mConnection.sendTextMessage(msg);
 		            }
