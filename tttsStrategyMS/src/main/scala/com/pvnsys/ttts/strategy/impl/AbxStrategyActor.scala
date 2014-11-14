@@ -91,6 +91,7 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
 		  
 		  /*
 		   * Close > Last 10 max(High) - Buy; Close < Prev. Low - Sell
+		   * 
 		   */
 		  if(l1c > maxHigh) {
 		    "BUY"
