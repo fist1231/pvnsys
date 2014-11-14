@@ -8,7 +8,7 @@ object Utils {
   
   def generateMessageTraits: MessageTraits = {
     
-    val uuid = java.util.UUID.randomUUID.toString
+    val uuid = java.util.UUID.randomUUID.toString.replaceAll("-", "")
     
     val sdf = new java.text.SimpleDateFormat("ddMMyyyyhhmmssSSS")
     val timestamp = sdf.format(new java.util.Date())
@@ -19,7 +19,7 @@ object Utils {
   }
 
   
-    def generateUuid: String = java.util.UUID.randomUUID.toString
+    def generateUuid: String = java.util.UUID.randomUUID.toString.replaceAll("-", "")
 
 }
 

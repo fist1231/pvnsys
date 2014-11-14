@@ -20,17 +20,19 @@ import kx.c.Flip
 object WriteKdbActor {
   
   import AbxStrategyActor._
-  def props(serviceId: String) = Props(new WriteKdbActor(serviceId))
+  def props(tableId: String) = Props(new WriteKdbActor(tableId))
   sealed trait WriteKdbMessages
   case class WriteStrategyKdbMessage(data: StrategyKdbType) extends WriteKdbMessages
   case class WriteTransactionKdbMessage(data: TransactionKdbType) extends WriteKdbMessages
   case object StopWriteKdbActor extends WriteKdbMessages
+  case object ResetStrategyKdbMessage extends WriteKdbMessages
+  case class ResponseResetStrategyKdbMessage() extends WriteKdbMessages
 }
 
 /**
  * This actor will do create/insert/update/delete operations on kdb database
  */
-class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
+class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
   
 	import WriteKdbActor._
 	import TttsStrategyMessages._
@@ -43,6 +45,11 @@ class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
   	}
 	
 	override def receive = {
+		case ResetStrategyKdbMessage => {
+			log.debug("WriteKdbActor received ResetStrategyKdbMessage")
+			val client = self 
+			resetStrategyData(client)
+		}
 		case msg: WriteStrategyKdbMessage => {
 			log.debug("WriteKdbActor received WriteStrategyKdbMessage")
 			setStrategyData(msg.data)
@@ -59,6 +66,48 @@ class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
 		case _ => log.error("WriteKdbActor Received unknown message")
 	}
 
+	
+	
+  def resetStrategyData(client: ActorRef) = {
+
+      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
+      
+      val funds = 5000.00
+      val balance = 5000.00
+      val transnum = 0L
+      var intradeStr = "0b"
+      val possize = 0L
+ 	  log.info("============== 1  tableID= {}", tableId)
+
+      val createStrategyStr = s"strategy$tableId" + """:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$())"""
+      val createQuotesStr = s"quotes$tableId" + """:([]dts:`datetime$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$())"""
+
+      conn.k(createStrategyStr)
+ 	  log.info("WriteKdbActor created STRATEGY table: {}", createStrategyStr)
+      
+ 	  val insertStrategyDataStr = s"`strategy$tableId insert($funds;$balance;$transnum;$intradeStr;$possize)"
+ 	  conn.k(insertStrategyDataStr)
+ 	  log.info("WriteKdbActor populated STRATEGY initial data: {}", insertStrategyDataStr)
+      
+//      val updateStr = s"strategy:update funds:$funds,balance:$balance,transnum:$transnum,intrade:$intradeStr,possize:$possize from strategy" 
+//      conn.k(updateStr)
+// 	  log.debug("WriteKdbActor reset STRATEGY data with: {}", updateStr)
+
+      conn.k(createQuotesStr)
+ 	  log.info("WriteKdbActor created TRADE table: {}", createQuotesStr)
+ 	  
+ 	  
+//      val purgeStr = s"delete from quotes" 
+// 	  log.debug("WriteKdbActor purged QUOTES table data")
+//      conn.k(purgeStr)
+      
+      conn close
+      
+      client ! ResponseResetStrategyKdbMessage
+  }	
+	
+	
+	
   def setStrategyData(data: StrategyKdbType) = {
       val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 //      val res = conn.k(s"update strategy set funds=${data._1}, balance=${data._2}, transnum=${data._3}, intrade=${data._4}, possize=${data._5}")
@@ -68,9 +117,9 @@ class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
         intradeStr = "1b"
       }
       
-      val updateStr = s"strategy:update funds:${data._1},balance:${data._2},transnum:${data._3},intrade:${intradeStr},possize:${data._5} from strategy" 
+      val updateStr = s"strategy$tableId:update funds:${data._1},balance:${data._2},transnum:${data._3},intrade:${intradeStr},possize:${data._5} from strategy$tableId" 
       conn.k(updateStr)
- 	  log.debug("WriteKdbActor updated strategy data with: {}", updateStr)
+ 	  log.debug("WriteKdbActor updated STRATEGY data with: {}", updateStr)
 
       conn close
       
@@ -88,7 +137,7 @@ class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
   def setTransactionData(data: TransactionKdbType) = {
       val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 //	  quotes:([]dts:`datetime$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$())
-	  val updateStr = s"`quotes insert(${data._1};`${data._2};${data._3};${data._4};${data._5};${data._6};${data._7};${data._8};${data._9})" 
+	  val updateStr = s"`quotes$tableId insert(${data._1};`${data._2};${data._3};${data._4};${data._5};${data._6};${data._7};${data._8};${data._9})" 
  	  log.info("WriteKdbActor updating TRADE table data with: {}", updateStr)
       conn.k(updateStr)
       conn close

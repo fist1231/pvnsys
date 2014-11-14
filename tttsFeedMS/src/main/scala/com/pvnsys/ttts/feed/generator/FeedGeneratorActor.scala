@@ -81,7 +81,7 @@ class FeedGeneratorActor extends Actor with ActorLogging {
 	  val filename = "in/quotes.csv"
   	  val initSize = Source.fromFile(filename).getLines.length
 	 
-    context.system.scheduler.schedule(0.seconds, 1.second, fakeFeedActor, StartFakeFeedGeneratorMessage(msg, initSize))(context.system.dispatcher, self)
+    context.system.scheduler.schedule(0.seconds, 100.milliseconds, fakeFeedActor, StartFakeFeedGeneratorMessage(msg, initSize))(context.system.dispatcher, self)
   }
   
 //  private def increment(i: Int) = {

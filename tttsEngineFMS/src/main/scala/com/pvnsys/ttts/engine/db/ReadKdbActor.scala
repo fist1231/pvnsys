@@ -19,7 +19,7 @@ import kx.c.Flip
 object ReadKdbActor {
   
   import SimulatorEngineActor._
-  def props(serviceId: String) = Props(new ReadKdbActor(serviceId))
+  def props(tableId: String) = Props(new ReadKdbActor(tableId))
   sealed trait ReadKdbMessages
   case object ReadKdbMessage extends ReadKdbMessages
   case class ReadKdbResultMessage(result: EngineKdbType) extends ReadKdbMessages
@@ -29,7 +29,7 @@ object ReadKdbActor {
 /**
  * This actor will do read-only operations on kdb database
  */
-class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
+class ReadKdbActor(tableId: String) extends Actor with ActorLogging {
   
 	import ReadKdbActor._
 	import TttsEngineMessages._
@@ -62,7 +62,7 @@ class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
 	def getEngineData(): EngineKdbType = {
 	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 		  log.debug("Connected to KDB server. Retrieving data")
-		  val res = conn.k("select from engine")
+		  val res = conn.k(s"select from engine$tableId")
 		  val tabres: Flip = res.asInstanceOf[Flip]
 		  val colNames = tabres.x
 		  val colData = tabres.y

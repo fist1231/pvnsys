@@ -20,7 +20,7 @@ import java.lang.reflect.Array
 object ReadKdbActor {
   
   import AbxStrategyActor._
-  def props(serviceId: String) = Props(new ReadKdbActor(serviceId))
+  def props(tableId: String) = Props(new ReadKdbActor(tableId))
   sealed trait ReadKdbMessages
   case object ReadKdbMessage extends ReadKdbMessages
   case class ReadKdbResultMessage(result: List[Option[Double]]) extends ReadKdbMessages
@@ -30,7 +30,7 @@ object ReadKdbActor {
 /**
  * This actor will do read-only operations on kdb database
  */
-class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
+class ReadKdbActor(tableId: String) extends Actor with ActorLogging {
   
 	import ReadKdbActor._
 	import TttsStrategyMessages._
@@ -63,7 +63,7 @@ class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
 	def getStrategyData(): StrategyKdbType = {
 	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 		  log.debug("Connected to KDB server. Retrieving data")
-		  val res = conn.k("select from strategy")
+		  val res = conn.k(s"select from strategy$tableId")
 		  val tabres: Flip = res.asInstanceOf[Flip]
 		  val colNames = tabres.x
 		  val colData = tabres.y
@@ -81,9 +81,12 @@ class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
 	}
 
 	def getQuotesData(): List[Option[Double]] = {
+	  
+		  val numberOfTicks = 30  
+	  
 	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 		  log.debug("Connected to KDB server. Retrieving data")
-		  val res = conn.k("reverse select [-10] high, low, close from quotes")
+		  val res = conn.k(s"reverse select [-$numberOfTicks] high, low, close from quotes$tableId")
 		  val tabres: Flip = res.asInstanceOf[Flip]
 		  val colNames = tabres.x
 		  val colData = tabres.y
@@ -97,7 +100,7 @@ class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
 //		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(2)) = {}", Array.getLength(colData(2)))
 		  
 		  // close over max last 10 highs - buy. close under last 1 low - sell
-		  val result= if(Array.getLength(colData(0)) > 9) {
+		  val result= if(Array.getLength(colData(0)) > (numberOfTicks - 1)) {
 			  val l2h: Option[Double] = Some((c.at(colData(0), 1)).asInstanceOf[Double])
 			  val l2l: Option[Double] = Some((c.at(colData(1), 1)).asInstanceOf[Double])
 			  val l2c: Option[Double] = Some((c.at(colData(2), 1)).asInstanceOf[Double])
@@ -106,7 +109,7 @@ class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
 			  val l1c: Option[Double] = Some((c.at(colData(2), 0)).asInstanceOf[Double])
 			  
 			  
-			  val resMax = conn.k("select [-9] max high from reverse select [-10] high from quotes")
+			  val resMax = conn.k(s"select [-${numberOfTicks-1}] max high from reverse select [-$numberOfTicks] high from quotes$tableId")
 			  val tabresMax: Flip = resMax.asInstanceOf[Flip]
 			  val colNamesMax = tabresMax.x
 			  val colDataMax = tabresMax.y

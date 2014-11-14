@@ -20,17 +20,18 @@ import kx.c.Flip
 object WriteKdbActor {
   
   import SimulatorEngineActor._
-  def props(serviceId: String) = Props(new WriteKdbActor(serviceId))
+  def props(tableId: String) = Props(new WriteKdbActor(tableId))
   sealed trait WriteKdbMessages
   case class WriteEngineKdbMessage(data: EngineKdbType) extends WriteKdbMessages
   case class WriteTransactionKdbMessage(data: TransactionKdbType) extends WriteKdbMessages
   case object StopWriteKdbActor extends WriteKdbMessages
+  case object ResetEngineKdbMessage extends WriteKdbMessages
 }
 
 /**
  * This actor will do create/insert/update/delete operations on kdb database
  */
-class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
+class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
   
 	import WriteKdbActor._
 	import TttsEngineMessages._
@@ -43,6 +44,10 @@ class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
   	}
 	
 	override def receive = {
+		case ResetEngineKdbMessage => {
+			log.debug("WriteKdbActor received ResetEngineKdbMessage")
+			resetEngineData()
+		}
 		case msg: WriteEngineKdbMessage => {
 			log.debug("WriteKdbActor received WriteEngineKdbMessage")
 			setEngineData(msg.data)
@@ -59,6 +64,39 @@ class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
 		case _ => log.error("WriteKdbActor Received unknown message")
 	}
 
+	
+  def resetEngineData() = {
+
+      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
+      
+      val funds = 5000.00
+      val balance = 5000.00
+      val transnum = 0L
+      var intradeStr = "0b"
+      val possize = 0L
+      
+      val createEngineStr = s"engine$tableId" + """:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$())"""
+      val createTradeStr = s"trade$tableId" + """:([]dts:`datetime$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$())"""
+
+ 	  log.info("============== 1")
+      conn.k(createEngineStr)
+ 	  log.info("WriteKdbActor created ENGINE table: {}", createEngineStr)
+      
+ 	  val insertEngineDataStr = s"`engine$tableId insert($funds;$balance;$transnum;$intradeStr;$possize)"
+ 	  conn.k(insertEngineDataStr)
+ 	  log.info("WriteKdbActor populated ENGINE initial data: {}", insertEngineDataStr)
+
+      conn.k(createTradeStr)
+ 	  log.info("WriteKdbActor created TRADE table: {}", createTradeStr)
+ 	  
+ 	  
+//      val purgeStr = s"delete from trade" 
+// 	  log.debug("WriteKdbActor purged TRADE table data")
+//      conn.k(purgeStr)
+      
+      conn close
+  }	
+	
   def setEngineData(data: EngineKdbType) = {
       val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 //      val res = conn.k(s"update engine set funds=${data._1}, balance=${data._2}, transnum=${data._3}, intrade=${data._4}, possize=${data._5}")
@@ -68,9 +106,9 @@ class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
         intradeStr = "1b"
       }
       
-      val updateStr = s"engine:update funds:${data._1},balance:${data._2},transnum:${data._3},intrade:${intradeStr},possize:${data._5} from engine" 
+      val updateStr = s"engine$tableId:update funds:${data._1},balance:${data._2},transnum:${data._3},intrade:${intradeStr},possize:${data._5} from engine$tableId" 
       conn.k(updateStr)
- 	  log.debug("WriteKdbActor updated engine data with: {}", updateStr)
+ 	  log.debug("WriteKdbActor updated ENGINE data with: {}", updateStr)
 
 //    try {
 //
@@ -123,7 +161,7 @@ class WriteKdbActor(serviceId: String) extends Actor with ActorLogging {
   
   def setTransactionData(data: TransactionKdbType) = {
       val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
-      val updateStr = s"`trade insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6})" 
+      val updateStr = s"`trade$tableId insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6})" 
  	  log.debug("WriteKdbActor updating TRADE table data with: {}", updateStr)
       conn.k(updateStr)
       conn close
