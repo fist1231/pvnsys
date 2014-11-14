@@ -83,7 +83,7 @@ class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
 	def getQuotesData(): List[Option[Double]] = {
 	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 		  log.debug("Connected to KDB server. Retrieving data")
-		  val res = conn.k("select [-10] high, low, close from quotes")
+		  val res = conn.k("reverse select [-10] high, low, close from quotes")
 		  val tabres: Flip = res.asInstanceOf[Flip]
 		  val colNames = tabres.x
 		  val colData = tabres.y
