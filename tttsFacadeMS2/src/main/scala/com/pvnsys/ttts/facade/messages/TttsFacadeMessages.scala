@@ -20,7 +20,7 @@ object TttsFacadeMessages {
 	case class FacadePayload(payload: String) extends TttsFacadeMessage
 	case class FeedPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsFacadeMessage
 	case class StrategyPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsFacadeMessage
-	case class EnginePayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsFacadeMessage
+	case class EnginePayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String, funds: Double, balance: Double, tradesNum: Long, inTrade: Boolean, positionSize: Long) extends TttsFacadeMessage
 
 	case class FacadeClientMessage(msgType: String, payload: Option[FacadePayload]) extends TttsFacadeMessage
 	// Message published to Facade Topic MQ to request services processing

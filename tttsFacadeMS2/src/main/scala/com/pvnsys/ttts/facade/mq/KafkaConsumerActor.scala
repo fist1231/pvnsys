@@ -25,7 +25,7 @@ object KafkaConsumerActorJsonProtocol extends DefaultJsonProtocol {
   implicit val facadePayloadFormat = jsonFormat1(FacadePayload)
   implicit val feedPayloadFormat = jsonFormat10(FeedPayload)
   implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
-  implicit val enginePayloadFormat = jsonFormat10(EnginePayload)
+  implicit val enginePayloadFormat = jsonFormat15(EnginePayload)
   implicit val responseFeedFacadeMessageFormat = jsonFormat6(ResponseFeedFacadeMessage)
   implicit val responseStrategyFacadeMessageFormat = jsonFormat7(ResponseStrategyFacadeMessage)
   implicit val responseEngineFacadeMessageFormat = jsonFormat7(ResponseEngineFacadeMessage)

@@ -16,8 +16,6 @@ import akka.pattern.ask
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
-import spray.json._
-
 
 object SimulatorEngineActor {
 
@@ -41,16 +39,8 @@ object SimulatorEngineActor {
   case class StartSimulatorEngineMessage(message: TttsEngineMessage, serviceId: String) extends SimulatorEngineMessages
   case object StopSimulatorEngineMessage extends SimulatorEngineMessages
   case class SimulatorEngineResponseMessage(message: TttsEngineMessage) extends SimulatorEngineMessages
-  
-  case class SimulatorMessage(result: String, funds: Double, balance: Double, transnum: Long, inTrade: Boolean, size: Long) extends SimulatorEngineMessages
-
 }
 
-
-object SimulatorEngineActorJsonProtocol extends DefaultJsonProtocol {
-  import SimulatorEngineActor._
-  implicit val simulatorMessageFormat = jsonFormat6(SimulatorMessage)
-}
 
 /**
  * Example of some engine.
@@ -62,7 +52,6 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
   import SimulatorEngineActor._
   import ReadKdbActor._
   import WriteKdbActor._
-  import SimulatorEngineActorJsonProtocol._
   
   override def receive = {
     case m: StartSimulatorEngineMessage => {
@@ -106,12 +95,12 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 	      
 	        x.payload match {
 		          case Some(payload) => {
-			    	val engineResult: Future[String] = play(serviceId, x.signal, payload)
+			    	val engineResult: Future[Option[EnginePayload]] = play(serviceId, x.signal, payload)
 			    	engineResult.onComplete {
 			    	  case Success(result) => {
-					       val payloadStr = s"${result}"
-					       val payloadRsp = EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr)
-					       val response = ResponseEngineFacadeTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, Some(payloadRsp), messageTraits._2, x.sequenceNum, x.signal)
+//					       val payloadStr = s"${result}"
+//					       val payloadRsp = EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr)
+					       val response = ResponseEngineFacadeTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, result, messageTraits._2, x.sequenceNum, x.signal)
 			    	       log.debug("Execute ResponseStrategyFacadeTopicMessage:client: {} ; message: {}", client, response)
 					       client ! response
 					       host ! StopSimulatorEngineMessage
@@ -128,12 +117,12 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 
 	        x.payload match {
 		          case Some(payload) => {
-			    	val engineResult: Future[String] = play(serviceId, x.signal, payload)
+			    	val engineResult: Future[Option[EnginePayload]] = play(serviceId, x.signal, payload)
 			    	engineResult.onComplete {
 			    	  case Success(result) => {
-					       val payloadStr = s"${result}"
-					       val payloadRsp = EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr)
-					       val response = ResponseEngineServicesTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, Some(payloadRsp), messageTraits._2, x.sequenceNum, x.signal, x.serviceId)	 
+//					       val payloadStr = s"${result}"
+//					       val payloadRsp = EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr)
+					       val response = ResponseEngineServicesTopicMessage(messageTraits._1, ENGINE_RESPONSE_MESSAGE_TYPE, x.client, result, messageTraits._2, x.sequenceNum, x.signal, x.serviceId)	 
 			    	       log.debug("Execute ResponseStrategyServicesTopicMessage: {} ; message: {}", client, response)
 					       client ! response
 					       host ! StopSimulatorEngineMessage
@@ -153,7 +142,7 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 //    response
   }
   
-  def play(serviceId: String, signal: String, payload: StrategyPayload): Future[String] = {
+  def play(serviceId: String, signal: String, payload: StrategyPayload): Future[Option[EnginePayload]] = {
 //    val data = getEngineData()
     
 	implicit val timeout = Timeout(2 seconds)
@@ -185,18 +174,24 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 			         * trade:([]time:`time$();sym:`symbol$();price:`float$();size:`int$();oper:`symbol$();cost:`float$())
 			         */
 			        
-			        val transactionData = ("09:30:00.000", "AA", payload.close, newPossize, "buy", -1 * position)
+			    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+			    	val inputDate = inputSdf.parse(payload.datetime)
+			    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
+			    	val outputDateStr = outputSdf.format(inputDate)
+
+			    	val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "BUY", -1 * position)
 			        writeTransactionData(serviceId, transactionData)
 //			        val jsonStr = """{ "result": "IN" , "funds": ${newFunds} , "balance": ${newBalance} , "transnum": ${newTransnum} , "inTrade": ${newIntrade} , "possize": ${newPossize}  }"""
 //			        val src = s"""{ "result": "IN" , "funds": ${newFunds} , "balance": ${newBalance} , "transnum": ${newTransnum} , "inTrade": ${newIntrade} , "possize": ${newPossize}  }"""
 //			        val src = """{ "result": "IN" , "funds": ${newFunds} , "balance": ${newBalance} , "transnum": ${newTransnum} , "inTrade": ${newIntrade} , "possize": ${newPossize}  }"""
-			        val s = "IN"
-			        SimulatorMessage(s, newFunds, newBalance, newTransnum, newIntrade, newPossize).toJson.compactPrint  
+//			        SimulatorMessage(s, newFunds, newBalance, newTransnum, newIntrade, newPossize).toJson.compactPrint  
+			        Some(EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, "BOUGHT", newFunds, newBalance, newTransnum, newIntrade, newPossize))
+			        
 		        } else {
-		        	"margin call"
+		        	None //"margin call"
 		        }
 	      	} else {
-	      	  "HOLD"
+	      	  None // "HOLD"
 	      	}
 	      case "SELL" => if(data._4) {
 		        val comission = 10
@@ -211,7 +206,12 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 		        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize)
 		        writeEngineData(serviceId, newData)
 	
-		        val transactionData = ("15:59:00.000", "AA", payload.close, newPossize, "sell", sellProceeds)
+		    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+		    	val inputDate = inputSdf.parse(payload.datetime)
+		    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
+		    	val outputDateStr = outputSdf.format(inputDate)
+		        
+		        val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "SELL", sellProceeds)
 		        writeTransactionData(serviceId, transactionData)
 //		        s"OUT@$payload;funds=${newFunds};balance=${newBalance};transnum=${newTransnum};inTrade=${newIntrade};possize=${newPossize}"
 //		        JSONObject(Map ("result" -> "OUT", "funds" -> newFunds, "balance" -> newBalance, "transnum" -> newTransnum, "inTrade" -> newIntrade, "possize" -> newPossize)).toString
@@ -219,13 +219,14 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
 ////		        val src = s"""{ result: "OUT" , funds: ${newFunds} , balance: ${newBalance} , transnum: ${newTransnum} , inTrade: ${newIntrade} , possize: ${newPossize}  }"""
 //		        val jsonAst = src.parseJson
 //		        jsonAst.compactPrint
-		        SimulatorMessage("OUT", newFunds, newBalance, newTransnum, newIntrade, newPossize).toJson.compactPrint
+//		        SimulatorMessage("OUT", newFunds, newBalance, newTransnum, newIntrade, newPossize).toJson.compactPrint
+		        Some(EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, "SOLD", newFunds, newBalance, newTransnum, newIntrade, newPossize))
 
 	        } else {
-	      	  "NO POSITION"
+	      	  None // "NO POSITION"
 	      	}
-	      case "HOLD" => "PASS"
-	      case _ => "Nothing"
+	      case "HOLD" => None //"PASS"
+	      case _ => None //"Nothing"
 	    }
 	}
     

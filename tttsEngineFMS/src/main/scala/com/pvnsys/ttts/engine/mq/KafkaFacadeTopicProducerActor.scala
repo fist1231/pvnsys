@@ -15,7 +15,7 @@ object KafkaFacadeTopicProducerActor {
 
 object KafkaFacadeTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
   import TttsEngineMessages._
-  implicit val enginePayloadFormat = jsonFormat10(EnginePayload)
+  implicit val enginePayloadFormat = jsonFormat15(EnginePayload)
   implicit val responseEngineFacadeTopicMessageFormat = jsonFormat7(ResponseEngineFacadeTopicMessage)
 }
 

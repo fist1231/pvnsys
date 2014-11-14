@@ -34,7 +34,7 @@ object KafkaFacadeTopicConsumerActor {
 
 object KafkaFacadeTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
   import TttsEngineMessages._
-  implicit val enginePayloadFormat = jsonFormat10(EnginePayload)
+  implicit val enginePayloadFormat = jsonFormat15(EnginePayload)
   implicit val requestEngineFacadeTopicMessageFormat = jsonFormat6(RequestEngineFacadeTopicMessage)
 }
 
@@ -109,15 +109,38 @@ class KafkaFacadeTopicConsumerActor(processorActorRef: ActorRef, serviceId: Stri
 				    val mess = new String(arr.message, "UTF-8")
 				    val msgJsonObj = mess.parseJson
 			        val msgStr = msgJsonObj.compactPrint
-				    
-				    val requestEngineFacadeTopicMessage = msgJsonObj.convertTo[RequestEngineFacadeTopicMessage]
-				    matchRequest(requestEngineFacadeTopicMessage) match {
-				      case Some(facadeTopicMessage) => {
-				    	log.info("Facade Consumer got {}", requestEngineFacadeTopicMessage)
-				        consumer.handleDelivery(requestEngineFacadeTopicMessage)
+
+			        msgStr match {
+				      case result if(msgStr.contains(ENGINE_REQUEST_MESSAGE_TYPE)) => {
+				        // 1. Convert string JSON message to correspondent message type
+				        val requestEnginFacadeTopicMessage = msgJsonObj.convertTo[RequestEngineFacadeTopicMessage]
+				        // 2. Register client id and topic to the map (WebSocket address -> topic)
+//					    clients += (requestEngineServicesTopicMessage.client -> requestEngineServicesTopicMessage)
+					    // 3. Log and handle delivery
+					    log.info("Facade Consumer got {}", requestEnginFacadeTopicMessage)
+					    consumer.handleDelivery(requestEnginFacadeTopicMessage)
 				      }
-				      case None => "Do nothing"
-				    }
+				      case result if(msgStr.contains(ENGINE_STOP_REQUEST_MESSAGE_TYPE)) => {
+				        // 1. Convert string JSON message to correspondent message type
+				        val requestEnginFacadeTopicMessage = msgJsonObj.convertTo[RequestEngineFacadeTopicMessage]
+				        // 2. Unregister client id from clients Map
+//					    clients -= requestEngineServicesTopicMessage.client
+					    // 3. Log and handle delivery
+					    log.info("Facade Consumer got {}", requestEnginFacadeTopicMessage)
+					    consumer.handleDelivery(requestEnginFacadeTopicMessage)
+				      }
+				      case _ => log.debug("KafkaFacadeTopicConsumerActor Error processing message, stop consuming: {} ", msgStr)
+				      
+				    }			        
+			        
+//				    val requestEngineFacadeTopicMessage = msgJsonObj.convertTo[RequestEngineFacadeTopicMessage]
+//				    matchRequest(requestEngineFacadeTopicMessage) match {
+//				      case Some(facadeTopicMessage) => {
+//				    	log.info("Facade Consumer got {}", requestEngineFacadeTopicMessage)
+//				        consumer.handleDelivery(requestEngineFacadeTopicMessage)
+//				      }
+//				      case None => "Do nothing"
+//				    }
 		      }
 		} catch {
 		  case e: Throwable => log.error("KafkaFacadeTopicConsumerActor Error processing message, stop consuming: " + e)
@@ -125,19 +148,19 @@ class KafkaFacadeTopicConsumerActor(processorActorRef: ActorRef, serviceId: Stri
 	  
 	}
 	
-	private def matchRequest(message: RequestEngineFacadeTopicMessage): Option[RequestEngineFacadeTopicMessage] = message.msgType match {
-		/*
-		 * KafkaFacadeTopicConsumerActor listens for only two message types: 
-		 * 1. ENGINE_REQUEST_MESSAGE_TYPE of RequestEngineFacadeTopicMessage of FacadeTopicMessage
-		 * 2. ENGINE_STOP_REQUEST_MESSAGE_TYPE of RequestEngineFacadeTopicMessage of FacadeTopicMessage
-		 */ 
-		case ENGINE_REQUEST_MESSAGE_TYPE => Some(message)
-		case ENGINE_STOP_REQUEST_MESSAGE_TYPE => Some(message)
-		case m => {
-			log.debug("KafkaFacadeTopicConsumerActor - not RequestEngineFacadeTopicMessage from Facade Topic, skipping Kafka message: {}", m) 
-			None
-		}
-	}
+//	private def matchRequest(message: RequestEngineFacadeTopicMessage): Option[RequestEngineFacadeTopicMessage] = message.msgType match {
+//		/*
+//		 * KafkaFacadeTopicConsumerActor listens for only two message types: 
+//		 * 1. ENGINE_REQUEST_MESSAGE_TYPE of RequestEngineFacadeTopicMessage of FacadeTopicMessage
+//		 * 2. ENGINE_STOP_REQUEST_MESSAGE_TYPE of RequestEngineFacadeTopicMessage of FacadeTopicMessage
+//		 */ 
+//		case ENGINE_REQUEST_MESSAGE_TYPE => Some(message)
+//		case ENGINE_STOP_REQUEST_MESSAGE_TYPE => Some(message)
+//		case m => {
+//			log.debug("KafkaFacadeTopicConsumerActor - not RequestEngineFacadeTopicMessage from Facade Topic, skipping Kafka message: {}", m) 
+//			None
+//		}
+//	}
 	
    
 	override def postStop() = {}

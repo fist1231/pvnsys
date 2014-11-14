@@ -23,7 +23,7 @@ object EngineActor {
 object EngineActorJsonProtocol extends DefaultJsonProtocol {
   import TttsFacadeMessages._
   implicit val facadePayloadFormat = jsonFormat1(FacadePayload)
-  implicit val enginePayloadFormat = jsonFormat10(EnginePayload)
+  implicit val enginePayloadFormat = jsonFormat15(EnginePayload)
   implicit val facadeClientMessageFormat = jsonFormat2(FacadeClientMessage)
   implicit val requestFacadeMessageFormat = jsonFormat6(RequestEngineFacadeMessage)
   implicit val responseFacadeMessageFormat = jsonFormat7(ResponseEngineFacadeMessage)

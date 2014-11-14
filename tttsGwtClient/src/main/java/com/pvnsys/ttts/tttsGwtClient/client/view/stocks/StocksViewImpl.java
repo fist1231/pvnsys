@@ -6,6 +6,7 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONException;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONParser;
+import com.google.gwt.json.client.JSONString;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -408,109 +409,16 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 				
 				try {
 					JSONValue value = JSONParser.parseStrict(msg);
-					
-					JSONObject msgObj = value.isObject();
-
-					JSONValue pld = msgObj.get("payload");
-					
-					String sts = pld.toString();
-
-					int startIdx = sts.indexOf("funds");
-					String remained = sts.substring(startIdx);
-					int endIdx = remained.indexOf(",");
-					String fnd = remained.substring(8, endIdx);
-					if(fnd != null && fnd.trim().length() > 0) {
-						funds.setText(fnd);
+					JSONObject jsonObj = value.isObject();
+					JSONValue responseEngineFacadeTopicMessagePayloadValue = jsonObj.get("payload");
+					if(responseEngineFacadeTopicMessagePayloadValue != null) {
+						JSONObject responseEngineFacadeTopicMessagePayloadObj = responseEngineFacadeTopicMessagePayloadValue.isObject();
+						funds.setText(responseEngineFacadeTopicMessagePayloadObj.get("funds").isNumber().toString());
+						balance.setText(responseEngineFacadeTopicMessagePayloadObj.get("balance").isNumber().toString());
+						numberOfTrades.setText(responseEngineFacadeTopicMessagePayloadObj.get("tradesNum").isNumber().toString());
+						inTrade.setText(responseEngineFacadeTopicMessagePayloadObj.get("inTrade").isBoolean().toString());
+						positionSize.setText(responseEngineFacadeTopicMessagePayloadObj.get("positionSize").isNumber().toString());
 					}
-
-					int startIdx2 = sts.indexOf("balance");
-					String remained2 = sts.substring(startIdx2);
-					int endIdx2 = remained2.indexOf(",");
-					String bal = remained2.substring(10, endIdx2);
-					if(bal != null && bal.trim().length() > 0) {
-						balance.setText(bal);
-					}
-
-					int startIdx3 = sts.indexOf("transnum");
-					String remained3 = sts.substring(startIdx3);
-					int endIdx3 = remained3.indexOf(":");
-					String tn = remained3.substring(11, endIdx3);
-					if(tn != null && tn.trim().length() > 0) {
-						numberOfTrades.setText(tn);
-					}
-					
-					
-//					vPanelWS.add(new Label("__________________ before payload; pld.isString().toString() = " + pld.isString().toString()));
-//					sPanelWS.scrollToBottom();
-//					
-//					JSONObject pldstr = pld.isObject();
-//					
-//					vPanelWS.add(new Label("__________________ before another isObj 2; pldstr.toString() = " + pldstr.toString()));
-//					sPanelWS.scrollToBottom();
-//
-//					vPanelWS.add(new Label("__________________ before another isObj 2; pldstr.isString().toString() = " + pldstr.isString().toString()));
-//					sPanelWS.scrollToBottom();
-//					
-//					JSONObject subVal = pldstr.isObject();
-//					
-//					vPanelWS.add(new Label("__________________ before funds"));
-//					sPanelWS.scrollToBottom();
-//
-//					JSONValue fnd = subVal.get("\"funds\"");
-//					vPanelWS.add(new Label("__________________ after funds"));
-//					sPanelWS.scrollToBottom();
-//					
-//					numberOfTrades.setText(fnd.toString());
-//					vPanelWS.add(new Label("__________________ after nOt"));
-//					sPanelWS.scrollToBottom();
-//					
-//					String fnds = fnd.toString();
-//					vPanelWS.add(new Label("__________________ after fnds.toString"));
-//					sPanelWS.scrollToBottom();
-//					
-//					funds.setText(fnds);
-//					vPanelWS.add(new Label("__________________ before balance"));
-//					sPanelWS.scrollToBottom();
-//					
-//					JSONValue b = subVal.get("\"balance\"");
-//					String bal = b.toString();
-//					balance.setText(bal);
-//
-//					System.out.println("~~~~~~~~~~~~~~~~~~~~~ bal = " + bal);
-//					// Just for Engine
-//					vPanelWS.add(new Label(bal));
-//					sPanelWS.scrollToBottom();
-
-
-//					
-//					int startIdx = payload.indexOf("funds");
-//					String remained = payload.substring(startIdx);
-//					int endIdx = remained.indexOf(";");
-//					String fnd = payload.substring(startIdx, endIdx);
-//					funds.setText(fnd);
-//
-//					int startIdx2 = payload.indexOf("balance");
-//					String remained2 = payload.substring(startIdx2);
-//					int endIdx2 = remained2.indexOf(";");
-//					String bal = payload.substring(startIdx2, endIdx2);
-//					balance.setText(bal);
-//
-//					int startIdx3 = payload.indexOf("transnum");
-//					String remained3 = payload.substring(startIdx3);
-//					int endIdx3 = remained3.indexOf(";");
-//					String tn = payload.substring(startIdx3, endIdx3);
-//					numberOfTrades.setText(tn);
-//
-//					int startIdx4 = payload.indexOf("inTrade");
-//					String remained4 = payload.substring(startIdx4);
-//					int endIdx4 = remained4.indexOf(";");
-//					String intr = payload.substring(startIdx4, endIdx4);
-//					inTrade.setText(intr);
-//
-//					int startIdx5 = payload.indexOf("possize");
-//					String ps = payload.substring(startIdx5 + 8);
-//					positionSize.setText(ps);
-					
 				} catch (JSONException e) {
 //					vPanelWS.add(new Label("JSONException --------> " + e.getMessage()));
 //					sPanelWS.scrollToBottom();

@@ -1,4 +1,4 @@
-trade:([]time:`time$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$())
+trade:([]dts:`datetime$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$())
 
 engine:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$())
 
