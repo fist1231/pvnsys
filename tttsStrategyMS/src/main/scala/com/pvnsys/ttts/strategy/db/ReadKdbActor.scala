@@ -83,12 +83,12 @@ class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
 	def getQuotesData(): List[Option[Double]] = {
 	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 		  log.debug("Connected to KDB server. Retrieving data")
-		  val res = conn.k("select [-2] high, low, close from quotes")
+		  val res = conn.k("select [-10] high, low, close from quotes")
 		  val tabres: Flip = res.asInstanceOf[Flip]
 		  val colNames = tabres.x
 		  val colData = tabres.y
 		  
-		  Array.getLength(colData(0))
+//		  Array.getLength(colData(0))
 		  
 //		  log.debug("^^^^^^^^^^^^ colData.size = {}", colData.size)
 //		  log.debug("^^^^^^^^^^^^ colData.length = {}", colData.length)
@@ -96,20 +96,30 @@ class ReadKdbActor(serviceId: String) extends Actor with ActorLogging {
 //		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(1)) = {}", Array.getLength(colData(1)))
 //		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(2)) = {}", Array.getLength(colData(2)))
 		  
-		  val result= if(Array.getLength(colData(0)) > 1	) {
+		  // close over max last 10 highs - buy. close under last 1 low - sell
+		  val result= if(Array.getLength(colData(0)) > 9) {
 			  val l2h: Option[Double] = Some((c.at(colData(0), 0)).asInstanceOf[Double])
 			  val l2l: Option[Double] = Some((c.at(colData(1), 0)).asInstanceOf[Double])
 			  val l2c: Option[Double] = Some((c.at(colData(2), 0)).asInstanceOf[Double])
 			  val l1h: Option[Double] = Some((c.at(colData(0), 1)).asInstanceOf[Double])
 			  val l1l: Option[Double] = Some((c.at(colData(1), 1)).asInstanceOf[Double])
 			  val l1c: Option[Double] = Some((c.at(colData(2), 1)).asInstanceOf[Double])
+			  
+			  
+			  val resMax = conn.k("select [-10] max high from quotes")
+			  val tabresMax: Flip = resMax.asInstanceOf[Flip]
+			  val colNamesMax = tabresMax.x
+			  val colDataMax = tabresMax.y
+			  val maxHigh: Option[Double] = Some((c.at(colDataMax(0), 0)).asInstanceOf[Double])
+			  
+			  
 //			  val kdb: KdbType = (c.at(colData(0), 0).asInstanceOf[Double], c.at(colData(1), 0).asInstanceOf[Double], c.at(colData(2), 0).asInstanceOf[Int], c.at(colData(3), 0).asInstanceOf[Boolean], c.at(colData(4), 0).asInstanceOf[Int])
-		      List(l2h, l2l, l2c, l1h, l1l, l1c)
+		      List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh)
 //			  log.debug("^^^^^^^^^^^^ data = {}", result)
 //		      conn.close
 //		      result
 		  } else {
-			  List(None, None, None, None, None, None)
+			  List(None, None, None, None, None, None, None)
 //			  log.debug("^^^^^^^^^^^^ data = {}", result)
 //		      conn.close
 //		      result

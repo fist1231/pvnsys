@@ -71,6 +71,7 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
 		val l1h: Double = data(3).getOrElse(0.00)
 		val l1l: Double = data(4).getOrElse(0.00)
 		val l1c: Double = data(5).getOrElse(0.00)
+		val maxHigh: Double = data(6).getOrElse(0.00)
 
     	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
     	val inputDate = inputSdf.parse(payload.datetime)
@@ -82,8 +83,16 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
         writeQuotesData(serviceId, writeData)
 		
 		
-		if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00) {
-		  if(l1c > l2h) {
+		if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && maxHigh != 0.00) {
+		  /*
+		   * Close > Prev. high - buy; Close < Prev. Low - sell. ==> No bueno, lost 5k over 200 trades.
+		   */
+//		  if(l1c > l2h) {
+		  
+		  /*
+		   * Close > Last 10 max(High) - Buy; Close < Prev. Low - Sell
+		   */
+		  if(l1c > maxHigh) {
 		    "BUY"
 		  } else if(l1c < l2l) {
 		    "SELL"
