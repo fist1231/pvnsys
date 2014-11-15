@@ -26,7 +26,7 @@ object WriteKdbActor {
   case class WriteTransactionKdbMessage(data: TransactionKdbType) extends WriteKdbMessages
   case object StopWriteKdbActor extends WriteKdbMessages
   case object ResetStrategyKdbMessage extends WriteKdbMessages
-  case class ResponseResetStrategyKdbMessage() extends WriteKdbMessages
+  case class ResponseResetStrategyKdbMessage(msg: String) extends WriteKdbMessages
 }
 
 /**
@@ -47,7 +47,7 @@ class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
 	override def receive = {
 		case ResetStrategyKdbMessage => {
 			log.debug("WriteKdbActor received ResetStrategyKdbMessage")
-			val client = self 
+			val client = sender 
 			resetStrategyData(client)
 		}
 		case msg: WriteStrategyKdbMessage => {
@@ -103,7 +103,7 @@ class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
       
       conn close
       
-      client ! ResponseResetStrategyKdbMessage
+      client ! ResponseResetStrategyKdbMessage("success")
   }	
 	
 	

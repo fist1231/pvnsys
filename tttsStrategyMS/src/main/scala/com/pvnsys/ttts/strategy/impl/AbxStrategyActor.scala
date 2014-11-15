@@ -162,10 +162,20 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
 	if(sequenceNum.toInt == 1) {
 //			  resetStrategySchema(tableId)
 	    val writeKdbActor = context.actorOf(WriteKdbActor.props(tableId))
-	    (writeKdbActor ? ResetStrategyKdbMessage).mapTo[ResponseResetStrategyKdbMessage] map {resultMsg =>
-	    	generateResponse(client, host, msg, tableId)
-	    	writeKdbActor ! StopWriteKdbActor
+	    
+	    val resetSchemaResult: Future[Option[String]] = (writeKdbActor ? ResetStrategyKdbMessage).mapTo[ResponseResetStrategyKdbMessage] map {resultMsg =>
+    	       log.info("Strategy schema Generation")
+    	       Some("DOne")
 	    }
+    	resetSchemaResult.onComplete {
+    	  case Success(result) => {
+    	       log.info("Strategy schema reset was successfull")
+    	       generateResponse(client, host, msg, tableId)
+    	  }
+    	  case Failure(error) => {
+    		  log.info("Strategy schema reset was unsuccessfull; error: {}", error.getMessage())
+    	  }
+    	}
 	  
 	} else {
 		generateResponse(client, host, msg, tableId)
@@ -292,7 +302,7 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
 					       }
 			    	       log.debug("Execute ResponseStrategyFacadeTopicMessage:client: {} ; message: {}", client, response)
 					       client ! response
-					       host ! StopAbxStrategyMessage
+//					       host ! StopAbxStrategyMessage
 			    	  }
 			    	  case Failure(error) => {
 			    	    log.error("AbxStrategy process method error: {}", error.getMessage())
