@@ -3,7 +3,6 @@ package com.pvnsys.ttts.strategy.generator
 import com.pvnsys.ttts.strategy.Configuration
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
 import com.typesafe.scalalogging.slf4j.LazyLogging
-import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
 
 
 object StrategyService {

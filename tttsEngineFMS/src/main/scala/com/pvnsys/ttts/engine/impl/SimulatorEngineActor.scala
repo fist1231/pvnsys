@@ -46,7 +46,7 @@ object SimulatorEngineActor {
  * Example of some engine.
  * 
  */
-class SimulatorEngineActor extends Actor with Engine with ActorLogging {
+class SimulatorEngineActor extends Actor with ActorLogging {
 
   import TttsEngineMessages._
   import SimulatorEngineActor._
@@ -58,7 +58,7 @@ class SimulatorEngineActor extends Actor with Engine with ActorLogging {
    * ################################# Engine business logic goes here #################################################
    */
       
-  override def process(tableId: String, payload: StrategyPayload, strategySignal: String): Future[Option[EnginePayload]] = {
+  def process(tableId: String, payload: StrategyPayload, strategySignal: String): Future[Option[EnginePayload]] = {
     
 	implicit val timeout = Timeout(2 seconds)
 	

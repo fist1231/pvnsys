@@ -15,8 +15,9 @@ import com.pvnsys.ttts.engine.impl.SimulatorEngineActor
 import kx.c
 import kx.c._
 import kx.c.Flip
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
-object ReadKdbActor {
+object ReadKdbActor extends LazyLogging {
   
   import SimulatorEngineActor._
   def props(tableId: String) = Props(new ReadKdbActor(tableId))
@@ -24,6 +25,28 @@ object ReadKdbActor {
   case object ReadKdbMessage extends ReadKdbMessages
   case class ReadKdbResultMessage(result: EngineKdbType) extends ReadKdbMessages
   case object StopReadKdbActor extends ReadKdbMessages
+  
+	def getEngineData(tableId: String): EngineKdbType = {
+	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
+		  logger.debug("Connected to KDB server. Retrieving data")
+		  val res = conn.k(s"select from engine$tableId")
+		  val tabres: Flip = res.asInstanceOf[Flip]
+		  val colNames = tabres.x
+		  val colData = tabres.y
+		  
+		  val funds: Double = (c.at(colData(0), 0)).asInstanceOf[Double]
+		  val balance: Double = (c.at(colData(1), 0)).asInstanceOf[Double]
+		  val transnum: Long = (c.at(colData(2), 0)).asInstanceOf[Long]
+		  val intrade: Boolean = (c.at(colData(3), 0)).asInstanceOf[Boolean]
+		  val possize: Long = (c.at(colData(4), 0)).asInstanceOf[Long]
+		//      val kdb: KdbType = (c.at(colData(0), 0).asInstanceOf[Double], c.at(colData(1), 0).asInstanceOf[Double], c.at(colData(2), 0).asInstanceOf[Int], c.at(colData(3), 0).asInstanceOf[Boolean], c.at(colData(4), 0).asInstanceOf[Int])
+		  val kdb: EngineKdbType = (funds, balance, transnum, intrade, possize)
+		  logger.debug("^^^^^^^^^^^^ data = {}", kdb)
+	      conn.close
+	      kdb
+	}
+  
+  
 }
 
 /**

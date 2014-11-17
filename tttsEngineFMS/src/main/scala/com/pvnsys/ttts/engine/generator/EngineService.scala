@@ -34,6 +34,8 @@ object EngineService {
 	            case _ => msg
 	          }
 	        }
+	        case x: ResponseEngineFacadeTopicMessage => x
+	        case x: ResponseEngineServicesTopicMessage => x
 	        case _ => msg
 	    }
      

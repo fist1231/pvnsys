@@ -43,7 +43,6 @@ class TttsEngineFService extends Actor with ActorLogging {
 		val kdbActor = context.actorOf(KdbActor.props(serviceUniqueID), "kdbActor")
 		kdbActor ! StartKdbMessage
       
-      
 		val engineFacadeActor = context.actorOf(Props(classOf[EngineActor]), "engineFacadeConsumer")
 		
 		// Start Kafka consumer actor for incoming messages from Facade Topic

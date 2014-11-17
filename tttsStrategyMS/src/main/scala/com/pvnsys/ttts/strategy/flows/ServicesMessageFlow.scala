@@ -3,7 +3,6 @@ package com.pvnsys.ttts.strategy.flows
 import akka.stream.actor.ActorProducer
 import akka.stream.scaladsl.{Duct, Flow}
 import akka.stream.{FlowMaterializer, MaterializerSettings}
-import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.{TttsStrategyMessage, ServicesTopicMessage, RequestStrategyServicesTopicMessage, ResponseFeedServicesTopicMessage}
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import com.pvnsys.ttts.strategy.generator.StrategyService
 import org.reactivestreams.api.Producer
@@ -14,7 +13,6 @@ import com.pvnsys.ttts.strategy.generator.StrategyExecutorActor
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
 import com.pvnsys.ttts.strategy.impl.AbxStrategyImpl
 import com.pvnsys.ttts.strategy.mq.{KafkaServicesTopicProducerActor, KafkaFacadeTopicProducerActor}
-import com.pvnsys.ttts.strategy.mq.StrategyActor
 
 
 object ServicesMessageFlow extends LazyLogging {
@@ -31,24 +29,24 @@ object ServicesMessageFlow extends LazyLogging {
 	        case x: ResponseFeedServicesTopicMessage => x.asInstanceOf[ResponseFeedServicesTopicMessage].msgType 
 	        case _ => "UNKNOWN"
 	      }
-	      logger.info("*******>> Step 0: StrategyMS ServicesMessageFlow Initialized. Received Message Type is: {}", messageType)
+	      logger.debug("*******>> Step 0: StrategyMS ServicesMessageFlow Initialized. Received Message Type is: {}", messageType)
 	      msg
 	    }.
 	    
 	    map { msg =>
 	      	  
-	          logger.info("*******>> Step 1: Strategy ServicesMessageFlow Creating schema for first Feed Response message {}", msg)
+	          logger.debug("*******>> Step 1: Strategy ServicesMessageFlow Creating schema for first Feed Response message {}", msg)
 		      msg match {
 		        case x: RequestStrategyServicesTopicMessage => // Nothing for Strategy messages 
 		        case x: ResponseFeedFacadeTopicMessage => {
-		          x.asInstanceOf[ResponseFeedFacadeTopicMessage].sequenceNum match {
+		          x.sequenceNum match {
 		            case "1" => new AbxStrategyImpl(context).createSchema(serviceUniqueID, msg)
 		            case _ => // Do nothing
 		          }
  
 		        }
 		        case x: ResponseFeedServicesTopicMessage => {
-		          x.asInstanceOf[ResponseFeedServicesTopicMessage].sequenceNum match {
+		          x.sequenceNum match {
 		            case "1" => new AbxStrategyImpl(context).createSchema(serviceUniqueID, msg)
 		            case _ => // Do nothing
 		          }
@@ -62,7 +60,7 @@ object ServicesMessageFlow extends LazyLogging {
 
 	    map { msg =>
 	      	  
-	          logger.info("*******>> Step 2: Strategy ServicesMessageFlow Write quotes feed data to db {}", msg)
+	          logger.debug("*******>> Step 2: Strategy ServicesMessageFlow Write quotes feed data to db {}", msg)
 		      msg match {
 		        case x: RequestStrategyServicesTopicMessage => // Nothing for Strategy messages 
 		        case x: ResponseFeedFacadeTopicMessage => {
@@ -79,7 +77,7 @@ object ServicesMessageFlow extends LazyLogging {
 
 	    map { msg =>
 	      	  
-	          logger.info("*******>> Step 3: Strategy ServicesMessageFlow Apply strategy logic to the quotes feed {}", msg)
+	          logger.debug("*******>> Step 3: Strategy ServicesMessageFlow Apply strategy logic to the quotes feed {}", msg)
 		      val outp = msg match {
 		        case x: RequestStrategyServicesTopicMessage => msg
 		        case x: ResponseFeedFacadeTopicMessage => {
@@ -94,7 +92,7 @@ object ServicesMessageFlow extends LazyLogging {
 	    }.
 
 	    map {
-	        logger.info("*******>> Step 4: Strategy ServicesMessageFlow Convert Service messages")
+	        logger.debug("*******>> Step 4: Strategy ServicesMessageFlow Convert Service messages")
 	        /*
 	         * Returns either:
 	         * - RequestStrategyServicesTopicMessage of type TttsStrategyMessage - Strategy intended for Services Topic
@@ -110,11 +108,11 @@ object ServicesMessageFlow extends LazyLogging {
 	      case msg: ResponseFeedServicesTopicMessage => "FeedServices"
 	      case msg: RequestStrategyServicesTopicMessage => "StrategyServices"
 	      case msg: ResponseStrategyFacadeTopicMessage => {
-	        logger.info("*******>> Step 5: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyFacadeTopicMessage")
+	        logger.debug("*******>> Step 5: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyFacadeTopicMessage")
 	        "StrategyFacadeResponse"
 	      }
 	      case msg: ResponseStrategyServicesTopicMessage => {
-	        logger.info("*******>> Step 5: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyServicesTopicMessage")
+	        logger.debug("*******>> Step 5: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyServicesTopicMessage")
 	        "StrategyServicesResponse"
 	      }
 	      case _ => "Garbage"
@@ -128,7 +126,6 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
 	import ServicesMessageFlow._
 	import TttsStrategyMessages._
 	import StrategyExecutorActor._
-	import StrategyActor._
 
 	implicit val executor = context.dispatcher
     val materializer = FlowMaterializer(MaterializerSettings())
@@ -139,7 +136,7 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
   	val servicesMessageDuct = ServicesMessageFlow(context, serviceUniqueID)
   	
 	val executors = mutable.Map[String, ActorRef]()
-	val strategies = mutable.Map[String, ActorRef]()
+//	val strategies = mutable.Map[String, ActorRef]()
 	val producers = mutable.Map[String, ActorRef]()
 	val producerDuct: Duct[TttsStrategyMessage, Unit] = 
 			Duct[TttsStrategyMessage] foreach {msg =>
@@ -187,11 +184,11 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
 			        case x: ResponseStrategyFacadeTopicMessage => {
 				        val producerActor = producers.get(x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client) match {
 						  case Some(existingProducerActor) => {
-							logger.info("~~~~~~~~ Got existingProducerActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client, existingProducerActor)
+							logger.debug("~~~~~~~~ Got existingProducerActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client, existingProducerActor)
 							existingProducerActor
 						  }
 						  case None => {
-						    logger.info("~~~~~~~~~ Not found producer, creating a new one. Key {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client)
+						    logger.debug("~~~~~~~~~ Not found producer, creating a new one. Key {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client)
 						    val newProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
 						    producers += (x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client -> newProducerActor)
 						    newProducerActor

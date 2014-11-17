@@ -45,10 +45,9 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
      */ 
     case msg: ResponseEngineFacadeTopicMessage => {
       produceKafkaMsg(msg)
-      self ! StopMessage
     }
     case StopMessage => {
-      self ! PoisonPill
+      context stop self
     }
     case msg => log.error(s"KafkaFacadeTopicProducerActor received unknown message $msg")
   }

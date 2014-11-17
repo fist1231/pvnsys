@@ -33,10 +33,10 @@ object AbxStrategyImpl {
   // quotes:([]datetime:`timestamp$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$()) 
   type TransactionKdbType = (String, String, Double, Double, Double, Double, Long, Double, Long)
   
-  sealed trait AbxStrategyMessages
-  case class StartAbxStrategyMessage(message: TttsStrategyMessage, serviceId: String) extends AbxStrategyMessages
-  case object StopAbxStrategyMessage extends AbxStrategyMessages
-  case class AbxStrategyResponseMessage(message: TttsStrategyMessage) extends AbxStrategyMessages
+//  sealed trait AbxStrategyMessages
+//  case class StartAbxStrategyMessage(message: TttsStrategyMessage, serviceId: String) extends AbxStrategyMessages
+//  case object StopAbxStrategyMessage extends AbxStrategyMessages
+//  case class AbxStrategyResponseMessage(message: TttsStrategyMessage) extends AbxStrategyMessages
 
   
 }
@@ -52,7 +52,7 @@ class AbxStrategyImpl(context: ActorContext) extends Strategy with LazyLogging {
   
   	def createSchema(serviceId: String, message: TttsStrategyMessage): TttsStrategyMessage = {
 
-	  	implicit val timeout = Timeout(2 seconds)
+//	  	implicit val timeout = Timeout(2 seconds)
     
 	  	val tableId = constructTableId(message, serviceId)
 	  	
@@ -125,7 +125,7 @@ class AbxStrategyImpl(context: ActorContext) extends Strategy with LazyLogging {
 
   override def applyStrategy(serviceId: String, message: TttsStrategyMessage): TttsStrategyMessage = {
     
-	implicit val timeout = Timeout(2 seconds)
+//	implicit val timeout = Timeout(2 seconds)
   	val tableId = constructTableId(message, serviceId)
   	
   	
