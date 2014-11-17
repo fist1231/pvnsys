@@ -85,12 +85,28 @@ class SimulatorEngineImpl(context: ActorContext) extends Engine with LazyLogging
 			    val enginePayload = strategySignal match {
 			      case "BUY" => if(!data._4) {
 				        val comission = 10
-				        val newPossize = ((data._2 - comission) / payload.close).longValue
+				        var newPossize = ((data._2 - comission) / payload.close).longValue
+				        // $10 balance is the limit. No less allowed.
 				        if(newPossize > 0) {
 				            val newFunds = data._1 
 					        val position =  newPossize * payload.close + comission
-					        val newTransnum = data._3 + 1
-					        val newBalance =  data._2 - position 
+
+					        // Do not let balance drop below $1.00
+					        val newBalance =  (data._2 - position) match {
+				              case x if(x<1) => 0L
+				              case _ => (data._2 - position)	
+				            } 
+				            
+//					        // Do not let balance drop below $1.00
+//					        var disc = 1
+//					        while(newBalance < 1) {
+//					          newPossize = newPossize - disc 
+//					          position =  newPossize * payload.close + comission
+//					          newBalance =  data._2 - position
+//					          disc += 1
+//					        }
+					        
+				            val newTransnum = data._3 + 1
 					        val newIntrade = true
 			
 					        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize)
