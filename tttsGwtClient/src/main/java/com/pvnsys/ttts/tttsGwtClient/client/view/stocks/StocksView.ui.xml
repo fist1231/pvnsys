@@ -9,7 +9,7 @@
 	
     .scrollable {
       height: 250px;
-      width: 950px;
+      width: 750px;
       border: 1px solid #ccc;
       text-align: left;
     }
@@ -40,7 +40,7 @@
 				<g:Button ui:field="startEngine">Start Engine</g:Button>
 				<g:Button ui:field="stopEngine">Stop Engine</g:Button>
 			</g:HorizontalPanel>
-			<g:ScrollPanel height="400px" width="950px" ui:field="sPanelWS">
+			<g:ScrollPanel height="400px" width="750px" ui:field="sPanelWS">
 				<g:VerticalPanel height="" width="100%" ui:field="vPanelWS"></g:VerticalPanel>
 			</g:ScrollPanel>
 		</g:VerticalPanel>

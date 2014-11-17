@@ -24,7 +24,7 @@ object FeedGeneratorActor {
   case class StartFeedGeneratorFacadeMessage(req: TttsFeedMessage) extends FeedGeneratorMessage
   case class StartFeedGeneratorServicesMessage(req: TttsFeedMessage) extends FeedGeneratorMessage
   case object StopFeedGeneratorMessage extends FeedGeneratorMessage
-  case class StartFakeFeedGeneratorMessage(msg: TttsFeedMessage, initSize: Int) extends FeedGeneratorMessage
+  case class StartFakeFeedGeneratorMessage(msg: TttsFeedMessage, initSize: Int, actor: ActorRef) extends FeedGeneratorMessage
   case object StopFakeFeedGeneratorMessage extends FeedGeneratorMessage
 }
 
@@ -81,7 +81,18 @@ class FeedGeneratorActor extends Actor with ActorLogging {
 	  val filename = "in/quotes.csv"
   	  val initSize = Source.fromFile(filename).getLines.length
 	 
-    context.system.scheduler.schedule(0.seconds, 100.milliseconds, fakeFeedActor, StartFakeFeedGeneratorMessage(msg, initSize))(context.system.dispatcher, self)
+		msg match {
+			case x: RequestFeedFacadeTopicMessage => {
+				    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+				    context.system.scheduler.schedule(0.seconds, 100.milliseconds, fakeFeedActor, StartFakeFeedGeneratorMessage(x, initSize, kafkaFacadeTopicProducerActor))(context.system.dispatcher, self)
+			}
+			case x: RequestFeedServicesTopicMessage => {
+				    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+				    context.system.scheduler.schedule(0.seconds, 100.milliseconds, fakeFeedActor, StartFakeFeedGeneratorMessage(x, initSize, kafkaServicesTopicProducerActor))(context.system.dispatcher, self)
+			}
+			case _ => 
+		}
+//    context.system.scheduler.schedule(0.seconds, 100.milliseconds, fakeFeedActor, StartFakeFeedGeneratorMessage(msg, initSize))(context.system.dispatcher, self)
   }
   
 //  private def increment(i: Int) = {
@@ -98,24 +109,25 @@ class FakeFeedActor extends Actor with ActorLogging {
     import TttsFeedMessages._
     
 	var counter = 0
+	val fakeFeed = new FakeFeed()
 	
 	override def receive = {
-		case StartFakeFeedGeneratorMessage(msg, initSize) => 
+		case StartFakeFeedGeneratorMessage(msg, initSize, actor) => 
 
 	        log.debug(s"FakeFeedActor, Gettin message: {}", msg)
 
 	        counter += 1
 		    // Put a real strategy call here
-		    val message = new FakeFeed().process(msg, initSize, counter)
+		    val message = fakeFeed.process(msg, initSize, counter)
 		    
 		    message match {
 				case x: ResponseFeedFacadeTopicMessage => {
-				    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
-				    kafkaFacadeTopicProducerActor ! x
+//				    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+				    actor ! x
 				}
 				case x: ResponseFeedServicesTopicMessage => {
-				    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
-				    kafkaServicesTopicProducerActor ! x
+//				    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+				    actor ! x
 				}
 				case _ => 
 		    }

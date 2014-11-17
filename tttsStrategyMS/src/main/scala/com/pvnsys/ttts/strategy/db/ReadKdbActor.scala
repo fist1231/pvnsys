@@ -82,10 +82,12 @@ class ReadKdbActor(tableId: String) extends Actor with ActorLogging {
 
 	def getQuotesData(): List[Option[Double]] = {
 	  
-		  val numberOfTicks = 30  
+		  val numberOfTicks = 4 
 	  
 	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 		  log.debug("Connected to KDB server. Retrieving data")
+		  
+		  // Select last $numberOfTicks ticks' high low and close prices
 		  val res = conn.k(s"reverse select [-$numberOfTicks] high, low, close from quotes$tableId")
 		  val tabres: Flip = res.asInstanceOf[Flip]
 		  val colNames = tabres.x
@@ -99,7 +101,15 @@ class ReadKdbActor(tableId: String) extends Actor with ActorLogging {
 //		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(1)) = {}", Array.getLength(colData(1)))
 //		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(2)) = {}", Array.getLength(colData(2)))
 		  
-		  // close over max last 10 highs - buy. close under last 1 low - sell
+		  /*
+		   * == Buy signal:
+		   * If last tick close above max of last $numberOfTicks high
+		   * Select max of last $numberOfTicks highs minus the very last one.
+		   * Because the last close is never above the last high :)
+		   * 
+		   * == Sell signal:
+		   * If last tick close is below previous tick low
+		   */ 
 		  val result= if(Array.getLength(colData(0)) > (numberOfTicks - 1)) {
 			  val l2h: Option[Double] = Some((c.at(colData(0), 1)).asInstanceOf[Double])
 			  val l2l: Option[Double] = Some((c.at(colData(1), 1)).asInstanceOf[Double])
@@ -108,7 +118,7 @@ class ReadKdbActor(tableId: String) extends Actor with ActorLogging {
 			  val l1l: Option[Double] = Some((c.at(colData(1), 0)).asInstanceOf[Double])
 			  val l1c: Option[Double] = Some((c.at(colData(2), 0)).asInstanceOf[Double])
 			  
-			  
+			  // Select max high of last $numberOfTicks
 			  val resMax = conn.k(s"select [-${numberOfTicks-1}] max high from reverse select [-$numberOfTicks] high from quotes$tableId")
 			  val tabresMax: Flip = resMax.asInstanceOf[Flip]
 			  val colNamesMax = tabresMax.x

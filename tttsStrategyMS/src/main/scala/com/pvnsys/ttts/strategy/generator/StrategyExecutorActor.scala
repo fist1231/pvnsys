@@ -32,6 +32,8 @@ object StrategyExecutorActor {
   case class StartPublishResultsMessage(msg: TttsStrategyMessage) extends StrategyExecutorMessage
   case object StopPublishResultsMessage extends StrategyExecutorMessage
 
+  case class StartStrategyFeedMessage(msg: TttsStrategyMessage, strategyActor: ActorRef, producerActor: ActorRef) extends StrategyExecutorMessage
+  
   def props(serviceId: String) = Props(new StrategyExecutorActor(serviceId))
   
 }
@@ -68,16 +70,22 @@ class StrategyExecutorActor(serviceId: String) extends Actor with ActorLogging {
       }
     }
 
-    case req: ResponseFeedFacadeTopicMessage => {
+//    case req: ResponseFeedFacadeTopicMessage => {
+//      log.debug("StrategyExecutorActor Received ResponseFeedFacadeTopicMessage: {}", req)
+//      isActive = true
+//      startStrategy(req)
+//    }
+
+//    case req: ResponseFeedServicesTopicMessage => {
+//      log.debug("StrategyExecutorActor Received ResponseFeedServicesTopicMessage: {}", req)
+//      isActive = true
+//      startStrategy(req)
+//    }
+
+    case req: StartStrategyFeedMessage => {
       log.debug("StrategyExecutorActor Received ResponseFeedFacadeTopicMessage: {}", req)
       isActive = true
-      startStrategy(req)
-    }
-
-    case req: ResponseFeedServicesTopicMessage => {
-      log.debug("StrategyExecutorActor Received ResponseFeedServicesTopicMessage: {}", req)
-      isActive = true
-      startStrategy(req)
+      startStrategy(req.msg, req.strategyActor, req.producerActor)
     }
     
     case StopStrategyExecutorMessage => {
@@ -98,7 +106,7 @@ class StrategyExecutorActor(serviceId: String) extends Actor with ActorLogging {
   }
   
   
-  private def startStrategy(msg: TttsStrategyMessage) = {
+  private def startStrategy(msg: TttsStrategyMessage, strategyActor: ActorRef, producerActor: ActorRef) = {
     
     /*
      * Do Strategy processing, create ResponseStrategyFacadeTopicMessage and publish it to Kafka Facade Topic (reply to FacadeMS)
@@ -125,28 +133,41 @@ class StrategyExecutorActor(serviceId: String) extends Actor with ActorLogging {
 
 	  implicit val timeout = Timeout(2 seconds)
     
-	  val strategyActor = context.actorOf(Props(classOf[AbxStrategyActor]))
-	  (strategyActor ? StartAbxStrategyMessage(msg, serviceId)).mapTo[TttsStrategyMessage] map {msg =>
+//	  val strategyActor = context.actorOf(Props(classOf[AbxStrategyActor]))
+	  val result: Future[TttsStrategyMessage] = (strategyActor ? StartAbxStrategyMessage(msg, serviceId)).mapTo[TttsStrategyMessage] map {msg =>
 //	    val msg = result.message
-	    processStrategyResponse(msg)
+	    msg
 	  }
+		result.onComplete {
+		  case Success(result) => {
+		       log.info("StrategyExecutorActor success: {}", result)
+		       processStrategyResponse(result, producerActor)
+		  }
+		  case Failure(error) => {
+			  log.info("StrategyExecutorActor error: {}", error.getMessage())
+		  }
+		}
+	  
     
   }
 
-  private def processStrategyResponse(msg: TttsStrategyMessage) = {
-    msg match {
-      case x: ResponseStrategyFacadeTopicMessage => {
-	    // Publish results back to Facade Topic
-	    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
-	    kafkaFacadeTopicProducerActor ! x 
-      }
-      case x: ResponseStrategyServicesTopicMessage => {
-	    // Publish results back to Facade Topic
-	    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
-	    kafkaServicesTopicProducerActor ! x 
-      }
-      case _ => "Do nothing"
-    }
+  private def processStrategyResponse(msg: TttsStrategyMessage, producerActor: ActorRef) = {
+    
+    
+    producerActor ! msg
+//    msg match {
+//      case x: ResponseStrategyFacadeTopicMessage => {
+//	    // Publish results back to Facade Topic
+////	    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+//	    kafkaFacadeTopicProducerActor ! x 
+//      }
+//      case x: ResponseStrategyServicesTopicMessage => {
+//	    // Publish results back to Facade Topic
+////	    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+//	    kafkaServicesTopicProducerActor ! x 
+//      }
+//      case _ => "Do nothing"
+//    }
   }
   
 

@@ -103,7 +103,7 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 			        val msgStr = msgJsonObj.compactPrint
 
 
-				    log.debug("KafkaServicesTopicConsumerActor register received JSON msg from Kafka Services Topic: {}", msgStr)
+				    log.info("KafkaServicesTopicConsumerActor register received JSON msg from Kafka Services Topic: {}", msgStr)
 				    
 			        
 					/*

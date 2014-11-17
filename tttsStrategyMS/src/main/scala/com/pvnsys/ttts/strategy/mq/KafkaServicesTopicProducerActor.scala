@@ -33,7 +33,14 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
   import StrategyActor._
   import KafkaServicesTopicProducerActorJsonProtocol._
   import TttsStrategyMessages._
-	
+
+	val props = new Properties()
+	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
+	props.put("serializer.class", Configuration.serializerClassProducer)
+
+	val producer = new Producer[Integer, String](new ProducerConfig(props))
+  
+  
   override def receive = {
     /*
      * KafkaServicesTopicProducerActor sends out only two message types: 
@@ -43,11 +50,11 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
      */ 
     case msg: RequestFeedServicesTopicMessage => {
       produceKafkaMsg(msg)
-      self ! StopMessage
+//      self ! StopMessage
     }
     case msg: ResponseStrategyServicesTopicMessage => {
       produceKafkaMsg(msg)
-      self ! StopMessage
+//      self ! StopMessage
     }
     case StopMessage => {
       self ! PoisonPill
@@ -60,11 +67,11 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
   
   
   def produceKafkaMsg(msg: TttsStrategyMessage) = {
-	val props = new Properties()
-	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
-	props.put("serializer.class", Configuration.serializerClassProducer)
-
-	val producer = new Producer[Integer, String](new ProducerConfig(props))
+//	val props = new Properties()
+//	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
+//	props.put("serializer.class", Configuration.serializerClassProducer)
+//
+//	val producer = new Producer[Integer, String](new ProducerConfig(props))
     val topic = Configuration.servicesTopic 
 
     msg match {
@@ -88,7 +95,7 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
     }
     
 
-    producer.close
+//    producer.close
   }
   
 }

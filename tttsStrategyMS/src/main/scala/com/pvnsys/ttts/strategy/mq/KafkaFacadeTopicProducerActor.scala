@@ -32,6 +32,13 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
   import KafkaFacadeTopicProducerActorJsonProtocol._
   import TttsStrategyMessages._
   
+  
+	val props = new Properties()
+	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
+	props.put("serializer.class", Configuration.serializerClassProducer)
+
+	val producer = new Producer[Integer, String](new ProducerConfig(props))
+  
 	
   override def receive = {
     /*
@@ -40,7 +47,7 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
      */ 
     case msg: ResponseStrategyFacadeTopicMessage => {
       produceKafkaMsg(msg)
-      self ! StopMessage
+//      self ! StopMessage
     }
     case StopMessage => {
       self ! PoisonPill
@@ -53,11 +60,11 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
   
   
   def produceKafkaMsg(msg: ResponseStrategyFacadeTopicMessage) = {
-	val props = new Properties()
-	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
-	props.put("serializer.class", Configuration.serializerClassProducer)
-
-	val producer = new Producer[Integer, String](new ProducerConfig(props))
+//	val props = new Properties()
+//	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
+//	props.put("serializer.class", Configuration.serializerClassProducer)
+//
+//	val producer = new Producer[Integer, String](new ProducerConfig(props))
     val topic = Configuration.facadeTopic 
 
     // Convert RequestFacadeMessage back to JsValue
@@ -66,7 +73,7 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
     log.info("Facade Producer sent {}", msg)
    	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
 
-    producer.close
+//    producer.close
   }
   
 }
