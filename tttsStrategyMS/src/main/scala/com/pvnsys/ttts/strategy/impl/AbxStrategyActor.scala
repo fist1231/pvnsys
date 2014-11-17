@@ -44,7 +44,7 @@ object AbxStrategyActor {
  * abx strategy.
  * 
  */
-class AbxStrategyActor extends Actor with Strategy with ActorLogging {
+class AbxStrategyActor extends Actor with ActorLogging {
 
   import TttsStrategyMessages._
   import AbxStrategyActor._
@@ -175,7 +175,7 @@ class AbxStrategyActor extends Actor with Strategy with ActorLogging {
   /*
    * ################################# Strategy business logic goes here #################################################
    */
-  override def process(tableId: String, payload: FeedPayload): Future[String] = {
+  def process(tableId: String, payload: FeedPayload): Future[String] = {
 //    val data = getQuotesData()
     
 	implicit val timeout = Timeout(2 seconds)

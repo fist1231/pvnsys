@@ -16,12 +16,12 @@ class RealStrategy extends Strategy with LazyLogging {
 
   import TttsStrategyMessages._
 
-  override def process(serviceId: String, payload: FeedPayload): Future[String] = {
+  override def applyStrategy(serviceId: String, message: TttsStrategyMessage): TttsStrategyMessage = {
     
 	  /*
 	   * Insert code here
 	   */
-    Future { "_RESULT_" }
+     message
   }
 
 }

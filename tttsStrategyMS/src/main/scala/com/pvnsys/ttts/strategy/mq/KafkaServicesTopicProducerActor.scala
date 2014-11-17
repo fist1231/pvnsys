@@ -57,7 +57,8 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
 //      self ! StopMessage
     }
     case StopMessage => {
-      self ! PoisonPill
+//      self ! PoisonPill
+      context stop self 
     }
     case msg => log.error(s"KafkaServicesTopicProducerActor received unknown message $msg")
   }

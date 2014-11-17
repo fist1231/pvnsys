@@ -39,7 +39,7 @@ trait Strategy {
    * 
    * 
    */
-  def process(serviceId: String, payload: FeedPayload): Future[String]
+  def applyStrategy(serviceId: String, message: TttsStrategyMessage): TttsStrategyMessage
   
 }
 

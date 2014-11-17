@@ -16,8 +16,9 @@ import kx.c
 import kx.c._
 import kx.c.Flip
 import java.lang.reflect.Array
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
-object ReadKdbActor {
+object ReadKdbActor extends LazyLogging {
   
   import AbxStrategyActor._
   def props(tableId: String) = Props(new ReadKdbActor(tableId))
@@ -25,6 +26,73 @@ object ReadKdbActor {
   case object ReadKdbMessage extends ReadKdbMessages
   case class ReadKdbResultMessage(result: List[Option[Double]]) extends ReadKdbMessages
   case object StopReadKdbActor extends ReadKdbMessages
+  
+  
+	def getQuotesData(tableId: String): List[Option[Double]] = {
+	  
+		  val numberOfTicks = 4 
+	  
+	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
+		  logger.debug("Connected to KDB server. Retrieving data")
+		  
+		  // Select last $numberOfTicks ticks' high low and close prices
+		  val res = conn.k(s"reverse select [-$numberOfTicks] high, low, close from quotes$tableId")
+		  val tabres: Flip = res.asInstanceOf[Flip]
+		  val colNames = tabres.x
+		  val colData = tabres.y
+		  
+//		  Array.getLength(colData(0))
+		  
+//		  log.debug("^^^^^^^^^^^^ colData.size = {}", colData.size)
+//		  log.debug("^^^^^^^^^^^^ colData.length = {}", colData.length)
+//		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(0)) = {}", Array.getLength(colData(0)))
+//		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(1)) = {}", Array.getLength(colData(1)))
+//		  log.debug("^^^^^^^^^^^^ Array.getLength(colData(2)) = {}", Array.getLength(colData(2)))
+		  
+		  /*
+		   * == Buy signal:
+		   * If last tick close above max of last $numberOfTicks high
+		   * Select max of last $numberOfTicks highs minus the very last one.
+		   * Because the last close is never above the last high :)
+		   * 
+		   * == Sell signal:
+		   * If last tick close is below previous tick low
+		   */ 
+		  val result= if(Array.getLength(colData(0)) > (numberOfTicks - 1)) {
+			  val l2h: Option[Double] = Some((c.at(colData(0), 1)).asInstanceOf[Double])
+			  val l2l: Option[Double] = Some((c.at(colData(1), 1)).asInstanceOf[Double])
+			  val l2c: Option[Double] = Some((c.at(colData(2), 1)).asInstanceOf[Double])
+			  val l1h: Option[Double] = Some((c.at(colData(0), 0)).asInstanceOf[Double])
+			  val l1l: Option[Double] = Some((c.at(colData(1), 0)).asInstanceOf[Double])
+			  val l1c: Option[Double] = Some((c.at(colData(2), 0)).asInstanceOf[Double])
+			  
+			  // Select max high of last $numberOfTicks
+			  val resMax = conn.k(s"select [-${numberOfTicks-1}] max high from reverse select [-$numberOfTicks] high from quotes$tableId")
+			  val tabresMax: Flip = resMax.asInstanceOf[Flip]
+			  val colNamesMax = tabresMax.x
+			  val colDataMax = tabresMax.y
+			  val maxHigh: Option[Double] = Some((c.at(colDataMax(0), 0)).asInstanceOf[Double])
+			  
+//			  log.info("^^^^^^^^^^^^ List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh) = {}", List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh))
+			  
+//			  val kdb: KdbType = (c.at(colData(0), 0).asInstanceOf[Double], c.at(colData(1), 0).asInstanceOf[Double], c.at(colData(2), 0).asInstanceOf[Int], c.at(colData(3), 0).asInstanceOf[Boolean], c.at(colData(4), 0).asInstanceOf[Int])
+		      List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh)
+//			  log.debug("^^^^^^^^^^^^ data = {}", result)
+//		      conn.close
+//		      result
+		  } else {
+			  List(None, None, None, None, None, None, None)
+//			  log.debug("^^^^^^^^^^^^ data = {}", result)
+//		      conn.close
+//		      result
+		  }
+		  logger.debug("^^^^^^^^^^^^ data = {}", result)
+	      conn.close
+	      result
+		  
+	}
+  
+  
 }
 
 /**

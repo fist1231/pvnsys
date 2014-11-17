@@ -12,8 +12,9 @@ import scala.collection.mutable
 import scala.collection.mutable.Map
 import com.pvnsys.ttts.strategy.generator.StrategyExecutorActor
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
-import com.pvnsys.ttts.strategy.impl.AbxStrategyActor
+import com.pvnsys.ttts.strategy.impl.AbxStrategyImpl
 import com.pvnsys.ttts.strategy.mq.{KafkaServicesTopicProducerActor, KafkaFacadeTopicProducerActor}
+import com.pvnsys.ttts.strategy.mq.StrategyActor
 
 
 object ServicesMessageFlow extends LazyLogging {
@@ -21,7 +22,7 @@ object ServicesMessageFlow extends LazyLogging {
   import TttsStrategyMessages._
   type servicesMessageFlowOutDuctType = (String, Producer[TttsStrategyMessage])
   
-  def apply(): Duct[TttsStrategyMessage, servicesMessageFlowOutDuctType] = Duct[TttsStrategyMessage].
+  def apply(context: ActorContext, serviceUniqueID: String): Duct[TttsStrategyMessage, servicesMessageFlowOutDuctType] = Duct[TttsStrategyMessage].
 	    // acknowledge and pass on
 	    map { msg =>
 	      val messageType = msg match {
@@ -30,23 +31,70 @@ object ServicesMessageFlow extends LazyLogging {
 	        case x: ResponseFeedServicesTopicMessage => x.asInstanceOf[ResponseFeedServicesTopicMessage].msgType 
 	        case _ => "UNKNOWN"
 	      }
-	      logger.debug("StrategyMS ServicesMessageFlow duct step 1; received Message Type is: {}", messageType)
+	      logger.info("*******>> Step 0: StrategyMS ServicesMessageFlow Initialized. Received Message Type is: {}", messageType)
 	      msg
 	    }.
 	    
 	    map { msg =>
-	      val messageClient = msg match {
-	        case x: RequestStrategyServicesTopicMessage => x.asInstanceOf[RequestStrategyServicesTopicMessage].client 
-	        case x: ResponseFeedFacadeTopicMessage => x.asInstanceOf[ResponseFeedFacadeTopicMessage].client
-	        case x: ResponseFeedServicesTopicMessage => x.asInstanceOf[ResponseFeedServicesTopicMessage].client
-	        case _ => "UNKNOWN"
-	      }
-	      logger.debug("Strategy's ServicesMessageFlow duct step 2; converting ServicesTopicMessage to RequestStrategyServicesTopicMessage for Client is: {}", messageClient)
-	      msg
+	      	  
+	          logger.info("*******>> Step 1: Strategy ServicesMessageFlow Creating schema for first Feed Response message {}", msg)
+		      msg match {
+		        case x: RequestStrategyServicesTopicMessage => // Nothing for Strategy messages 
+		        case x: ResponseFeedFacadeTopicMessage => {
+		          x.asInstanceOf[ResponseFeedFacadeTopicMessage].sequenceNum match {
+		            case "1" => new AbxStrategyImpl(context).createSchema(serviceUniqueID, msg)
+		            case _ => // Do nothing
+		          }
+ 
+		        }
+		        case x: ResponseFeedServicesTopicMessage => {
+		          x.asInstanceOf[ResponseFeedServicesTopicMessage].sequenceNum match {
+		            case "1" => new AbxStrategyImpl(context).createSchema(serviceUniqueID, msg)
+		            case _ => // Do nothing
+		          }
+ 
+		        }
+		        case _ => "UNKNOWN"
+		      }
+	          msg
+	          
 	    }.
-	
+
+	    map { msg =>
+	      	  
+	          logger.info("*******>> Step 2: Strategy ServicesMessageFlow Write quotes feed data to db {}", msg)
+		      msg match {
+		        case x: RequestStrategyServicesTopicMessage => // Nothing for Strategy messages 
+		        case x: ResponseFeedFacadeTopicMessage => {
+		            new AbxStrategyImpl(context).writeQuotesData(serviceUniqueID, msg)
+		        }
+		        case x: ResponseFeedServicesTopicMessage => {
+		            new AbxStrategyImpl(context).writeQuotesData(serviceUniqueID, msg)
+		        }
+		        case _ => "UNKNOWN"
+		      }
+	          msg
+	          
+	    }.
+
+	    map { msg =>
+	      	  
+	          logger.info("*******>> Step 3: Strategy ServicesMessageFlow Apply strategy logic to the quotes feed {}", msg)
+		      val outp = msg match {
+		        case x: RequestStrategyServicesTopicMessage => msg
+		        case x: ResponseFeedFacadeTopicMessage => {
+		            new AbxStrategyImpl(context).applyStrategy(serviceUniqueID, msg)
+		        }
+		        case x: ResponseFeedServicesTopicMessage => {
+		            new AbxStrategyImpl(context).applyStrategy(serviceUniqueID, msg)
+		        }
+		        case _ => msg
+		      }
+	          outp
+	    }.
+
 	    map {
-	        logger.debug("Strategy's ServicesMessageFlow duct step 3; starting strategy")
+	        logger.info("*******>> Step 4: Strategy ServicesMessageFlow Convert Service messages")
 	        /*
 	         * Returns either:
 	         * - RequestStrategyServicesTopicMessage of type TttsStrategyMessage - Strategy intended for Services Topic
@@ -61,6 +109,14 @@ object ServicesMessageFlow extends LazyLogging {
 	      case msg: ResponseFeedFacadeTopicMessage => "FeedFacade"
 	      case msg: ResponseFeedServicesTopicMessage => "FeedServices"
 	      case msg: RequestStrategyServicesTopicMessage => "StrategyServices"
+	      case msg: ResponseStrategyFacadeTopicMessage => {
+	        logger.info("*******>> Step 5: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyFacadeTopicMessage")
+	        "StrategyFacadeResponse"
+	      }
+	      case msg: ResponseStrategyServicesTopicMessage => {
+	        logger.info("*******>> Step 5: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyServicesTopicMessage")
+	        "StrategyServicesResponse"
+	      }
 	      case _ => "Garbage"
 	    }
   
@@ -72,13 +128,15 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
 	import ServicesMessageFlow._
 	import TttsStrategyMessages._
 	import StrategyExecutorActor._
+	import StrategyActor._
 
 	implicit val executor = context.dispatcher
     val materializer = FlowMaterializer(MaterializerSettings())
 	
 	
     val strategyServicesConsumer = ActorProducer(strategyServicesActor)
-  	val servicesMessageDuct = ServicesMessageFlow()
+//    val strategyImpl = new AbxStrategyImpl(context)
+  	val servicesMessageDuct = ServicesMessageFlow(context, serviceUniqueID)
   	
 	val executors = mutable.Map[String, ActorRef]()
 	val strategies = mutable.Map[String, ActorRef]()
@@ -98,8 +156,8 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
 							    logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[RequestStrategyServicesTopicMessage].client, strategyExecutorActor)
 							    executors += (x.asInstanceOf[RequestStrategyServicesTopicMessage].client -> strategyExecutorActor)
 							    
-							    val strategyActor = context.actorOf(Props(classOf[AbxStrategyActor]))
-							    strategies += (x.asInstanceOf[RequestStrategyServicesTopicMessage].client -> strategyActor)
+//							    val strategyActor = context.actorOf(Props(classOf[AbxStrategyActor]))
+//							    strategies += (x.asInstanceOf[RequestStrategyServicesTopicMessage].client -> strategyActor)
 							    
 							    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
 							    producers += (x.asInstanceOf[RequestStrategyServicesTopicMessage].client -> kafkaServicesTopicProducerActor)
@@ -117,7 +175,7 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
 								    strategyExecActor ! x
 //								    strategyExecActor ! StopStrategyExecutorMessage
 								    executors -= x.asInstanceOf[RequestStrategyServicesTopicMessage].client 
-								    strategies -= x.asInstanceOf[RequestStrategyServicesTopicMessage].client 
+//								    strategies -= x.asInstanceOf[RequestStrategyServicesTopicMessage].client 
 								    producers -= x.asInstanceOf[RequestStrategyServicesTopicMessage].client 
 								  }
 								  case None => logger.debug("No such Strategy to stop. Key {}", x.asInstanceOf[RequestStrategyServicesTopicMessage].client)
@@ -126,102 +184,139 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
 						    case _ =>
 					  } 
 					}
-			        case x: ResponseFeedFacadeTopicMessage => {
-			          x.asInstanceOf[ResponseFeedFacadeTopicMessage].msgType match {
-						    case FEED_RESPONSE_MESSAGE_TYPE => {
-						    	logger.debug("Got FEED_RESPONSE_MESSAGE_TYPE. Key {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client)	          
-//							    val strategyExecutorActor = context.actorOf(StrategyExecutorActor.props(serviceUniqueID))
-						        val strategyActor = strategies.get(x.asInstanceOf[ResponseFeedFacadeTopicMessage].client) match {
-								  case Some(existingStrategyActor) => {
-									logger.debug("Got strategycActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client, existingStrategyActor)
-									existingStrategyActor
-								  }
-								  case None => {
-								    logger.debug("Not found strategycActor, creating a new one. Key {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client)
-								    val newStrategyActor = context.actorOf(Props(classOf[AbxStrategyActor]))
-								    strategies += (x.asInstanceOf[ResponseFeedFacadeTopicMessage].client -> newStrategyActor)
-								    newStrategyActor
-								  }
-								}
-						        val producerActor = producers.get(x.asInstanceOf[ResponseFeedFacadeTopicMessage].client) match {
-								  case Some(existingProducerActor) => {
-									logger.debug("Got existingProducerActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client, existingProducerActor)
-									existingProducerActor
-								  }
-								  case None => {
-								    logger.debug("Not found producer, creating a new one. Key {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client)
-								    val newProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
-								    producers += (x.asInstanceOf[ResponseFeedFacadeTopicMessage].client -> newProducerActor)
-								    newProducerActor
-								  }
-								}
-
-						    	
-						    	executors.get(x.asInstanceOf[ResponseFeedFacadeTopicMessage].client) match {
-								  case Some(strategyExecActor) => {
-									logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client, strategyExecActor)
-								    strategyExecActor ! StartStrategyFeedMessage(x, strategyActor, producerActor)
-								  }
-								  case None => {
-								    logger.debug("Not found executor for ResponseFeedFacadeTopicMessage, creating a new one. Key {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client)
-								    val newStrategyExecutorActor = context.actorOf(StrategyExecutorActor.props(serviceUniqueID))
-								    executors += (x.asInstanceOf[ResponseFeedFacadeTopicMessage].client -> newStrategyExecutorActor)
-								    newStrategyExecutorActor ! StartStrategyFeedMessage(x, strategyActor, producerActor)
-								  }
-								}
-//							    logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client, strategyExecutorActor)
-//	//						    executors += (msg.client -> strategyExecutorActor)
-//							    strategyExecutorActor ! x
-						    }
-						    case _ =>
-			          }
+			        case x: ResponseStrategyFacadeTopicMessage => {
+				        val producerActor = producers.get(x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client) match {
+						  case Some(existingProducerActor) => {
+							logger.info("~~~~~~~~ Got existingProducerActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client, existingProducerActor)
+							existingProducerActor
+						  }
+						  case None => {
+						    logger.info("~~~~~~~~~ Not found producer, creating a new one. Key {}", x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client)
+						    val newProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+						    producers += (x.asInstanceOf[ResponseStrategyFacadeTopicMessage].client -> newProducerActor)
+						    newProducerActor
+						  }
+						}
+			          
+//			           val newProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+			           producerActor ! x
+//			           producerActor ! StopMessage
 			        }
-			        case x: ResponseFeedServicesTopicMessage => {
-			          x.asInstanceOf[ResponseFeedServicesTopicMessage].msgType match {
-						    case FEED_RESPONSE_MESSAGE_TYPE => {
-						    	logger.debug("Got FEED_RESPONSE_MESSAGE_TYPE. Key {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client)	          
-//							    val strategyExecutorActor = context.actorOf(StrategyExecutorActor.props(serviceUniqueID))
-
-						        val strategyActor = strategies.get(x.asInstanceOf[ResponseFeedServicesTopicMessage].client) match {
-								  case Some(existingStrategyActor) => {
-									logger.debug("Got strategycActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client, existingStrategyActor)
-									existingStrategyActor
-								  }
-								  case None => {
-								    logger.debug("Not found strategycActor, creating a new one. Key {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client)
-								    val newStrategyActor = context.actorOf(Props(classOf[AbxStrategyActor]))
-								    strategies += (x.asInstanceOf[ResponseFeedServicesTopicMessage].client -> newStrategyActor)
-								    newStrategyActor
-								  }
-								}
-						        val producerActor = producers.get(x.asInstanceOf[ResponseFeedServicesTopicMessage].client) match {
-								  case Some(existingProducerActor) => {
-									logger.debug("Got existingProducerActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client, existingProducerActor)
-									existingProducerActor
-								  }
-								  case None => {
-								    logger.debug("Not found producerctor, creating a new one. Key {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client)
-								    val newProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
-								    producers += (x.asInstanceOf[ResponseFeedServicesTopicMessage].client -> newProducerActor)
-								    newProducerActor
-								  }
-								}
-						    	
-						    	
-						    	executors.get(x.asInstanceOf[ResponseFeedServicesTopicMessage].client) match {
-								  case Some(strategyExecActor) => {
-									logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client, strategyExecActor)
-								    strategyExecActor ! StartStrategyFeedMessage(x, strategyActor, producerActor)
-								  }
-								  case None => logger.debug("No such Strategy to stop. Key {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client)
-								}
-//							    logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client, strategyExecutorActor)
-//	//						    executors += (msg.client -> strategyExecutorActor)
-//							    strategyExecutorActor ! x
-						    }
-						    case _ =>
-			          }
+			        case x: ResponseStrategyServicesTopicMessage => {
+			          
+				        val producerActor = producers.get(x.asInstanceOf[ResponseStrategyServicesTopicMessage].client) match {
+						  case Some(existingProducerActor) => {
+							logger.debug("~~~~~~~~ Got existingProducerActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseStrategyServicesTopicMessage].client, existingProducerActor)
+							existingProducerActor
+						  }
+						  case None => {
+						    logger.debug("~~~~~~~~ Not found producerctor, creating a new one. Key {}", x.asInstanceOf[ResponseStrategyServicesTopicMessage].client)
+						    val newProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+						    producers += (x.asInstanceOf[ResponseStrategyServicesTopicMessage].client -> newProducerActor)
+						    newProducerActor
+						  }
+						}
+			          
+//			           val newProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+			           producerActor ! x
+//			           producerActor ! StopMessage
 			        }
+//			        case x: ResponseFeedFacadeTopicMessage => {
+//			          x.asInstanceOf[ResponseFeedFacadeTopicMessage].msgType match {
+//						    case FEED_RESPONSE_MESSAGE_TYPE => {
+//						    	logger.debug("Got FEED_RESPONSE_MESSAGE_TYPE. Key {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client)	          
+////							    val strategyExecutorActor = context.actorOf(StrategyExecutorActor.props(serviceUniqueID))
+//						        val strategyActor = strategies.get(x.asInstanceOf[ResponseFeedFacadeTopicMessage].client) match {
+//								  case Some(existingStrategyActor) => {
+//									logger.debug("Got strategycActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client, existingStrategyActor)
+//									existingStrategyActor
+//								  }
+//								  case None => {
+//								    logger.debug("Not found strategycActor, creating a new one. Key {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client)
+//								    val newStrategyActor = context.actorOf(Props(classOf[AbxStrategyActor]))
+//								    strategies += (x.asInstanceOf[ResponseFeedFacadeTopicMessage].client -> newStrategyActor)
+//								    newStrategyActor
+//								  }
+//								}
+//						        val producerActor = producers.get(x.asInstanceOf[ResponseFeedFacadeTopicMessage].client) match {
+//								  case Some(existingProducerActor) => {
+//									logger.debug("Got existingProducerActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client, existingProducerActor)
+//									existingProducerActor
+//								  }
+//								  case None => {
+//								    logger.debug("Not found producer, creating a new one. Key {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client)
+//								    val newProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+//								    producers += (x.asInstanceOf[ResponseFeedFacadeTopicMessage].client -> newProducerActor)
+//								    newProducerActor
+//								  }
+//								}
+//
+//						    	
+//						    	executors.get(x.asInstanceOf[ResponseFeedFacadeTopicMessage].client) match {
+//								  case Some(strategyExecActor) => {
+//									logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client, strategyExecActor)
+//								    strategyExecActor ! StartStrategyFeedMessage(x, strategyActor, producerActor)
+//								  }
+//								  case None => {
+//								    logger.debug("Not found executor for ResponseFeedFacadeTopicMessage, creating a new one. Key {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client)
+//								    val newStrategyExecutorActor = context.actorOf(StrategyExecutorActor.props(serviceUniqueID))
+//								    executors += (x.asInstanceOf[ResponseFeedFacadeTopicMessage].client -> newStrategyExecutorActor)
+//								    newStrategyExecutorActor ! StartStrategyFeedMessage(x, strategyActor, producerActor)
+//								  }
+//								}
+////							    logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedFacadeTopicMessage].client, strategyExecutorActor)
+////	//						    executors += (msg.client -> strategyExecutorActor)
+////							    strategyExecutorActor ! x
+//						    }
+//						    case _ =>
+//			          }
+//			        }
+//			        case x: ResponseFeedServicesTopicMessage => {
+//			          x.asInstanceOf[ResponseFeedServicesTopicMessage].msgType match {
+//						    case FEED_RESPONSE_MESSAGE_TYPE => {
+//						    	logger.debug("Got FEED_RESPONSE_MESSAGE_TYPE. Key {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client)	          
+////							    val strategyExecutorActor = context.actorOf(StrategyExecutorActor.props(serviceUniqueID))
+//
+//						        val strategyActor = strategies.get(x.asInstanceOf[ResponseFeedServicesTopicMessage].client) match {
+//								  case Some(existingStrategyActor) => {
+//									logger.debug("Got strategycActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client, existingStrategyActor)
+//									existingStrategyActor
+//								  }
+//								  case None => {
+//								    logger.debug("Not found strategycActor, creating a new one. Key {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client)
+//								    val newStrategyActor = context.actorOf(Props(classOf[AbxStrategyActor]))
+//								    strategies += (x.asInstanceOf[ResponseFeedServicesTopicMessage].client -> newStrategyActor)
+//								    newStrategyActor
+//								  }
+//								}
+//						        val producerActor = producers.get(x.asInstanceOf[ResponseFeedServicesTopicMessage].client) match {
+//								  case Some(existingProducerActor) => {
+//									logger.debug("Got existingProducerActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client, existingProducerActor)
+//									existingProducerActor
+//								  }
+//								  case None => {
+//								    logger.debug("Not found producerctor, creating a new one. Key {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client)
+//								    val newProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+//								    producers += (x.asInstanceOf[ResponseFeedServicesTopicMessage].client -> newProducerActor)
+//								    newProducerActor
+//								  }
+//								}
+//						    	
+//						    	
+//						    	executors.get(x.asInstanceOf[ResponseFeedServicesTopicMessage].client) match {
+//								  case Some(strategyExecActor) => {
+//									logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client, strategyExecActor)
+//								    strategyExecActor ! StartStrategyFeedMessage(x, strategyActor, producerActor)
+//								  }
+//								  case None => logger.debug("No such Strategy to stop. Key {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client)
+//								}
+////							    logger.debug("Starting StrategyExecutorActor. Key {}; ActorRef {}", x.asInstanceOf[ResponseFeedServicesTopicMessage].client, strategyExecutorActor)
+////	//						    executors += (msg.client -> strategyExecutorActor)
+////							    strategyExecutorActor ! x
+//						    }
+//						    case _ =>
+//			          }
+//			        }
 			        case _ =>
 				}
 	}

@@ -35,6 +35,8 @@ object StrategyService {
 	            case _ => msg
 	          }
 	        }
+	        case x: ResponseStrategyFacadeTopicMessage => x
+	        case x: ResponseStrategyServicesTopicMessage => x
 	        case _ => msg
 	    }
      
