@@ -84,11 +84,11 @@ class FeedGeneratorActor extends Actor with ActorLogging {
 		msg match {
 			case x: RequestFeedFacadeTopicMessage => {
 				    val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
-				    context.system.scheduler.schedule(0.seconds, 100.milliseconds, fakeFeedActor, StartFakeFeedGeneratorMessage(x, initSize, kafkaFacadeTopicProducerActor))(context.system.dispatcher, self)
+				    context.system.scheduler.schedule(0.seconds, 50.milliseconds, fakeFeedActor, StartFakeFeedGeneratorMessage(x, initSize, kafkaFacadeTopicProducerActor))(context.system.dispatcher, self)
 			}
 			case x: RequestFeedServicesTopicMessage => {
 				    val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
-				    context.system.scheduler.schedule(0.seconds, 100.milliseconds, fakeFeedActor, StartFakeFeedGeneratorMessage(x, initSize, kafkaServicesTopicProducerActor))(context.system.dispatcher, self)
+				    context.system.scheduler.schedule(0.seconds, 50.milliseconds, fakeFeedActor, StartFakeFeedGeneratorMessage(x, initSize, kafkaServicesTopicProducerActor))(context.system.dispatcher, self)
 			}
 			case _ => 
 		}

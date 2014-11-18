@@ -30,7 +30,7 @@ object ReadKdbActor extends LazyLogging {
   
 	def getQuotesData(tableId: String): List[Option[Double]] = {
 	  
-		  val numberOfTicks = 4 
+		  val numberOfTicks = 2
 	  
 	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 		  logger.debug("Connected to KDB server. Retrieving data")

@@ -39,8 +39,9 @@ object ReadKdbActor extends LazyLogging {
 		  val transnum: Long = (c.at(colData(2), 0)).asInstanceOf[Long]
 		  val intrade: Boolean = (c.at(colData(3), 0)).asInstanceOf[Boolean]
 		  val possize: Long = (c.at(colData(4), 0)).asInstanceOf[Long]
+		  val price: Double = (c.at(colData(5), 0)).asInstanceOf[Double]
 		//      val kdb: KdbType = (c.at(colData(0), 0).asInstanceOf[Double], c.at(colData(1), 0).asInstanceOf[Double], c.at(colData(2), 0).asInstanceOf[Int], c.at(colData(3), 0).asInstanceOf[Boolean], c.at(colData(4), 0).asInstanceOf[Int])
-		  val kdb: EngineKdbType = (funds, balance, transnum, intrade, possize)
+		  val kdb: EngineKdbType = (funds, balance, transnum, intrade, possize, price)
 		  logger.debug("^^^^^^^^^^^^ data = {}", kdb)
 	      conn.close
 	      kdb
@@ -95,8 +96,9 @@ class ReadKdbActor(tableId: String) extends Actor with ActorLogging {
 		  val transnum: Long = (c.at(colData(2), 0)).asInstanceOf[Long]
 		  val intrade: Boolean = (c.at(colData(3), 0)).asInstanceOf[Boolean]
 		  val possize: Long = (c.at(colData(4), 0)).asInstanceOf[Long]
+		  val price: Double = (c.at(colData(5), 0)).asInstanceOf[Double]
 		//      val kdb: KdbType = (c.at(colData(0), 0).asInstanceOf[Double], c.at(colData(1), 0).asInstanceOf[Double], c.at(colData(2), 0).asInstanceOf[Int], c.at(colData(3), 0).asInstanceOf[Boolean], c.at(colData(4), 0).asInstanceOf[Int])
-		  val kdb: EngineKdbType = (funds, balance, transnum, intrade, possize)
+		  val kdb: EngineKdbType = (funds, balance, transnum, intrade, possize, price)
 		  log.debug("^^^^^^^^^^^^ data = {}", kdb)
 	      conn.close
 	      kdb

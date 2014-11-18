@@ -226,6 +226,8 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 				stopFeed.setVisible(true);
 				startStrategy.setVisible(false);
 				stopStrategy.setVisible(false);
+				startEngine.setVisible(false);
+				stopEngine.setVisible(false);
 				disconnect.setVisible(false);
 				vPanelWS.clear();
 			}
@@ -242,6 +244,8 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 				stopFeed.setVisible(false);
 				startStrategy.setVisible(true);
 				stopStrategy.setVisible(false);
+				startEngine.setVisible(true);
+				stopEngine.setVisible(false);
 				disconnect.setVisible(true);
 			}
 		});
@@ -257,6 +261,8 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 				stopFeed.setVisible(false);
 				startStrategy.setVisible(false);
 				stopStrategy.setVisible(true);
+				startEngine.setVisible(false);
+				stopEngine.setVisible(false);
 				disconnect.setVisible(false);
 				vPanelWS.clear();
 			}
@@ -273,6 +279,8 @@ public class StocksViewImpl<T> extends SimpleView implements StocksView<T> {
 				stopFeed.setVisible(false);
 				startStrategy.setVisible(true);
 				stopStrategy.setVisible(false);
+				startEngine.setVisible(true);
+				stopEngine.setVisible(false);
 				disconnect.setVisible(true);
 			}
 		});

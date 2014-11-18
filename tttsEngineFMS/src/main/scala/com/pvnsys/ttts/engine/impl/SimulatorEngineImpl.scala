@@ -81,7 +81,10 @@ class SimulatorEngineImpl(context: ActorContext) extends Engine with LazyLogging
 				  case x : ResponseStrategyServicesTopicMessage => x.signal
 				  case _ => ""
 				}
-	  	
+
+		        // TODO: pass from UI through FacadeMS
+		        val sellShort = true
+				
 			    val enginePayload = strategySignal match {
 			      case "BUY" => if(!data._4) {
 				        val comission = 10
@@ -108,8 +111,9 @@ class SimulatorEngineImpl(context: ActorContext) extends Engine with LazyLogging
 					        
 				            val newTransnum = data._3 + 1
 					        val newIntrade = true
+					        val price = payload.close
 			
-					        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize)
+					        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, price)
 					        WriteKdbActor.setEngineData(tableId, newData)
 		
 					        /*
@@ -120,8 +124,13 @@ class SimulatorEngineImpl(context: ActorContext) extends Engine with LazyLogging
 					    	val inputDate = inputSdf.parse(payload.datetime)
 					    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
 					    	val outputDateStr = outputSdf.format(inputDate)
-		
-					    	val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "BUY", -1 * position)
+
+					        val tradeType =  sellShort match {
+					          case false => "BUY" // Long position: BUY = open long; SELL = close long
+					          case true => "SHORT" // Short position: BUY - open short; SELL = cover
+					        }
+					    	
+					    	val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, tradeType, -1 * position)
 					        WriteKdbActor.setTransactionData(tableId, transactionData)
 					        Some(EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, "BOUGHT", newFunds, newBalance, newTransnum, newIntrade, newPossize))
 					        
@@ -137,11 +146,20 @@ class SimulatorEngineImpl(context: ActorContext) extends Engine with LazyLogging
 				        
 				        val newTransnum = data._3 + 1
 				        val sellProceeds = data._5 * payload.close - comission
-				        val newBalance =  data._5 * payload.close - comission + data._2 
+				        
+				        val newBalance =  sellShort match {
+				          case false => data._2 + ((data._5 * payload.close - comission) - data._2) // Long position: BUY = open long; SELL = close long
+				          case true =>  2* (data._5 * data._6 + comission) - (data._5 * payload.close - comission) + data._2  // Short position: BUY - open short; SELL = cover
+				        }
+				        
+//				        val newBalance =  data._2 + data._5 * payload.close - comission 
+				        
+				        
 				        val newPossize = 0l
 				        val newIntrade = false
+				        val price = payload.close
 			
-				        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize)
+				        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, price)
 				        WriteKdbActor.setEngineData(tableId, newData)
 			
 				    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -149,7 +167,11 @@ class SimulatorEngineImpl(context: ActorContext) extends Engine with LazyLogging
 				    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
 				    	val outputDateStr = outputSdf.format(inputDate)
 				        
-				        val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "SELL", sellProceeds)
+				        val tradeType =  sellShort match {
+				          case false => "SELL" // Long position: BUY = open long; SELL = close long
+				          case true => "COVER" // Short position: BUY - open short; SELL = cover
+				        }
+				        val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, tradeType, sellProceeds)
 				        WriteKdbActor.setTransactionData(tableId, transactionData)
 				        Some(EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, "SOLD", newFunds, newBalance, newTransnum, newIntrade, newPossize))
 		

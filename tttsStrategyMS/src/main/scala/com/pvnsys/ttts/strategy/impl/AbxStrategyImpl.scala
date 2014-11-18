@@ -145,16 +145,16 @@ class AbxStrategyImpl(context: ActorContext) extends Strategy with LazyLogging {
 		  /*
 		   * Close > Prev. high - buy; Close < Prev. Low - sell. ==> No bueno, lost 5k over 200 trades.
 		   */
-//		  if(l1c > l2h) {
+		  if(l1c > l2h) {
 		  
 		  /*
 		   * Close > Last 10 max(High) - Buy; Close < Prev. Low - Sell
 		   * 
 		   */
-		  if(l1c > maxHigh) {
-		    "BUY"
-		  } else if(l1c < l2l) {
+//		  if(l1c > maxHigh) {
 		    "SELL"
+		  } else if(l1c < l2l) {
+		    "BUY"
 		  } else {
 		    "HOLD"
 		  }

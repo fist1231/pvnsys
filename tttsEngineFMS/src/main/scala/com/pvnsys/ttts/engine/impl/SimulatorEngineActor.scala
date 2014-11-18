@@ -28,9 +28,9 @@ object SimulatorEngineActor {
    *   intrade - is trade in progress; 
    *   possize - trade in progress position size
    *   
-   *   engine:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$())
+   *   engine:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$();price:`float$())
    */ 
-  type EngineKdbType = (Double, Double, Long, Boolean, Long)
+  type EngineKdbType = (Double, Double, Long, Boolean, Long, Double)
   
   // trade:([]time:`time$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$()) 
   type TransactionKdbType = (String, String, Double, Long, String, Double)
@@ -81,7 +81,7 @@ class SimulatorEngineActor extends Actor with ActorLogging {
 			        val newBalance =  data._2 - position 
 			        val newIntrade = true
 	
-			        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize)
+			        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, payload.close)
 			        writeEngineData(tableId, newData)
 
 			        /*
@@ -113,7 +113,7 @@ class SimulatorEngineActor extends Actor with ActorLogging {
 		        val newPossize = 0l
 		        val newIntrade = false
 	
-		        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize)
+		        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, payload.close)
 		        writeEngineData(tableId, newData)
 	
 		    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
