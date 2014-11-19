@@ -40,6 +40,7 @@ libraryDependencies ++= {
     "com.typesafe.akka"   %%  "akka-slf4j"     % akkaVersion,
 //=== Kafka dependencies    
     "log4j"   			  %   "log4j"     	   % "1.2.16",
+//    "org.slf4j" 		  %   "slf4j-log4j12"  % "1.7.7",
     "com.101tec"   		  %   "zkclient"   	   % "0.3",
     "com.yammer.metrics"  %   "metrics-core"   % "2.2.0",
     "ch.qos.logback"      %   "logback-core"             % "1.1.2",

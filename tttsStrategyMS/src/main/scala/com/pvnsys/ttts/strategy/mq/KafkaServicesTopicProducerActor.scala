@@ -50,10 +50,12 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
      */ 
     case msg: RequestFeedServicesTopicMessage => {
       produceKafkaMsg(msg)
+      sender ! ProducerConfirmationMessage
 //      self ! StopMessage
     }
     case msg: ResponseStrategyServicesTopicMessage => {
       produceKafkaMsg(msg)
+      sender ! ProducerConfirmationMessage
 //      self ! StopMessage
     }
     case StopMessage => {

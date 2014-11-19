@@ -13,6 +13,8 @@ import com.pvnsys.ttts.strategy.generator.StrategyExecutorActor
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
 import com.pvnsys.ttts.strategy.impl.AbxStrategyImpl
 import com.pvnsys.ttts.strategy.mq.{KafkaServicesTopicProducerActor, KafkaFacadeTopicProducerActor}
+import akka.stream.actor.ActorConsumer
+import com.pvnsys.ttts.strategy.mq.StrategyConsumerActor
 
 
 object ServicesMessageFlow extends LazyLogging {
@@ -196,6 +198,7 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
 						}
 			          
 //			           val newProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+					   logger.debug("~~~~~~~~>> Sending ResponseStrategyFacadeTopicMessage to producer: {}", x)
 			           producerActor ! x
 //			           producerActor ! StopMessage
 			        }
@@ -215,6 +218,7 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
 						}
 			          
 //			           val newProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+					   logger.debug("~~~~~~~~>> Sending ResponseStrategyServicesTopicMessage to producer: {}", x)
 			           producerActor ! x
 //			           producerActor ! StopMessage
 			        }
@@ -327,13 +331,31 @@ class ServicesMessageFlow(strategyServicesActor: ActorRef, serviceUniqueID: Stri
 		case (str, producer) => 
 //		  	log.debug("~~~~~~~ And inside the main Flow is: {}", producer)
 		// start a new flow for each message type
-		Flow(producer)
+	    
+		str match {
+//		  case "FeedFacade" => context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+//		  case "FeedServices" => context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+//		  case "StrategyServices" => context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+		  case "StrategyFacadeResponse" => {
+		    val producerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+		    val sendToQueueConsumer = ActorConsumer[TttsStrategyMessage](context.actorOf(StrategyConsumerActor.props(producerActor, serviceUniqueID)))
+		    Flow(producer).produceTo(materializer, sendToQueueConsumer)
+		  }
+		  case "StrategyServicesResponse" => {
+		    val producerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
+		    val sendToQueueConsumer = ActorConsumer[TttsStrategyMessage](context.actorOf(StrategyConsumerActor.props(producerActor, serviceUniqueID)))
+		    Flow(producer).produceTo(materializer, sendToQueueConsumer)
+		  }
+		  case _ => Flow(producer).append(producerDuct).consume(materializer)
+		}
+		
+//		Flow(producer).produceTo(materializer, sendToQueueConsumer)
 			// extract the client
 			//	          .map(_.client) 
 			// add the outbound publishing duct
-			.append(producerDuct)
-			// and start the flow
-			.consume(materializer)
+//			.append(producerDuct)
+//			// and start the flow
+//			.consume(materializer)
 	    
 	} consume(materializer)
   	

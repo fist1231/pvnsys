@@ -14,10 +14,14 @@ object TttsStrategyMessages {
 	  
 	sealed trait TttsStrategyMessage
 	case object StartStrategyServiceMessage extends TttsStrategyMessage
+	case class StartBPStrategyServiceMessage(actor: ActorRef) extends TttsStrategyMessage
 	case object StopStrategyServiceMessage extends TttsStrategyMessage
 
 	case object StartListeningFacadeTopicMessage extends TttsStrategyMessage
 	case object StartListeningServicesTopicMessage extends TttsStrategyMessage
+	
+	case object ProducerConfirmationMessage extends TttsStrategyMessage
+
 	
 	
 	case object StartKafkaServicesTopicConsumerMessage extends TttsStrategyMessage
