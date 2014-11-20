@@ -15,6 +15,9 @@ object StrategyService {
 
   def convertServicesMessage(msg: TttsStrategyMessage): TttsStrategyMessage = {
 	    msg match {
+	        case x: RequestStrategyFacadeTopicMessage => {
+	          RequestStrategyFacadeTopicMessage(x.id, x.msgType, x.client, x.payload, x.timestamp, x.sequenceNum)
+	        }
 	        case x: RequestStrategyServicesTopicMessage => {
 	          x.asInstanceOf[RequestStrategyServicesTopicMessage].msgType match {
 	            case STRATEGY_REQUEST_MESSAGE_TYPE => RequestStrategyServicesTopicMessage(msg.asInstanceOf[RequestStrategyServicesTopicMessage].id, msg.asInstanceOf[RequestStrategyServicesTopicMessage].msgType, msg.asInstanceOf[RequestStrategyServicesTopicMessage].client, msg.asInstanceOf[RequestStrategyServicesTopicMessage].payload, msg.asInstanceOf[RequestStrategyServicesTopicMessage].timestamp, msg.asInstanceOf[RequestStrategyServicesTopicMessage].sequenceNum, msg.asInstanceOf[RequestStrategyServicesTopicMessage].serviceId)

@@ -7,7 +7,6 @@ import scala.collection.JavaConversions.seqAsJavaList
 import com.pvnsys.ttts.strategy.Configuration
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
 
-import StrategyActor.StopMessage
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import akka.actor.ActorRef
@@ -29,6 +28,9 @@ object KafkaFacadeTopicConsumerActor {
 //    def genString(o: AnyRef): String = o.getClass.getName
 //    override def getClazz(o: AnyRef): Class[_] = this.getClazz(o)
 //  }
+  
+  sealed trait KafkaFacadeTopicConsumerActorMessage
+  case object StopMessage extends KafkaFacadeTopicConsumerActorMessage
 }
 
 
@@ -45,7 +47,6 @@ object KafkaFacadeTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
 class KafkaFacadeTopicConsumerActor(processorActorRef: ActorRef, serviceId: String) extends Actor with ActorLogging {
   
 	import KafkaFacadeTopicConsumerActor._
-	import StrategyActor._
 	import context._
 	import KafkaFacadeTopicConsumerActorJsonProtocol._
 	import TttsStrategyMessages._

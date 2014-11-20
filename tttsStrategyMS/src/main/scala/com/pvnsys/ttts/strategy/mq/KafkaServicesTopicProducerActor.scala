@@ -11,6 +11,9 @@ import spray.json._
 
 
 object KafkaServicesTopicProducerActor {
+  sealed trait KafkaServicesTopicProducerActorMessage
+  case object StopMessage extends KafkaServicesTopicProducerActorMessage
+  
 }
 
 object KafkaServicesTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
@@ -30,7 +33,6 @@ object KafkaServicesTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
 class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
 
   import KafkaServicesTopicProducerActor._
-  import StrategyActor._
   import KafkaServicesTopicProducerActorJsonProtocol._
   import TttsStrategyMessages._
 

@@ -20,6 +20,9 @@ object KafkaServicesTopicConsumerActor {
 //    def genString(o: AnyRef): String = o.getClass.getName
 //    override def getClazz(o: AnyRef): Class[_] = o.getClass
 //  }
+  sealed trait KafkaServicesTopicConsumerActorMessage
+  case object StopMessage extends KafkaServicesTopicConsumerActorMessage
+  
 }
 
 
@@ -38,7 +41,6 @@ object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
 class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: String) extends Actor with ActorLogging {
   
 	import KafkaServicesTopicConsumerActor._
-	import StrategyActor._
 	import KafkaServicesTopicConsumerActorJsonProtocol._
 	import TttsStrategyMessages._
 	

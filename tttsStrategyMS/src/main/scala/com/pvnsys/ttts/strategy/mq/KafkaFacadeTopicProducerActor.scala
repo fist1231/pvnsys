@@ -11,6 +11,8 @@ import spray.json._
 
 
 object KafkaFacadeTopicProducerActor {
+  sealed trait KafkaFacadeTopicProducerActorMessage
+  case object StopMessage extends KafkaFacadeTopicProducerActorMessage
 }
 
 object KafkaFacadeTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
@@ -28,7 +30,7 @@ object KafkaFacadeTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
 class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
 
   import KafkaFacadeTopicProducerActor._
-  import StrategyActor._
+//  import StrategyActor._
   import KafkaFacadeTopicProducerActorJsonProtocol._
   import TttsStrategyMessages._
   
