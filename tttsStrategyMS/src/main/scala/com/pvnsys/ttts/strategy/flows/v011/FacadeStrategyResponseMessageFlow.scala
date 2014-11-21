@@ -22,18 +22,15 @@ object FacadeStrategyResponseMessageFlow extends LazyLogging {
 }
 
 
-class FacadeStrategyResponseMessageFlow(servicesStrategyRequestFlowSource: Source[TttsStrategyMessage], facadeStrategyRequestFlowSink: Sink[TttsStrategyMessage], serviceUniqueID: String)(implicit factory: ActorSystem) extends StrategyServiceFlow with LazyLogging {
+class FacadeStrategyResponseMessageFlow(source: Source[TttsStrategyMessage], sink: Sink[TttsStrategyMessage], serviceUniqueID: String)(implicit factory: ActorSystem) extends StrategyServiceFlow with LazyLogging {
   
 	import FacadeStrategyResponseMessageFlow._
 	import TttsStrategyMessages._
 
-//	implicit val executor = context.dispatcher
     implicit val materializer = FlowMaterializer()
-	
-	
   	
 	override def startFlow() = {
-		servicesStrategyRequestFlowSource.
+		source.
 	    map { msg =>
 	      val messageType = msg match {
 	        case x: ResponseFeedFacadeTopicMessage => x.msgType 
@@ -87,7 +84,7 @@ class FacadeStrategyResponseMessageFlow(servicesStrategyRequestFlowSource: Sourc
 		map { msg =>
             logger.debug("*******>> Step 4: Strategy FacadeStrategyResponseMessageFlow passing message through: {}", msg)
 	        msg
-		}.runWith(facadeStrategyRequestFlowSink)
+		}.runWith(sink)
 	}
   	
 

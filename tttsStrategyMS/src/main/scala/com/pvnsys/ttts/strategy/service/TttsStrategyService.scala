@@ -1,41 +1,19 @@
 package com.pvnsys.ttts.strategy.service
 
-import akka.actor.{Actor, ActorLogging, ActorContext, Props, OneForOneStrategy, AllForOneStrategy, PoisonPill}
+import akka.actor.{Actor, ActorLogging, Props, OneForOneStrategy, AllForOneStrategy, ActorRef, ActorSystem}
 import akka.actor.SupervisorStrategy.{Restart, Stop, Escalate}
-//import akka.util.Timeout
-//import akka.stream.scaladsl.Flow
-//import scala.concurrent.duration._
-import com.pvnsys.ttts.strategy.mq.KafkaFacadeTopicConsumerActor
+import com.pvnsys.ttts.strategy.mq.{KafkaFacadeTopicConsumerActor, KafkaFacadeTopicProducerActor, KafkaServicesTopicProducerActor}
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
-//import spray.json._
 import com.pvnsys.ttts.strategy.mq.{KafkaFacadeTopicConsumerActor, KafkaServicesTopicConsumerActor}
-import com.pvnsys.ttts.strategy.generator.StrategyService
-import akka.actor.ActorRef
 import com.pvnsys.ttts.strategy.util.Utils
 import com.pvnsys.ttts.strategy.db.KdbActor
 import akka.stream.FlowMaterializer
-//import akka.stream.MaterializerSettings
-import akka.actor.ActorSystem
-import com.pvnsys.ttts.strategy.flows.pub.FacadePublisherActor
-import com.pvnsys.ttts.strategy.flows.pub.ServicesPublisherActor
-import com.pvnsys.ttts.strategy.mq.KafkaFacadeTopicProducerActor
-import com.pvnsys.ttts.strategy.flow.sub.FacadeSubscriberActor
-import com.pvnsys.ttts.strategy.mq.KafkaServicesTopicProducerActor
-import com.pvnsys.ttts.strategy.flow.sub.ServicesSubscriberActor
-import akka.stream.actor.ActorPublisher
+import com.pvnsys.ttts.strategy.flows.pub.{FacadePublisherActor, ServicesPublisherActor}
+import com.pvnsys.ttts.strategy.flow.sub.{FacadeSubscriberActor, ServicesSubscriberActor}
+import akka.stream.actor.{ActorSubscriber, ActorPublisher}
 import org.reactivestreams.Publisher
-import akka.stream.scaladsl.Source
-//import akka.stream.javadsl.FlowGraph
-//import akka.stream.scaladsl.FlowGraphImplicits
-//import akka.stream.scaladsl.PartialFlowGraph
-//import akka.stream.scaladsl.FlowGraphBuilder
-import akka.stream.FlowMaterializer
-//import akka.stream.MaterializerSettings
-//import akka.stream.javadsl.Broadcast
-import akka.stream.scaladsl.Sink
-import akka.stream.actor.ActorSubscriber
-//import com.pvnsys.ttts.strategy.impl.AbxStrategyImpl
+import akka.stream.scaladsl.{Source, Sink}
 import com.pvnsys.ttts.strategy.flows.v011.{FacadeStrategyRequestMessageFlow, ServicesStrategyRequestMessageFlow, ServicesStrategyResponseMessageFlow, FacadeStrategyResponseMessageFlow}
 
 
@@ -61,234 +39,87 @@ class TttsStrategyService extends Actor with ActorLogging {
 
 		implicit val executor = context.dispatcher
 	    implicit val materializer = FlowMaterializer()
-      
-      
     	implicit val factory = ActorSystem()
       
-		// Start kdb database server
+		/*
+		 * 1. Start kdb database server
+		 */
 		val kdbActor = context.actorOf(KdbActor.props(serviceUniqueID), "kdbActor")
 		kdbActor ! StartKdbMessage
-      
-//		val strategyFacadeActor = context.actorOf(Props(classOf[StrategyActor]), "strategyFacadeConsumer")
-//		
-//		
-//		
-//		// Start Kafka consumer actor for incoming messages from Facade Topic
-//		val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(strategyFacadeActor, serviceUniqueID), "strategyKafkaFacadeConsumer")
-//		kafkaFacadeTopicConsumerActor ! StartListeningFacadeTopicMessage
-//		
-//		val strategyServicesActor = context.actorOf(Props(classOf[StrategyActor]), "strategyServicesConsumer")
-//		
-//		// Start Kafka consumer actor for incoming messages from Services Topic
-//		val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(strategyServicesActor, serviceUniqueID), "strategyKafkaServicesConsumer")
-//		kafkaServicesTopicConsumerActor ! StartListeningServicesTopicMessage
+ 		
+		/*
+		 * 2. Start Kafka Facade Topic Producer
+		 */
+		val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
+		
+		/*
+		 * 3. Start Kafka Services Topic Producer
+		 */
+		val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
 
+		/*
+		 * 4. Prepare Sources and Sinks for the Flows
+		 */
+		// Prepare Source and Sink for Flow 1: Facade STRATEGY_REQ/STRATEGY_STOP_REQ ~> Services FEED_REQ/FEED_STOP_REQ
+		val facadeMessagesProducerActor = FacadePublisherActor(factory) // Create Publisher Actor that consumes messages received by KafkaFacadeTopicConsumerActor
+		val facadeStrategyRequestMessagesProducer: Publisher[TttsStrategyMessage] = ActorPublisher[TttsStrategyMessage](facadeMessagesProducerActor) // Create ActprPublisher from Publisher actor
+		val facadeStrategyRequestFlowSource = Source(facadeStrategyRequestMessagesProducer)
 		
+		val facadeStrategyRequestMessagesConsumerActor = ServicesSubscriberActor(factory, serviceUniqueID, kafkaServicesTopicProducerActor) // Create Subscriber Actor that sends messages to KafkaServicesTopicProducerActor
+		val facadeStrategyRequestMessagesConsumer = ActorSubscriber[TttsStrategyMessage](facadeStrategyRequestMessagesConsumerActor) // Create ActorSubscriber from Subscriber actor
+		val facadeStrategyRequestFlowSink = Sink(facadeStrategyRequestMessagesConsumer) // Create Flow Sink
 		
-		// Create Producer Actor that consumes messages received by KafkaFacadeTopicConsumerActor
-		val facadeMessagesProducerActor = FacadePublisherActor(factory)
-		// Create ActprPublisher from producer actor
-		val facadeMessagesProducer: Publisher[TttsStrategyMessage] = ActorPublisher[TttsStrategyMessage](facadeMessagesProducerActor)
-		// Link producer actor to kafka facade consumer actor
+		// Start listening to Kafka Facade Topic
 		val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(facadeMessagesProducerActor, serviceUniqueID), "strategyKafkaFacadeConsumer")
 		kafkaFacadeTopicConsumerActor ! StartListeningFacadeTopicMessage
 		
-		
+		// Prepare Source and Sink for Flow 2: Services STRATEGY_REQ/STRATEGY_STOP_REQ ~> Services FEED_REQ/FEED_STOP_REQ
 		val servicesMessagesProducerActor = ServicesPublisherActor(factory)
-		val servicesMessagesProducer: Publisher[TttsStrategyMessage] = ActorPublisher[TttsStrategyMessage](servicesMessagesProducerActor)
-		val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(servicesMessagesProducerActor, serviceUniqueID), "strategyKafkaServicesConsumer")
-		kafkaServicesTopicConsumerActor ! StartListeningServicesTopicMessage
-
+		val servicesStrategyRequestMessagesProducer: Publisher[TttsStrategyMessage] = ActorPublisher[TttsStrategyMessage](servicesMessagesProducerActor)
+		val servicesStrategyRequestFlowSource = Source(servicesStrategyRequestMessagesProducer)
 		
-		// Create Subscriber Actor that sends messages to KafkaFacadeTopicProducerActor 
-		val kafkaFacadeTopicProducerActor = context.actorOf(Props(classOf[KafkaFacadeTopicProducerActor]))
-		val facadeMessagesConsumer = FacadeSubscriberActor(factory, serviceUniqueID, kafkaFacadeTopicProducerActor)
-		
-		// Create Subscriber Actor that sends messages to KafkaServicesTopicProducerActor 
-		val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
 		val servicesMessagesConsumerActor = ServicesSubscriberActor(factory, serviceUniqueID, kafkaServicesTopicProducerActor)
-		val servicesMessagesConsumer = ActorSubscriber[TttsStrategyMessage](servicesMessagesConsumerActor)
-		
-		// Wire the Flows
-		
-		val facadeStrategyRequestFlowSource = Source(facadeMessagesProducer)
-		val servicesStrategyRequestFlowSource = Source(servicesMessagesProducer)
-		val facadeStrategyRequestFlowSink = Sink(facadeMessagesConsumer)
-		val servicesStrategyRequestFlowSink = Sink(servicesMessagesConsumer)
-		
-		
-		
-//		val facadeStrategyRequestFlow = Flow[TttsStrategyMessage].
-//		map {
-//			StrategyService.convertServicesMessage
-//		}.runWith(facadeStrategyRequestFlowSource, facadeStrategyRequestFlowSink)
-		
-//		val facadeStrategyRequestFlow = Flow[TttsStrategyMessage].
-		
-/*		
-		facadeStrategyRequestFlowSource.
-	    map { msg =>
-	      val messageType = msg match {
-	        case x: RequestStrategyFacadeTopicMessage => x.msgType 
-	        case x: RequestStrategyServicesTopicMessage => x.msgType 
-	        case x: ResponseFeedFacadeTopicMessage => x.msgType 
-	        case x: ResponseFeedServicesTopicMessage => x.msgType 
-	        case _ => "UNKNOWN"
-	      }
-	      log.debug("*******>> Step 0: StrategyMS ServicesMessageFlow Initialized. Received Message Type is: {}", messageType)
-	      msg
-	    }.
-	    
-	    map { msg =>
-	      	  
-	          log.debug("*******>> Step 1: Strategy ServicesMessageFlow Creating schema for first Feed Response message {}", msg)
-		      msg match {
-		        case x: RequestStrategyFacadeTopicMessage => // Nothing for Strategy messages 
-		        case x: RequestStrategyServicesTopicMessage => // Nothing for Strategy messages 
-		        case x: ResponseFeedFacadeTopicMessage => {
-		          x.sequenceNum match {
-		            case "1" => new AbxStrategyImpl(context).createSchema(serviceUniqueID, msg)
-		            case _ => // Do nothing
-		          }
- 
-		        }
-		        case x: ResponseFeedServicesTopicMessage => {
-		          x.sequenceNum match {
-		            case "1" => new AbxStrategyImpl(context).createSchema(serviceUniqueID, msg)
-		            case _ => // Do nothing
-		          }
- 
-		        }
-		        case _ => "UNKNOWN"
-		      }
-	          msg
-	          
-	    }.
+		val servicesStrategyRequestMessagesConsumer = ActorSubscriber[TttsStrategyMessage](servicesMessagesConsumerActor)
+		val servicesStrategyRequestFlowSink = Sink(servicesStrategyRequestMessagesConsumer)
 
-	    map { msg =>
-	      	  
-	          log.debug("*******>> Step 2: Strategy ServicesMessageFlow Write quotes feed data to db {}", msg)
-		      msg match {
-		        case x: RequestStrategyFacadeTopicMessage => // Nothing for Strategy messages 
-		        case x: RequestStrategyServicesTopicMessage => // Nothing for Strategy messages 
-		        case x: ResponseFeedFacadeTopicMessage => {
-		            new AbxStrategyImpl(context).writeQuotesData(serviceUniqueID, msg)
-		        }
-		        case x: ResponseFeedServicesTopicMessage => {
-		            new AbxStrategyImpl(context).writeQuotesData(serviceUniqueID, msg)
-		        }
-		        case _ => "UNKNOWN"
-		      }
-	          msg
-	          
-	    }.
+		// Prepare Source and Sink for Flow 3: Services FEED_RESPONSE intended for Facade Topic ~> Facade STRATEGY_RESPONSE
+		val facadeStrategyResponseServicesMessagesProducerActor = ServicesPublisherActor(factory)
+		val facadeStrategyResponseServicesMessagesProducer: Publisher[TttsStrategyMessage] = ActorPublisher[TttsStrategyMessage](facadeStrategyResponseServicesMessagesProducerActor)
+		val facadeStrategyResponseFlowSource = Source(facadeStrategyResponseServicesMessagesProducer)
+		
+		val facadeStrategyResponseMessagesConsumerActor = FacadeSubscriberActor(factory, serviceUniqueID, kafkaFacadeTopicProducerActor)
+		val facadeStrategyResponseMessagesConsumer = ActorSubscriber[TttsStrategyMessage](facadeStrategyResponseMessagesConsumerActor)
+		val facadeStrategyResponseFlowFlowSink = Sink(facadeStrategyResponseMessagesConsumer)
+		
+		// Prepare Source and Sink for Flow 4: Services FEED_RESPONSE intended for Services Topic ~> Services STRATEGY_RESPONSE
+		val servicesStrategyResponseServicesMessagesProducerActor = ServicesPublisherActor(factory)
+		val servicesStrategyResponseServicesMessagesProducer: Publisher[TttsStrategyMessage] = ActorPublisher[TttsStrategyMessage](servicesStrategyResponseServicesMessagesProducerActor)
+		val servicesStrategyResponseFlowSource = Source(servicesStrategyResponseServicesMessagesProducer)
 
-	    map { msg =>
-	      	  
-	          log.debug("*******>> Step 3: Strategy ServicesMessageFlow Apply strategy logic to the quotes feed {}", msg)
-		      val outp = msg match {
-		        case x: RequestStrategyFacadeTopicMessage => msg 
-		        case x: RequestStrategyServicesTopicMessage => msg
-		        case x: ResponseFeedFacadeTopicMessage => {
-		            new AbxStrategyImpl(context).applyStrategy(serviceUniqueID, msg)
-		        }
-		        case x: ResponseFeedServicesTopicMessage => {
-		            new AbxStrategyImpl(context).applyStrategy(serviceUniqueID, msg)
-		        }
-		        case _ => msg
-		      }
-	          outp
-	    }.
-		map {
-			StrategyService.convertServicesMessage
-		}.groupBy {
-	      // Splits stream of Messages by message type and returns map(String -> org.reactivestreams.api.Producer[TttsStrategyMessage]) 
-//	      case msg: ResponseFeedFacadeTopicMessage => "FeedFacade"
-//	      case msg: ResponseFeedServicesTopicMessage => "FeedServices"
-	      case msg: RequestStrategyFacadeTopicMessage => "StrategyFacade"
-	      case msg: RequestStrategyServicesTopicMessage => "StrategyServices"
-	      case msg: ResponseStrategyFacadeTopicMessage => {
-	        log.debug("*******>> Step 5: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyFacadeTopicMessage")
-	        "StrategyFacadeResponse"
-	      }
-	      case msg: ResponseStrategyServicesTopicMessage => {
-	        log.debug("*******>> Step 5: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyServicesTopicMessage")
-	        "StrategyServicesResponse"
-	      }
-	      case _ => "Garbage"
-		}.
-		map {
-		  case (str, producer) => 
-		    str match {
-//		    	case "FeedFacade" => Flow[TttsStrategyMessage].runWith(facadeStrategyRequestFlowSource, facadeStrategyRequestFlowSink)
-//		    	case "FeedServices" => Flow[TttsStrategyMessage].runWith(facadeStrategyRequestFlowSource, facadeStrategyRequestFlowSink)
-		    	case "StrategyFacade" => Flow[TttsStrategyMessage]
-		    	case "StrategyServices" => Flow[TttsStrategyMessage].runWith(servicesStrategyRequestFlowSource, servicesStrategyRequestFlowSink)
-		        
-		    	case "StrategyFacadeResponse" => Flow[TttsStrategyMessage].runWith(servicesStrategyRequestFlowSource, facadeStrategyRequestFlowSink)
-		    	case "StrategyServicesResponse" => Flow[TttsStrategyMessage].runWith(servicesStrategyRequestFlowSource, servicesStrategyRequestFlowSink)
-		      
-		    }
-		}.runWith(servicesMessagesConsumerActor)
-		
-        log.debug("*******>> Step 6: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyFacadeTopicMessage")
-*/
-		
-		
-		new FacadeStrategyRequestMessageFlow(facadeStrategyRequestFlowSource, servicesStrategyRequestFlowSink).startFlow	
-//		new ServicesStrategyRequestMessageFlow(servicesStrategyRequestFlowSource, servicesStrategyRequestFlowSink).startFlow	
-//		new FacadeStrategyResponseMessageFlow(servicesStrategyRequestFlowSource, facadeStrategyRequestFlowSink, serviceUniqueID).startFlow	
-//		new ServicesStrategyResponseMessageFlow(servicesStrategyRequestFlowSource, servicesStrategyRequestFlowSink, serviceUniqueID).startFlow	
-		new ServicesStrategyRequestMessageFlow(servicesStrategyRequestFlowSource, facadeStrategyRequestFlowSink, servicesStrategyRequestFlowSink, serviceUniqueID).startFlow	
-		
-//        log.debug("*******>> Step 6: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyFacadeTopicMessage")		
+		val servicesStrategyResponseMessagesConsumerActor = ServicesSubscriberActor(factory, serviceUniqueID, kafkaServicesTopicProducerActor)
+		val servicesStrategyResponseMessagesConsumer = ActorSubscriber[TttsStrategyMessage](servicesStrategyResponseMessagesConsumerActor)
+		val servicesStrategyResponseFlowSink = Sink(servicesStrategyResponseMessagesConsumer)
 
-		
-//		Flow.with
-		
-//		facadeStrategyRequestFlow.
-//		map{msg=>
-//		  msg
-//    	}.
-//    	groupBy {
-//    	  case msg: TttsStrategyMessage => "Outloop"
-//    	}.
-//    	produceTo(servicesMessagesConsumer)
-
-    // send primes to both slow file sink and console sink using graph API
-		
-//		Flow {
-//    	  facadeMessagesProducer ~> servicesMessagesConsumer
-//    	}
-		
-		
-//		val f1 = FlowFrom[TttsStrategyMessage].map(_.)
-//		
-//    val materialized = FlowGraph { implicit builder =>
-//      import FlowGraphImplicits._
-//      val broadcast = Broadcast[Int] // the splitter - like a Unix tee
-//      facadeMessagesProducer ~> servicesMessagesConsumer // connect primes to splitter, and one side to file
-////      broadcast ~> consoleSink // connect other side of splitter to console
-//    }.run()
+		/*
+		 * 5. Start listening to Kafka Services Topic
+		 */
+		val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(servicesMessagesProducerActor, facadeStrategyResponseServicesMessagesProducerActor, servicesStrategyResponseServicesMessagesProducerActor, serviceUniqueID), "strategyKafkaServicesConsumer")
+		kafkaServicesTopicConsumerActor ! StartListeningServicesTopicMessage
 		
 		/*
-		 * Start Facade topic message flow:
-		 * 
-		 * Kafka MQ ==> 
-		 * ==> (FacadeTopicMessage from FacadeMS) ==> 
-		 * ==> KafkeFacadeTopicConsumer ==> 
-		 * ==> Processing Duct[RequestStrategyFacadeTopicMessage, Producer]: 1.Logs message; 2.Logs client; 3.Converts message; 4.Creates Producer ==> 
-		 * ==> Flow(Producer) ==> 
-		 * ==> Publishing Duct: 1.Each message starts feed generator. 2.Each Feed generator's message published to Kafka.
-		 * (Duct[RequestFeedFacadeTopicMessage, Unit]) ==> KafkaFacadeTopicProducer ==> 
-		 * ==> (ResponseFeedFacadeTopicMessage from FeeddMS) ==> 
-		 * ==> Kafka MQ
-		 *   
+		 * 6. Wire the Flows
 		 */
-//		new FacadeMessageFlow(strategyFacadeActor, serviceUniqueID).startFlow
+		// Start Flow 1: Facade STRATEGY_REQ/STRATEGY_STOP_REQ ~> Services FEED_REQ/FEED_STOP_REQ
+		new FacadeStrategyRequestMessageFlow(facadeStrategyRequestFlowSource, facadeStrategyRequestFlowSink).startFlow
+		
+		// Start Flow 2: Services STRATEGY_REQ/STRATEGY_STOP_REQ ~> Services FEED_REQ/FEED_STOP_REQ
+		new ServicesStrategyRequestMessageFlow(servicesStrategyRequestFlowSource, servicesStrategyRequestFlowSink).startFlow	
 
-		// Start Services topic message flow
-//		new ServicesMessageFlow(strategyServicesActor, serviceUniqueID).startFlow
+		// Start Flow 3: Services FEED_RESPONSE intended for Facade Topic ~> Facade STRATEGY_RESPONSE
+		new FacadeStrategyResponseMessageFlow(facadeStrategyResponseFlowSource, facadeStrategyResponseFlowFlowSink, serviceUniqueID).startFlow	
+
+		// Start Flow 4: Services FEED_RESPONSE intended for Services Topic ~> Services STRATEGY_RESPONSE
+		new ServicesStrategyResponseMessageFlow(servicesStrategyResponseFlowSource, servicesStrategyResponseFlowSink, serviceUniqueID).startFlow	
 
     }
   
@@ -297,54 +128,7 @@ class TttsStrategyService extends Actor with ActorLogging {
 		case StopStrategyServiceMessage => {
 			log.debug("TttsStrategyService StopMessage")
 		}
-		case msg: StartBPStrategyServiceMessage => {
-		  val client = sender
-		  startNewFlow(client, msg.actor)
-		}
 		case _ => log.error("TttsStrategyService Received unknown message")
 	}
 	
-	
-    private def startNewFlow(client: ActorRef, consumerActor: ActorRef) = {
-
-		// Start kdb database server
-//		val kdbActor = context.actorOf(KdbActor.props(serviceUniqueID), "kdbActor")
-//		kdbActor ! StartKdbMessage
-      
-//		val strategyFacadeActor = context.actorOf(Props(classOf[StrategyActor]), "strategyFacadeConsumer")
-//		
-//		// Start Kafka consumer actor for incoming messages from Facade Topic
-//		val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(strategyFacadeActor, serviceUniqueID), "strategyKafkaFacadeConsumer")
-//		kafkaFacadeTopicConsumerActor ! StartListeningFacadeTopicMessage
-		
-//		val strategyServicesActor = context.actorOf(Props(classOf[StrategyActor]), "strategyServicesConsumer")
-		
-		// Start Kafka consumer actor for incoming messages from Services Topic
-//		val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(consumerActor, serviceUniqueID), "strategyKafkaServicesConsumer")
-//		kafkaServicesTopicConsumerActor ! StartListeningServicesTopicMessage
-
-		
-		/*
-		 * Start Facade topic message flow:
-		 * 
-		 * Kafka MQ ==> 
-		 * ==> (FacadeTopicMessage from FacadeMS) ==> 
-		 * ==> KafkeFacadeTopicConsumer ==> 
-		 * ==> Processing Duct[RequestStrategyFacadeTopicMessage, Producer]: 1.Logs message; 2.Logs client; 3.Converts message; 4.Creates Producer ==> 
-		 * ==> Flow(Producer) ==> 
-		 * ==> Publishing Duct: 1.Each message starts feed generator. 2.Each Feed generator's message published to Kafka.
-		 * (Duct[RequestFeedFacadeTopicMessage, Unit]) ==> KafkaFacadeTopicProducer ==> 
-		 * ==> (ResponseFeedFacadeTopicMessage from FeeddMS) ==> 
-		 * ==> Kafka MQ
-		 *   
-		 */
-//		new FacadeMessageFlow(strategyFacadeActor, serviceUniqueID).startFlow
-
-		// Start Services topic message flow
-//		new ServicesMessageFlow(consumerActor, serviceUniqueID).startFlow
-		client ! ProducerConfirmationMessage
-
-    }
-	
-  
 }

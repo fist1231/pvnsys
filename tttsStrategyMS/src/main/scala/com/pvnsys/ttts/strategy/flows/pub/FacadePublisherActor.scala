@@ -37,33 +37,6 @@ private class FacadePublisherActor extends PublisherActor {
 		        //requeue the message
 		        //message ordering might not be preserved
 		      }
-//		case msg: RequestStrategyServicesTopicMessage => 
-//			  log.debug(s"ServicesPublisherActor, Gettin RequestStrategyServicesTopicMessage: {} - {}", msg.client, msg.msgType)
-//		      if (isActive && totalDemand > 0) {
-//		        onNext(msg)
-//		      } else {
-//		        //requeue the message
-//		        //message ordering might not be preserved
-//		      }
-//		case msg: ResponseFeedServicesTopicMessage => 
-//			  log.debug(s"ServicesPublisherActor, Gettin ResponseFeedServicesTopicMessage: {} - {}", msg.client, msg.msgType)
-//		      if (isActive && totalDemand > 0) {
-//		        onNext(msg)
-//		      } else {
-//		        //requeue the message
-//		        //message ordering might not be preserved
-//		      }
-//			  
-//		case msg: ResponseFeedFacadeTopicMessage => 
-//			  log.debug(s"ServicesPublisherActor, Gettin ResponseFeedFacadeTopicMessage: {} - {}", msg.client, msg.msgType)
-//		      if (isActive && totalDemand > 0) {
-//		        onNext(msg)
-//		      } else {
-//		        //requeue the message
-//		        //message ordering might not be preserved
-//		      }
-	
-	
 		case StopMessage => {
 			log.debug("FacadePublisherActor StopMessage")
 		}

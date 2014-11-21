@@ -11,17 +11,9 @@ import akka.stream.actor.OneByOneRequestStrategy
 
 
 object FacadeSubscriberActor {
-  
   import TttsStrategyMessages._
-  
-//  def props(serviceId: String, kafkaFacadePublisher: ActorRef) = Props(new FacadeSubscriberActor(serviceId, kafkaFacadePublisher))
-  
   def make(factory: ActorRefFactory, serviceId: String, kafkaFacadePublisher: ActorRef): ActorRef = factory.actorOf(Props(new FacadeSubscriberActor(serviceId, kafkaFacadePublisher)))
-  def apply(factory: ActorRefFactory, serviceId: String, kafkaFacadePublisher: ActorRef): Subscriber[TttsStrategyMessage] = ActorSubscriber[TttsStrategyMessage](make(factory, serviceId, kafkaFacadePublisher))
-  
-//  sealed trait StrategyMessage
-//  case object StopMessage extends StrategyMessage
-
+  def apply(factory: ActorRefFactory, serviceId: String, kafkaFacadePublisher: ActorRef): ActorRef = make(factory, serviceId, kafkaFacadePublisher)
 }
 
 
@@ -55,12 +47,6 @@ private class FacadeSubscriberActor(serviceId: String, kafkaFacadePublisher: Act
 				  log.debug("FacadeSubscriberActor, Gettin ResponseStrategyFacadeTopicMessage: {}", msg)
 				  kafkaFacadePublisher ! msg
 //				  inFlight += 1
-
-//			case msg: ResponseFeedFacadeTopicMessage => 
-//				  log.debug("FacadeSubscriberActor, Gettin ResponseFeedFacadeTopicMessage: {}", msg)
-//				  kafkaFacadePublisher ! msg
-////				  inFlight += 1
-
 			case _ => // Do nothing
 		   } 
 		  

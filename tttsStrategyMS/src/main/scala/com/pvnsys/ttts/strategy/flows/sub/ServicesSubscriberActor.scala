@@ -13,23 +13,15 @@ import akka.stream.actor.OneByOneRequestStrategy
 
 
 object ServicesSubscriberActor {
-//  def props(serviceId: String, kafkaServicesPublisher: ActorRef) = Props(new ServicesSubscriberActor(serviceId, kafkaServicesPublisher))
-//  sealed trait StrategyMessage
-//  case object StopMessage extends StrategyMessage
   import TttsStrategyMessages._
-
 //  def make(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): ActorRef = factory.actorOf(Props(new ServicesSubscriberActor(serviceId, kafkaServicesPublisher)))
 //  def apply(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): Subscriber[TttsStrategyMessage] = ActorSubscriber[TttsStrategyMessage](make(factory, serviceId, kafkaServicesPublisher))
   def make(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): ActorRef = factory.actorOf(Props(new ServicesSubscriberActor(serviceId, kafkaServicesPublisher)))
   def apply(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): ActorRef = make(factory, serviceId, kafkaServicesPublisher)
-  
 }
 
 private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher: ActorRef) extends SubscriberActor {
-//  import ServicesSubscriberActor._
   import TttsStrategyMessages._
-//  import FacadeSubscriberActorJsonProtocol._
-
   
   private var inFlight = 0
   
@@ -41,11 +33,11 @@ private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher:
   
 //  override protected def requestStrategy = new WatermarkRequestStrategy(1, 1) 
   
-  override protected def requestStrategy = new MaxInFlightRequestStrategy(1) {
-//	  override def batchSize = 1
-	  override def inFlightInternally = inFlight
-  }
-//  override protected def requestStrategy = OneByOneRequestStrategy
+//  override protected def requestStrategy = new MaxInFlightRequestStrategy(1) {
+////	  override def batchSize = 1
+//	  override def inFlightInternally = inFlight
+//  }
+  override protected def requestStrategy = OneByOneRequestStrategy
  
  
 	override def receive = {
@@ -82,7 +74,7 @@ private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher:
 		}	  
 
 		case ProducerConfirmationMessage => {
-		  inFlight -= 1	
+//		  inFlight -= 1	
 		  log.debug("############################### ServicesSubscriberActor ProducerConfirmationMessage, inFlight = {}", inFlight)
 		}
 		

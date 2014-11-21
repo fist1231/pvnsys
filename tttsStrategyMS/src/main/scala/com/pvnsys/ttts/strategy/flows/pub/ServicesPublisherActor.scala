@@ -29,14 +29,6 @@ private class ServicesPublisherActor extends PublisherActor {
   
 	override def receive = {
 
-//		case msg: RequestStrategyFacadeTopicMessage => 
-//			  log.debug(s"ServicesPublisherActor, Gettin RequestStrategyFacadeTopicMessage: {} - {}", msg.client, msg.msgType)
-//		      if (isActive && totalDemand > 0) {
-//		        onNext(msg)
-//		      } else {
-//		        //requeue the message
-//		        //message ordering might not be preserved
-//		      }
 		case msg: RequestStrategyServicesTopicMessage => 
 			  log.debug(s"ServicesPublisherActor, Gettin RequestStrategyServicesTopicMessage: {}", msg)
 		      if (isActive && totalDemand > 0) {

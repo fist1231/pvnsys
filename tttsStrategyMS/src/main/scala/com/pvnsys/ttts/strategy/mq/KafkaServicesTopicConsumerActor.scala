@@ -14,7 +14,7 @@ import scala.collection.mutable.Map
 
 
 object KafkaServicesTopicConsumerActor {
-  def props(processorActorRef: ActorRef, serviceId: String) = Props(new KafkaServicesTopicConsumerActor(processorActorRef, serviceId))
+  def props(processorActorRef: ActorRef, facadeResponseProcessorActorRef: ActorRef, servicesResponseProcessorActorRef: ActorRef, serviceId: String) = Props(new KafkaServicesTopicConsumerActor(processorActorRef, facadeResponseProcessorActorRef, servicesResponseProcessorActorRef, serviceId))
 
 //  implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {
 //    def genString(o: AnyRef): String = o.getClass.getName
@@ -38,7 +38,7 @@ object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
 /**
  * This actor will register itself to consume messages from the AkkaMQ server. 
  */
-class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: String) extends Actor with ActorLogging {
+class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, facadeResponseProcessorActorRef: ActorRef, servicesResponseProcessorActorRef: ActorRef, serviceId: String) extends Actor with ActorLogging {
   
 	import KafkaServicesTopicConsumerActor._
 	import KafkaServicesTopicConsumerActorJsonProtocol._
@@ -59,7 +59,17 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 		        processorActorRef ! message
 		    }
 		}
-		register(consumer)
+		val facadeResponseConsumer = new DefaultKafkaConsumer {
+		    override def handleDelivery(message: TttsStrategyMessage) = {
+		        facadeResponseProcessorActorRef ! message
+		    }
+		}
+		val servicesResponseConsumer = new DefaultKafkaConsumer {
+		    override def handleDelivery(message: TttsStrategyMessage) = {
+		        servicesResponseProcessorActorRef ! message
+		    }
+		}
+		register(consumer, facadeResponseConsumer, servicesResponseConsumer)
 	}
 
 	
@@ -77,7 +87,7 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 	}
 	
 	
-	private def register(consumer: DefaultKafkaConsumer): Unit = {
+	private def register(consumer: DefaultKafkaConsumer, facadeResponseConsumer: DefaultKafkaConsumer, servicesResponseConsumer: DefaultKafkaConsumer): Unit = {
 
 	    val topic = Configuration.servicesTopic 
 		val groupId = Configuration.servicesGroupId 
@@ -144,10 +154,10 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 				        	    val callerServiceId = clients(responseServicesMessage.client).asInstanceOf[RequestStrategyServicesTopicMessage].serviceId
 				        	    log.debug("!!!!!!!!!!!!!! reassigning FEED serviceId {} to original serviceID {}", responseServicesMessage.serviceId, callerServiceId)
 				        	    val reassignedResponseServiceMessage = ResponseFeedServicesTopicMessage(responseServicesMessage.id, responseServicesMessage.msgType, responseServicesMessage.client, responseServicesMessage.payload, responseServicesMessage.timestamp, responseServicesMessage.sequenceNum, callerServiceId)
-		        				consumer.handleDelivery(reassignedResponseServiceMessage)
+		        				servicesResponseConsumer.handleDelivery(reassignedResponseServiceMessage)
 		        			} else {
 		        				val responseServicesMessage = msgJsonObj.convertTo[ResponseFeedFacadeTopicMessage]
-		        				consumer.handleDelivery(responseServicesMessage)
+		        				facadeResponseConsumer.handleDelivery(responseServicesMessage)
 		        			}
 			        	}
 				      }
