@@ -28,7 +28,7 @@ object FacadeSubscriberActor {
 private class FacadeSubscriberActor(serviceId: String, kafkaFacadePublisher: ActorRef) extends SubscriberActor {
   import TttsStrategyMessages._
   
-  private var inFlight = 0
+//  private var inFlight = 0
   
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
@@ -38,7 +38,7 @@ private class FacadeSubscriberActor(serviceId: String, kafkaFacadePublisher: Act
   
 //  override protected def requestStrategy = new WatermarkRequestStrategy(1, 1) 
   
-//  override protected def requestStrategy = new MaxInFlightRequestStrategy(1) {
+//  override protected def requestStrategy = new MaxInFlightRequestStrategy(2) {
 //	  override def batchSize = 1
 //	  override def inFlightInternally = inFlight
 //  }
@@ -56,21 +56,21 @@ private class FacadeSubscriberActor(serviceId: String, kafkaFacadePublisher: Act
 				  kafkaFacadePublisher ! msg
 //				  inFlight += 1
 
-			case msg: ResponseFeedFacadeTopicMessage => 
-				  log.debug("FacadeSubscriberActor, Gettin ResponseFeedFacadeTopicMessage: {}", msg)
-				  kafkaFacadePublisher ! msg
-//				  inFlight += 1
+//			case msg: ResponseFeedFacadeTopicMessage => 
+//				  log.debug("FacadeSubscriberActor, Gettin ResponseFeedFacadeTopicMessage: {}", msg)
+//				  kafkaFacadePublisher ! msg
+////				  inFlight += 1
 
 			case _ => // Do nothing
 		   } 
 		  
-		   log.debug("############################### FacadeSubscriberActor OnNext, inFlight = {}", inFlight)
+		   log.debug("############################### FacadeSubscriberActor OnNext, msg = {}", mesg)
 			  
 		}	  
 
 		case ProducerConfirmationMessage => {
 //		  inFlight -= 1	
-		  log.debug("############################### FacadeSubscriberActor ProducerConfirmationMessage, inFlight = {}", inFlight)
+		  log.debug("############################### FacadeSubscriberActor ProducerConfirmationMessage")
 		}
 		
 		case _ => log.error("FacadeSubscriberActor Received unknown message")
