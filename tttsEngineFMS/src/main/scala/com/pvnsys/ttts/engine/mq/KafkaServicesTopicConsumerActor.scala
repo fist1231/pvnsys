@@ -14,14 +14,16 @@ import scala.collection.mutable.Map
 
 
 object KafkaServicesTopicConsumerActor {
-//  def props(address: InetSocketAddress, groupName: Option[String]) = Props(new KafkaConsumerActor(address, groupName))
-  def props(processorActorRef: ActorRef, serviceId: String) = Props(new KafkaServicesTopicConsumerActor(processorActorRef, serviceId))
+  def props(processorActorRef: ActorRef, facadeResponseProcessorActorRef: ActorRef, servicesResponseProcessorActorRef: ActorRef, serviceId: String) = Props(new KafkaServicesTopicConsumerActor(processorActorRef, facadeResponseProcessorActorRef, servicesResponseProcessorActorRef, serviceId))
 
 //  implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {
 //    def genString(o: AnyRef): String = o.getClass.getName
 //    override def getClazz(o: AnyRef): Class[_] = o.getClass
 //  }
+  sealed trait KafkaServicesTopicConsumerActorMessage
+  case object StopMessage extends KafkaServicesTopicConsumerActorMessage
 }
+
 
 
 object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
@@ -36,10 +38,9 @@ object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
 /**
  * This actor will register itself to consume messages from the Kafka server. 
  */
-class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: String) extends Actor with ActorLogging {
+class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, facadeResponseProcessorActorRef: ActorRef, servicesResponseProcessorActorRef: ActorRef, serviceId: String) extends Actor with ActorLogging {
   
 	import KafkaServicesTopicConsumerActor._
-	import EngineActor._
 	import KafkaServicesTopicConsumerActorJsonProtocol._
 	import TttsEngineMessages._
 	
@@ -58,7 +59,17 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 		        processorActorRef ! message
 		    }
 		}
-		register(consumer)
+		val facadeResponseConsumer = new DefaultKafkaConsumer {
+		    override def handleDelivery(message: TttsEngineMessage) = {
+		        facadeResponseProcessorActorRef ! message
+		    }
+		}
+		val servicesResponseConsumer = new DefaultKafkaConsumer {
+		    override def handleDelivery(message: TttsEngineMessage) = {
+		        servicesResponseProcessorActorRef ! message
+		    }
+		}
+		register(consumer, facadeResponseConsumer, servicesResponseConsumer)
 	}
 
 	
@@ -76,7 +87,7 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 	}
 	
 	
-	private def register(consumer: DefaultKafkaConsumer): Unit = {
+	private def register(consumer: DefaultKafkaConsumer, facadeResponseConsumer: DefaultKafkaConsumer, servicesResponseConsumer: DefaultKafkaConsumer): Unit = {
 
 	    val topic = Configuration.servicesTopic 
 		val groupId = Configuration.servicesGroupId 
@@ -143,11 +154,10 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, serviceId: St
 				        	    val callerServiceId = clients(responseServicesMessage.client).asInstanceOf[RequestEngineServicesTopicMessage].serviceId
 				        	    log.debug("!!!!!!!!!!!!!! reassigning STRATEGY serviceId {} to original serviceID {}", responseServicesMessage.serviceId, callerServiceId)
 				        	    val reassignedResponseServiceMessage = ResponseStrategyServicesTopicMessage(responseServicesMessage.id, responseServicesMessage.msgType, responseServicesMessage.client, responseServicesMessage.payload, responseServicesMessage.timestamp, responseServicesMessage.sequenceNum, responseServicesMessage.signal, callerServiceId)
-		        				consumer.handleDelivery(reassignedResponseServiceMessage)
+		        				servicesResponseConsumer.handleDelivery(reassignedResponseServiceMessage)
 		        			} else {
-		        			    // This STRATEGY_RESP response intended for the FacadeMS
 		        				val responseServicesMessage = msgJsonObj.convertTo[ResponseStrategyFacadeTopicMessage]
-		        				consumer.handleDelivery(responseServicesMessage)
+		        				facadeResponseConsumer.handleDelivery(responseServicesMessage)
 		        			}
 			        	}
 				      }

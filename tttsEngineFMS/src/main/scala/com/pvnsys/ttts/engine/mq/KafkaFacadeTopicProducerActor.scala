@@ -11,6 +11,8 @@ import spray.json._
 
 
 object KafkaFacadeTopicProducerActor {
+  sealed trait KafkaFacadeTopicProducerActorMessage
+  case object StopMessage extends KafkaFacadeTopicProducerActorMessage
 }
 
 object KafkaFacadeTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
@@ -28,16 +30,17 @@ object KafkaFacadeTopicProducerActorJsonProtocol extends DefaultJsonProtocol {
 class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
 
   import KafkaFacadeTopicProducerActor._
-  import EngineActor._
   import KafkaFacadeTopicProducerActorJsonProtocol._
   import TttsEngineMessages._
   
-	val props = new Properties()
-	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
-	props.put("serializer.class", Configuration.serializerClassProducer)
-
-	val producer = new Producer[Integer, String](new ProducerConfig(props))
+  
+//	val props = new Properties()
+//	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
+//	props.put("serializer.class", Configuration.serializerClassProducer)
+//
+//	val producer = new Producer[Integer, String](new ProducerConfig(props))
 	
+  
   override def receive = {
     /*
      * KafkaFacadeTopicProducerActor sends out only one message type: 
@@ -57,11 +60,11 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
   
   
   def produceKafkaMsg(msg: ResponseEngineFacadeTopicMessage) = {
-//	val props = new Properties()
-//	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
-//	props.put("serializer.class", Configuration.serializerClassProducer)
-//
-//	val producer = new Producer[Integer, String](new ProducerConfig(props))
+	val props = new Properties()
+	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
+	props.put("serializer.class", Configuration.serializerClassProducer)
+
+	val producer = new Producer[Integer, String](new ProducerConfig(props))
     val topic = Configuration.facadeTopic 
 
     // Convert RequestFacadeMessage back to JsValue
@@ -70,7 +73,7 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
     log.info("Facade Producer sent {}", msg)
    	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
 
-//    producer.close
+    producer.close
   }
   
 }

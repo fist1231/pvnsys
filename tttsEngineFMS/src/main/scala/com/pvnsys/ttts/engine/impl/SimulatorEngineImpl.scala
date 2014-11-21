@@ -43,7 +43,7 @@ object SimulatorEngineImpl {
  * Example of some engine.
  * 
  */
-class SimulatorEngineImpl(context: ActorContext) extends Engine with LazyLogging {
+class SimulatorEngineImpl extends Engine with LazyLogging {
 
   import TttsEngineMessages._
   import SimulatorEngineImpl._

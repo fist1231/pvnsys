@@ -2,10 +2,9 @@ package com.pvnsys.ttts.strategy.service
 
 import akka.actor.{Actor, ActorLogging, Props, OneForOneStrategy, AllForOneStrategy, ActorRef, ActorSystem}
 import akka.actor.SupervisorStrategy.{Restart, Stop, Escalate}
-import com.pvnsys.ttts.strategy.mq.{KafkaFacadeTopicConsumerActor, KafkaFacadeTopicProducerActor, KafkaServicesTopicProducerActor}
+import com.pvnsys.ttts.strategy.mq.{KafkaFacadeTopicConsumerActor, KafkaServicesTopicConsumerActor, KafkaFacadeTopicProducerActor, KafkaServicesTopicProducerActor}
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
-import com.pvnsys.ttts.strategy.mq.{KafkaFacadeTopicConsumerActor, KafkaServicesTopicConsumerActor}
 import com.pvnsys.ttts.strategy.util.Utils
 import com.pvnsys.ttts.strategy.db.KdbActor
 import akka.stream.FlowMaterializer
