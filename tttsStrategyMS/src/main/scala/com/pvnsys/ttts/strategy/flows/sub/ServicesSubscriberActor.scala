@@ -18,8 +18,10 @@ object ServicesSubscriberActor {
 //  case object StopMessage extends StrategyMessage
   import TttsStrategyMessages._
 
+//  def make(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): ActorRef = factory.actorOf(Props(new ServicesSubscriberActor(serviceId, kafkaServicesPublisher)))
+//  def apply(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): Subscriber[TttsStrategyMessage] = ActorSubscriber[TttsStrategyMessage](make(factory, serviceId, kafkaServicesPublisher))
   def make(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): ActorRef = factory.actorOf(Props(new ServicesSubscriberActor(serviceId, kafkaServicesPublisher)))
-  def apply(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): Subscriber[TttsStrategyMessage] = ActorSubscriber[TttsStrategyMessage](make(factory, serviceId, kafkaServicesPublisher))
+  def apply(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): ActorRef = make(factory, serviceId, kafkaServicesPublisher)
   
 }
 
@@ -39,11 +41,11 @@ private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher:
   
 //  override protected def requestStrategy = new WatermarkRequestStrategy(1, 1) 
   
-//  override protected def requestStrategy = new MaxInFlightRequestStrategy(1) {
+  override protected def requestStrategy = new MaxInFlightRequestStrategy(1) {
 //	  override def batchSize = 1
-//	  override def inFlightInternally = inFlight
-//  }
-  override protected def requestStrategy = OneByOneRequestStrategy
+	  override def inFlightInternally = inFlight
+  }
+//  override protected def requestStrategy = OneByOneRequestStrategy
  
  
 	override def receive = {
@@ -71,17 +73,17 @@ private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher:
 			case msg: ResponseStrategyServicesTopicMessage => 
 				  log.debug("ServicesSubscriberActor, Gettin ResponseStrategyServicesTopicMessage: {}", msg)
 				  kafkaServicesPublisher ! msg
-				  inFlight += 1
+//				  inFlight += 1
 			case _ => // Do nothing
 		   } 
            
-		   log.debug("############################### ServicesSubscriberActor, inFlight = {}", inFlight)
+		   log.debug("############################### ServicesSubscriberActor OnNext, inFlight = {}", inFlight)
 			  
 		}	  
 
 		case ProducerConfirmationMessage => {
 		  inFlight -= 1	
-		  log.debug("############################### ServicesSubscriberActor, inFlight = {}", inFlight)
+		  log.debug("############################### ServicesSubscriberActor ProducerConfirmationMessage, inFlight = {}", inFlight)
 		}
 		
 		case _ => log.error("ServicesSubscriberActor Received unknown message")

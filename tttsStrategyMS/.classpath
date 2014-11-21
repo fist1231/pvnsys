@@ -7,11 +7,11 @@
   <classpathentry kind="lib" path=".\lib\kafka-clients-0.8.3-SNAPSHOT.jar"/>
   <classpathentry kind="lib" path=".\lib\kafka_2.11-0.8.3-SNAPSHOT.jar"/>
   <classpathentry kind="lib" path=".\lib\kdblib.jar"/>
-  <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\org.scala-lang\scala-library\jars\scala-library-2.11.2.jar"/>
-  <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\com.typesafe.akka\akka-stream-experimental_2.11\jars\akka-stream-experimental_2.11-0.10.jar"/>
-  <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\com.typesafe.akka\akka-actor_2.11\jars\akka-actor_2.11-2.3.6.jar"/>
+  <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\com.typesafe.akka\akka-stream-experimental_2.11\jars\akka-stream-experimental_2.11-0.11.jar"/>
+  <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\org.scala-lang\scala-library\jars\scala-library-2.11.4.jar"/>
+  <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\com.typesafe.akka\akka-actor_2.11\jars\akka-actor_2.11-2.3.7.jar"/>
   <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\com.typesafe\config\bundles\config-1.2.1.jar"/>
-  <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\com.typesafe.akka\akka-persistence-experimental_2.11\jars\akka-persistence-experimental_2.11-2.3.6.jar"/>
+  <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\com.typesafe.akka\akka-persistence-experimental_2.11\jars\akka-persistence-experimental_2.11-2.3.7.jar"/>
   <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\org.iq80.leveldb\leveldb\jars\leveldb-0.5.jar"/>
   <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\org.iq80.leveldb\leveldb-api\jars\leveldb-api-0.5.jar"/>
   <classpathentry kind="var" path="USERPROFILE_HOME\.ivy2\cache\com.google.guava\guava\jars\guava-12.0.jar"/>

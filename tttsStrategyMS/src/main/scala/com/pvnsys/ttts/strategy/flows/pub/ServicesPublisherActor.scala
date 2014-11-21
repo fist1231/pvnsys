@@ -38,7 +38,7 @@ private class ServicesPublisherActor extends PublisherActor {
 //		        //message ordering might not be preserved
 //		      }
 		case msg: RequestStrategyServicesTopicMessage => 
-			  log.debug(s"ServicesPublisherActor, Gettin RequestStrategyServicesTopicMessage: {} - {}", msg.client, msg.msgType)
+			  log.debug(s"ServicesPublisherActor, Gettin RequestStrategyServicesTopicMessage: {}", msg)
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {
@@ -46,7 +46,7 @@ private class ServicesPublisherActor extends PublisherActor {
 		        //message ordering might not be preserved
 		      }
 		case msg: ResponseFeedServicesTopicMessage => 
-			  log.debug(s"ServicesPublisherActor, Gettin ResponseFeedServicesTopicMessage: {} - {}", msg.client, msg.msgType)
+			  log.debug(s"ServicesPublisherActor, Gettin ResponseFeedServicesTopicMessage: {}", msg)
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {
@@ -55,7 +55,7 @@ private class ServicesPublisherActor extends PublisherActor {
 		      }
 			  
 		case msg: ResponseFeedFacadeTopicMessage => 
-			  log.debug(s"ServicesPublisherActor, Gettin ResponseFeedFacadeTopicMessage: {} - {}", msg.client, msg.msgType)
+			  log.debug(s"ServicesPublisherActor, Gettin ResponseFeedFacadeTopicMessage: {}; totalDemand: {}; isActive: {}", msg, totalDemand, isActive)
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {

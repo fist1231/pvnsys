@@ -26,7 +26,7 @@ libraryDependencies ++= {
   val sprayVersion = "1.3.2"
   Seq(
 //    "com.typesafe.akka"   %%  "akka-stream-experimental" % "0.4",
-    "com.typesafe.akka"   %%  "akka-stream-experimental" % "0.10",
+    "com.typesafe.akka"   %%  "akka-stream-experimental" % "0.11",
     "com.typesafe.scala-logging" %%  "scala-logging-slf4j"      % "2.1.2",
     "io.spray"            %%  "spray-json"     % "1.3.1",
     "io.spray"            %%   "spray-can"     % sprayVersion,

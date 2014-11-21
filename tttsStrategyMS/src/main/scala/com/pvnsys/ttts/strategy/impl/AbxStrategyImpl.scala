@@ -42,7 +42,7 @@ object AbxStrategyImpl {
 }
 
 
-class AbxStrategyImpl(context: ActorContext) extends Strategy with LazyLogging {
+class AbxStrategyImpl extends Strategy with LazyLogging {
 
   import TttsStrategyMessages._
   import AbxStrategyImpl._

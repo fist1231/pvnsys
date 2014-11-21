@@ -2,20 +2,20 @@ package com.pvnsys.ttts.strategy.service
 
 import akka.actor.{Actor, ActorLogging, ActorContext, Props, OneForOneStrategy, AllForOneStrategy, PoisonPill}
 import akka.actor.SupervisorStrategy.{Restart, Stop, Escalate}
-import akka.util.Timeout
-import akka.stream.scaladsl.Flow
-import scala.concurrent.duration._
+//import akka.util.Timeout
+//import akka.stream.scaladsl.Flow
+//import scala.concurrent.duration._
 import com.pvnsys.ttts.strategy.mq.KafkaFacadeTopicConsumerActor
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages
-import spray.json._
+//import spray.json._
 import com.pvnsys.ttts.strategy.mq.{KafkaFacadeTopicConsumerActor, KafkaServicesTopicConsumerActor}
 import com.pvnsys.ttts.strategy.generator.StrategyService
 import akka.actor.ActorRef
 import com.pvnsys.ttts.strategy.util.Utils
 import com.pvnsys.ttts.strategy.db.KdbActor
 import akka.stream.FlowMaterializer
-import akka.stream.MaterializerSettings
+//import akka.stream.MaterializerSettings
 import akka.actor.ActorSystem
 import com.pvnsys.ttts.strategy.flows.pub.FacadePublisherActor
 import com.pvnsys.ttts.strategy.flows.pub.ServicesPublisherActor
@@ -26,16 +26,17 @@ import com.pvnsys.ttts.strategy.flow.sub.ServicesSubscriberActor
 import akka.stream.actor.ActorPublisher
 import org.reactivestreams.Publisher
 import akka.stream.scaladsl.Source
-import akka.stream.javadsl.FlowGraph
-import akka.stream.scaladsl.FlowGraphImplicits
-import akka.stream.scaladsl.PartialFlowGraph
-import akka.stream.scaladsl.FlowGraphBuilder
+//import akka.stream.javadsl.FlowGraph
+//import akka.stream.scaladsl.FlowGraphImplicits
+//import akka.stream.scaladsl.PartialFlowGraph
+//import akka.stream.scaladsl.FlowGraphBuilder
 import akka.stream.FlowMaterializer
-import akka.stream.MaterializerSettings
-import akka.stream.javadsl.Broadcast
+//import akka.stream.MaterializerSettings
+//import akka.stream.javadsl.Broadcast
 import akka.stream.scaladsl.Sink
 import akka.stream.actor.ActorSubscriber
-import com.pvnsys.ttts.strategy.impl.AbxStrategyImpl
+//import com.pvnsys.ttts.strategy.impl.AbxStrategyImpl
+import com.pvnsys.ttts.strategy.flows.v011.{FacadeStrategyRequestMessageFlow, ServicesStrategyRequestMessageFlow, ServicesStrategyResponseMessageFlow, FacadeStrategyResponseMessageFlow}
 
 
 object TttsStrategyService extends LazyLogging {
@@ -105,7 +106,8 @@ class TttsStrategyService extends Actor with ActorLogging {
 		
 		// Create Subscriber Actor that sends messages to KafkaServicesTopicProducerActor 
 		val kafkaServicesTopicProducerActor = context.actorOf(Props(classOf[KafkaServicesTopicProducerActor]))
-		val servicesMessagesConsumer = ServicesSubscriberActor(factory, serviceUniqueID, kafkaServicesTopicProducerActor)
+		val servicesMessagesConsumerActor = ServicesSubscriberActor(factory, serviceUniqueID, kafkaServicesTopicProducerActor)
+		val servicesMessagesConsumer = ActorSubscriber[TttsStrategyMessage](servicesMessagesConsumerActor)
 		
 		// Wire the Flows
 		
@@ -121,7 +123,10 @@ class TttsStrategyService extends Actor with ActorLogging {
 //			StrategyService.convertServicesMessage
 //		}.runWith(facadeStrategyRequestFlowSource, facadeStrategyRequestFlowSink)
 		
-		val facadeStrategyRequestFlow = Flow[TttsStrategyMessage].
+//		val facadeStrategyRequestFlow = Flow[TttsStrategyMessage].
+		
+/*		
+		facadeStrategyRequestFlowSource.
 	    map { msg =>
 	      val messageType = msg match {
 	        case x: RequestStrategyFacadeTopicMessage => x.msgType 
@@ -217,17 +222,28 @@ class TttsStrategyService extends Actor with ActorLogging {
 		    str match {
 //		    	case "FeedFacade" => Flow[TttsStrategyMessage].runWith(facadeStrategyRequestFlowSource, facadeStrategyRequestFlowSink)
 //		    	case "FeedServices" => Flow[TttsStrategyMessage].runWith(facadeStrategyRequestFlowSource, facadeStrategyRequestFlowSink)
-		    	case "StrategyFacade" => Flow[TttsStrategyMessage].runWith(facadeStrategyRequestFlowSource, servicesStrategyRequestFlowSink)
+		    	case "StrategyFacade" => Flow[TttsStrategyMessage]
 		    	case "StrategyServices" => Flow[TttsStrategyMessage].runWith(servicesStrategyRequestFlowSource, servicesStrategyRequestFlowSink)
 		        
 		    	case "StrategyFacadeResponse" => Flow[TttsStrategyMessage].runWith(servicesStrategyRequestFlowSource, facadeStrategyRequestFlowSink)
 		    	case "StrategyServicesResponse" => Flow[TttsStrategyMessage].runWith(servicesStrategyRequestFlowSource, servicesStrategyRequestFlowSink)
 		      
 		    }
-		}
+		}.runWith(servicesMessagesConsumerActor)
+		
+        log.debug("*******>> Step 6: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyFacadeTopicMessage")
+*/
 		
 		
+		new FacadeStrategyRequestMessageFlow(facadeStrategyRequestFlowSource, servicesStrategyRequestFlowSink).startFlow	
+//		new ServicesStrategyRequestMessageFlow(servicesStrategyRequestFlowSource, servicesStrategyRequestFlowSink).startFlow	
+//		new FacadeStrategyResponseMessageFlow(servicesStrategyRequestFlowSource, facadeStrategyRequestFlowSink, serviceUniqueID).startFlow	
+//		new ServicesStrategyResponseMessageFlow(servicesStrategyRequestFlowSource, servicesStrategyRequestFlowSink, serviceUniqueID).startFlow	
+		new ServicesStrategyRequestMessageFlow(servicesStrategyRequestFlowSource, facadeStrategyRequestFlowSink, servicesStrategyRequestFlowSink, serviceUniqueID).startFlow	
+		
+//        log.debug("*******>> Step 6: Strategy ServicesMessageFlow Groupby operation on ResponseStrategyFacadeTopicMessage")		
 
+		
 //		Flow.with
 		
 //		facadeStrategyRequestFlow.

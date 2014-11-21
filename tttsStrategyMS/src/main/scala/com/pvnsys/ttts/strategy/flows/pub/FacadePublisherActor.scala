@@ -7,7 +7,6 @@ import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 import org.reactivestreams.Publisher
 
-
 object FacadePublisherActor {
   import TttsStrategyMessages._
 //  def make(factory: ActorRefFactory): ActorRef = factory.actorOf(Props(new FacadePublisherActor))

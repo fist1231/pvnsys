@@ -51,13 +51,14 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
      * 3. STRATEGY_RSP of ResponseStrategyServicesTopicMessage
      */ 
     case msg: RequestFeedServicesTopicMessage => {
-      produceKafkaMsg(msg)
-      sender ! ProducerConfirmationMessage
+      val client = sender
+      produceKafkaMsg(msg, client)
+//      sender ! ProducerConfirmationMessage
 //      self ! StopMessage
     }
     case msg: ResponseStrategyServicesTopicMessage => {
-      produceKafkaMsg(msg)
-      sender ! ProducerConfirmationMessage
+      val client = sender
+      produceKafkaMsg(msg, client)
 //      self ! StopMessage
     }
     case StopMessage => {
@@ -71,7 +72,7 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
   }
   
   
-  def produceKafkaMsg(msg: TttsStrategyMessage) = {
+  def produceKafkaMsg(msg: TttsStrategyMessage, client: ActorRef) = {
 //	val props = new Properties()
 //	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
 //	props.put("serializer.class", Configuration.serializerClassProducer)
@@ -95,6 +96,8 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
 	    // Send it to Kafka Services Topic
         log.info("Services Producer sent {}", x)
 	   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+	    client ! ProducerConfirmationMessage
+	    
       }
       case _ => "Do nothing"
     }

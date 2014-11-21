@@ -7,6 +7,7 @@ import akka.actor.ActorRef
 import akka.stream.actor.{ActorSubscriber, MaxInFlightRequestStrategy}
 import akka.stream.actor.ActorSubscriberMessage.OnNext
 import org.reactivestreams.Subscriber
+import akka.stream.actor.OneByOneRequestStrategy
 
 
 object FacadeSubscriberActor {
@@ -37,11 +38,12 @@ private class FacadeSubscriberActor(serviceId: String, kafkaFacadePublisher: Act
   
 //  override protected def requestStrategy = new WatermarkRequestStrategy(1, 1) 
   
-  override protected def requestStrategy = new MaxInFlightRequestStrategy(1) {
-	  override def batchSize = 1
-	  override def inFlightInternally = inFlight
-  }
+//  override protected def requestStrategy = new MaxInFlightRequestStrategy(1) {
+//	  override def batchSize = 1
+//	  override def inFlightInternally = inFlight
+//  }
  
+  override protected def requestStrategy = OneByOneRequestStrategy
  
   
 	override def receive = {
@@ -52,18 +54,23 @@ private class FacadeSubscriberActor(serviceId: String, kafkaFacadePublisher: Act
 			case msg: ResponseStrategyFacadeTopicMessage => 
 				  log.debug("FacadeSubscriberActor, Gettin ResponseStrategyFacadeTopicMessage: {}", msg)
 				  kafkaFacadePublisher ! msg
-				  inFlight += 1
+//				  inFlight += 1
+
+			case msg: ResponseFeedFacadeTopicMessage => 
+				  log.debug("FacadeSubscriberActor, Gettin ResponseFeedFacadeTopicMessage: {}", msg)
+				  kafkaFacadePublisher ! msg
+//				  inFlight += 1
 
 			case _ => // Do nothing
 		   } 
-           
-		   log.debug("############################### FacadeSubscriberActor, inFlight = {}", inFlight)
+		  
+		   log.debug("############################### FacadeSubscriberActor OnNext, inFlight = {}", inFlight)
 			  
 		}	  
 
 		case ProducerConfirmationMessage => {
-		  inFlight -= 1	
-		  log.debug("############################### FacadeSubscriberActor, inFlight = {}", inFlight)
+//		  inFlight -= 1	
+		  log.debug("############################### FacadeSubscriberActor ProducerConfirmationMessage, inFlight = {}", inFlight)
 		}
 		
 		case _ => log.error("FacadeSubscriberActor Received unknown message")
