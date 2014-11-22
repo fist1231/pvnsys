@@ -12,7 +12,7 @@ import akka.stream.actor.ActorSubscriber
 import akka.stream.actor.OneByOneRequestStrategy
 
 
-object ServicesSubscriberActor {
+object ServicesEngineRequestSubscriberActor {
   import TttsEngineMessages._
 //  def make(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): ActorRef = factory.actorOf(Props(new ServicesSubscriberActor(serviceId, kafkaServicesPublisher)))
 //  def apply(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): Subscriber[TttsEngineMessage] = ActorSubscriber[TttsEngineMessage](make(factory, serviceId, kafkaServicesPublisher))
@@ -20,14 +20,14 @@ object ServicesSubscriberActor {
   def apply(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): ActorRef = make(factory, serviceId, kafkaServicesPublisher)
 }
 
-private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher: ActorRef) extends SubscriberActor {
+private class ServicesEngineRequestSubscriberActor(serviceId: String, kafkaServicesPublisher: ActorRef) extends SubscriberActor {
   import TttsEngineMessages._
   
   private var inFlight = 0
   
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
-      log.error("ServicesSubscriberActor Unexpected failure: {}", e.getMessage)
+      log.error("ServicesEngineRequestSubscriberActor Unexpected failure: {}", e.getMessage)
       Restart
   	}
   
@@ -46,39 +46,27 @@ private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher:
            val messageTraits = Utils.generateMessageTraits
 		  
 		   mesg match {
-			case msg: RequestEngineFacadeTopicMessage => 
-				log.debug("ServicesSubscriberActor, Gettin RequestEngineFacadeTopicMessage: {}", msg)
-				  val strategyRequestMessage = msg.msgType match {
-					    case ENGINE_REQUEST_MESSAGE_TYPE => RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_REQUEST_MESSAGE_TYPE, msg.client, None, messageTraits._2 , "0", serviceId)
-					    case ENGINE_STOP_REQUEST_MESSAGE_TYPE => RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_STOP_REQUEST_MESSAGE_TYPE, msg.client, None, messageTraits._2, "0", serviceId)
-			      }
-				  kafkaServicesPublisher ! strategyRequestMessage
-				  
 			case msg: RequestEngineServicesTopicMessage => 
-				  log.debug("ServicesSubscriberActor, Gettin RequestEngineServicesTopicMessage: {}", msg)
+				  log.debug("ServicesEngineRequestSubscriberActor, Gettin RequestEngineServicesTopicMessage: {}", msg)
 				  val strategyRequestMessage = msg.msgType match {
 					    case ENGINE_REQUEST_MESSAGE_TYPE => RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_REQUEST_MESSAGE_TYPE, msg.client, None, messageTraits._2 , "0", serviceId)
 					    case ENGINE_STOP_REQUEST_MESSAGE_TYPE => RequestStrategyServicesTopicMessage(messageTraits._1, STRATEGY_STOP_REQUEST_MESSAGE_TYPE, msg.client, None, messageTraits._2, "0", serviceId)
 			      }
 				  kafkaServicesPublisher ! strategyRequestMessage
 				  
-			case msg: ResponseEngineServicesTopicMessage => 
-				  log.debug("ServicesSubscriberActor, Gettin ResponseEngineServicesTopicMessage: {}", msg)
-				  kafkaServicesPublisher ! msg
-//				  inFlight += 1
 			case _ => // Do nothing
 		   } 
            
-		   log.debug("############################### ServicesSubscriberActor OnNext, inFlight = {}", inFlight)
+		   log.debug("############################### ServicesEngineRequestSubscriberActor OnNext, inFlight = {}", inFlight)
 			  
 		}	  
 
 		case OnComplete => {
-				  log.debug("******* ServicesSubscriberActor OnComplete, Gettin ResponseStrategyFacadeTopicMessage")
+				  log.debug("******* ServicesEngineRequestSubscriberActor OnComplete, Gettin ResponseStrategyFacadeTopicMessage")
 		  
 		}
 		case OnError(cause: Throwable) => {
-				  log.debug("******* ServicesSubscriberActor OnError, Gettin ResponseStrategyFacadeTopicMessage: {}", cause.getMessage())
+				  log.debug("******* ServicesEngineRequestSubscriberActor OnError, Gettin ResponseStrategyFacadeTopicMessage: {}", cause.getMessage())
 				  cause.printStackTrace()
 		  
 		}
@@ -87,7 +75,7 @@ private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher:
 //		  log.debug("############################### ServicesSubscriberActor ProducerConfirmationMessage, inFlight = {}", inFlight)
 //		}
 		
-		case z => log.error("ServicesSubscriberActor Received unknown message: {}", z)
+		case z => log.error("ServicesEngineRequestSubscriberActor Received unknown message: {}", z)
 	}
   
 }

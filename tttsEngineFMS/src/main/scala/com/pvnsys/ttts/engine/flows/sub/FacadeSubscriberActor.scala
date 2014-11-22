@@ -5,7 +5,7 @@ import com.pvnsys.ttts.engine.messages.TttsEngineMessages
 import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.actor.ActorRef
 import akka.stream.actor.{ActorSubscriber, MaxInFlightRequestStrategy}
-import akka.stream.actor.ActorSubscriberMessage.OnNext
+import akka.stream.actor.ActorSubscriberMessage.{OnNext, OnComplete, OnError}
 import org.reactivestreams.Subscriber
 import akka.stream.actor.OneByOneRequestStrategy
 
@@ -53,13 +53,22 @@ private class FacadeSubscriberActor(serviceId: String, kafkaFacadePublisher: Act
 		   log.debug("############################### FacadeSubscriberActor OnNext, msg = {}", mesg)
 			  
 		}	  
+		case OnComplete => {
+				  log.debug("******* FacadeSubscriberActor OnComplete, Gettin ResponseStrategyFacadeTopicMessage")
+		  
+		}
+		case OnError(cause: Throwable) => {
+				  log.debug("******* FacadeSubscriberActor OnError, Gettin ResponseStrategyFacadeTopicMessage: {}", cause.getMessage())
+				  cause.printStackTrace()
+		  
+		}
 
 //		case ProducerConfirmationMessage => {
 ////		  inFlight -= 1	
 //		  log.debug("############################### FacadeSubscriberActor ProducerConfirmationMessage")
 //		}
 		
-		case _ => log.error("FacadeSubscriberActor Received unknown message")
+		case z => log.error("FacadeSubscriberActor Received unknown message: {}", z)
 	}
   
 }

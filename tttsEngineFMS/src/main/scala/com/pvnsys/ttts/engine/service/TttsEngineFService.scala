@@ -3,21 +3,15 @@ package com.pvnsys.ttts.engine.service
 import akka.actor.{Actor, ActorLogging, ActorContext, Props, OneForOneStrategy, AllForOneStrategy, ActorSystem}
 import akka.actor.SupervisorStrategy.{Restart, Stop, Escalate}
 import akka.util.Timeout
-//import akka.stream.actor.ActorProducer
 import scala.concurrent.duration._
 import com.pvnsys.ttts.engine.mq.KafkaFacadeTopicConsumerActor
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import com.pvnsys.ttts.engine.messages.TttsEngineMessages
 import spray.json._
-//import org.reactivestreams.api.Producer
 import com.pvnsys.ttts.engine.mq.{KafkaFacadeTopicConsumerActor, KafkaServicesTopicConsumerActor, KafkaFacadeTopicProducerActor, KafkaServicesTopicProducerActor}
-//import com.pvnsys.ttts.engine.generator.EngineService
 import akka.actor.ActorRef
-//import com.pvnsys.ttts.engine.mq.EngineActor
-//import com.pvnsys.ttts.engine.flows.{FacadeMessageFlow, ServicesMessageFlow}
 import com.pvnsys.ttts.engine.util.Utils
 import com.pvnsys.ttts.engine.db.KdbActor
-
 import akka.stream.FlowMaterializer
 import com.pvnsys.ttts.engine.flows.pub.{FacadePublisherActor, ServicesPublisherActor}
 import com.pvnsys.ttts.engine.flow.sub.{FacadeSubscriberActor, ServicesSubscriberActor}
@@ -25,6 +19,8 @@ import akka.stream.actor.{ActorSubscriber, ActorPublisher}
 import org.reactivestreams.Publisher
 import akka.stream.scaladsl.{Source, Sink}
 import com.pvnsys.ttts.engine.flows.v011.{FacadeEngineRequestMessageFlow, ServicesEngineRequestMessageFlow, ServicesEngineResponseMessageFlow, FacadeEngineResponseMessageFlow}
+import com.pvnsys.ttts.engine.flow.sub.ServicesEngineRequestSubscriberActor
+import com.pvnsys.ttts.engine.flow.sub.ServicesEngineResponseSubscriberActor
 
 
 
@@ -72,8 +68,8 @@ class TttsEngineFService extends Actor with ActorLogging {
 		 * 4. Prepare Sources and Sinks for the Flows
 		 */
 		// Prepare Source and Sink for Flow 1: Facade STRATEGY_REQ/STRATEGY_STOP_REQ ~> Services FEED_REQ/FEED_STOP_REQ
-		val facadeMessagesProducerActor = FacadePublisherActor(factory) // Create Publisher Actor that consumes messages received by KafkaFacadeTopicConsumerActor
-		val facadeEngineRequestMessagesProducer: Publisher[TttsEngineMessage] = ActorPublisher[TttsEngineMessage](facadeMessagesProducerActor) // Create ActprPublisher from Publisher actor
+		val facadeEngineRequestMessagesProducerActor = FacadePublisherActor(factory) // Create Publisher Actor that consumes messages received by KafkaFacadeTopicConsumerActor
+		val facadeEngineRequestMessagesProducer: Publisher[TttsEngineMessage] = ActorPublisher[TttsEngineMessage](facadeEngineRequestMessagesProducerActor) // Create ActprPublisher from Publisher actor
 		val facadeEngineRequestFlowSource = Source(facadeEngineRequestMessagesProducer)
 		
 		val facadeEngineRequestMessagesConsumerActor = ServicesSubscriberActor(factory, serviceUniqueID, kafkaServicesTopicProducerActor) // Create Subscriber Actor that sends messages to KafkaServicesTopicProducerActor
@@ -81,16 +77,16 @@ class TttsEngineFService extends Actor with ActorLogging {
 		val facadeEngineRequestFlowSink = Sink(facadeEngineRequestMessagesConsumer) // Create Flow Sink
 		
 		// Start listening to Kafka Facade Topic
-		val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(facadeMessagesProducerActor, serviceUniqueID), "strategyKafkaFacadeConsumer")
+		val kafkaFacadeTopicConsumerActor = context.actorOf(KafkaFacadeTopicConsumerActor.props(facadeEngineRequestMessagesProducerActor, serviceUniqueID), "strategyKafkaFacadeConsumer")
 		kafkaFacadeTopicConsumerActor ! StartListeningFacadeTopicMessage
 		
 		// Prepare Source and Sink for Flow 2: Services STRATEGY_REQ/STRATEGY_STOP_REQ ~> Services FEED_REQ/FEED_STOP_REQ
-		val servicesMessagesProducerActor = ServicesPublisherActor(factory)
-		val servicesEngineRequestMessagesProducer: Publisher[TttsEngineMessage] = ActorPublisher[TttsEngineMessage](servicesMessagesProducerActor)
+		val servicesEngineRequestMessagesProducerActor = ServicesPublisherActor(factory)
+		val servicesEngineRequestMessagesProducer: Publisher[TttsEngineMessage] = ActorPublisher[TttsEngineMessage](servicesEngineRequestMessagesProducerActor)
 		val servicesEngineRequestFlowSource = Source(servicesEngineRequestMessagesProducer)
 		
-		val servicesMessagesConsumerActor = ServicesSubscriberActor(factory, serviceUniqueID, kafkaServicesTopicProducerActor)
-		val servicesEngineRequestMessagesConsumer = ActorSubscriber[TttsEngineMessage](servicesMessagesConsumerActor)
+		val servicesEngineRequestMessagesConsumerActor = ServicesEngineRequestSubscriberActor(factory, serviceUniqueID, kafkaServicesTopicProducerActor)
+		val servicesEngineRequestMessagesConsumer = ActorSubscriber[TttsEngineMessage](servicesEngineRequestMessagesConsumerActor)
 		val servicesEngineRequestFlowSink = Sink(servicesEngineRequestMessagesConsumer)
 
 		// Prepare Source and Sink for Flow 3: Services FEED_RESPONSE intended for Facade Topic ~> Facade STRATEGY_RESPONSE
@@ -107,14 +103,14 @@ class TttsEngineFService extends Actor with ActorLogging {
 		val servicesEngineResponseServicesMessagesProducer: Publisher[TttsEngineMessage] = ActorPublisher[TttsEngineMessage](servicesEngineResponseServicesMessagesProducerActor)
 		val servicesEngineResponseFlowSource = Source(servicesEngineResponseServicesMessagesProducer)
 
-		val servicesEngineResponseMessagesConsumerActor = ServicesSubscriberActor(factory, serviceUniqueID, kafkaServicesTopicProducerActor)
+		val servicesEngineResponseMessagesConsumerActor = ServicesEngineResponseSubscriberActor(factory, serviceUniqueID, kafkaServicesTopicProducerActor)
 		val servicesEngineResponseMessagesConsumer = ActorSubscriber[TttsEngineMessage](servicesEngineResponseMessagesConsumerActor)
 		val servicesEngineResponseFlowSink = Sink(servicesEngineResponseMessagesConsumer)
 
 		/*
 		 * 5. Start listening to Kafka Services Topic
 		 */
-		val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(servicesMessagesProducerActor, facadeEngineResponseServicesMessagesProducerActor, servicesEngineResponseServicesMessagesProducerActor, serviceUniqueID), "strategyKafkaServicesConsumer")
+		val kafkaServicesTopicConsumerActor = context.actorOf(KafkaServicesTopicConsumerActor.props(servicesEngineRequestMessagesProducerActor, facadeEngineResponseServicesMessagesProducerActor, servicesEngineResponseServicesMessagesProducerActor, serviceUniqueID), "strategyKafkaServicesConsumer")
 		kafkaServicesTopicConsumerActor ! StartListeningServicesTopicMessage
 		
 		/*
