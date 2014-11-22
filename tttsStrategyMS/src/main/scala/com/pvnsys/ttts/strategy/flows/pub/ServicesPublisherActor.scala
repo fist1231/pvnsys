@@ -30,27 +30,30 @@ private class ServicesPublisherActor extends PublisherActor {
 	override def receive = {
 
 		case msg: RequestStrategyServicesTopicMessage => 
-			  log.debug(s"ServicesPublisherActor, Gettin RequestStrategyServicesTopicMessage: {}", msg)
+			  log.debug(s"ServicesPublisherActor, Gettin RequestStrategyServicesTopicMessage: {}, isActive: {}; totalDemand: {}", msg, isActive, totalDemand)
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {
+		    	  log.debug(s"ServicesPublisherActor, skipping RequestStrategyServicesTopicMessage: {}, isActive: {}; totalDemand: {}", msg, isActive, totalDemand)
 		        //requeue the message
 		        //message ordering might not be preserved
 		      }
 		case msg: ResponseFeedServicesTopicMessage => 
-			  log.debug(s"ServicesPublisherActor, Gettin ResponseFeedServicesTopicMessage: {}", msg)
+			  log.debug(s"ServicesPublisherActor, Gettin ResponseFeedServicesTopicMessage: {}, isActive: {}; totalDemand: {}", msg, isActive, totalDemand)
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {
+		    	  log.debug(s"ServicesPublisherActor, skipping ResponseFeedServicesTopicMessage: {}, isActive: {}; totalDemand: {}", msg, isActive, totalDemand)
 		        //requeue the message
 		        //message ordering might not be preserved
 		      }
 			  
 		case msg: ResponseFeedFacadeTopicMessage => 
-			  log.debug(s"ServicesPublisherActor, Gettin ResponseFeedFacadeTopicMessage: {}; totalDemand: {}; isActive: {}", msg, totalDemand, isActive)
+			  log.debug(s"ServicesPublisherActor, Gettin ResponseFeedFacadeTopicMessage: {}, isActive: {}; totalDemand: {}", msg, isActive, totalDemand)
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {
+		    	  log.debug(s"ServicesPublisherActor, Skipping ResponseFeedFacadeTopicMessage: {}, isActive: {}; totalDemand: {}", msg, isActive, totalDemand)
 		        //requeue the message
 		        //message ordering might not be preserved
 		      }
@@ -64,8 +67,8 @@ private class ServicesPublisherActor extends PublisherActor {
 			log.debug("ServicesPublisherActor Request received")
 	    case Cancel =>
 		  log.debug("ServicesPublisherActor Cancel request received")
-	      context.stop(self)
-		case _ => log.error("ServicesPublisherActor Received unknown message")
+	      context stop self
+		case z => log.error("ServicesPublisherActor Received unknown message: {}", z)
 	}
   
 }

@@ -83,7 +83,7 @@ class KafkaFacadeTopicConsumerActor(processorActorRef: ActorRef, serviceId: Stri
 			startListening()
 		}
 
-		case _ => log.error("KafkaFacadeTopicConsumerActor Received unknown message")
+		case z => log.error("KafkaFacadeTopicConsumerActor Received unknown message: {}", z)
 	}
 	
 	

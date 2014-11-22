@@ -96,7 +96,7 @@ class KafkaServicesTopicProducerActor extends Actor with ActorLogging {
 	    // Send it to Kafka Services Topic
         log.info("Services Producer sent {}", x)
 	   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
-	    client ! ProducerConfirmationMessage
+//	    client ! ProducerConfirmationMessage
 	    
       }
       case _ => "Do nothing"

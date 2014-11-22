@@ -12,7 +12,7 @@ import akka.stream.actor.ActorSubscriber
 import akka.stream.actor.OneByOneRequestStrategy
 
 
-object ServicesSubscriberActor {
+object ServicesFeedRequestSubscriberActor {
   import TttsStrategyMessages._
 //  def make(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): ActorRef = factory.actorOf(Props(new ServicesSubscriberActor(serviceId, kafkaServicesPublisher)))
 //  def apply(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): Subscriber[TttsStrategyMessage] = ActorSubscriber[TttsStrategyMessage](make(factory, serviceId, kafkaServicesPublisher))
@@ -20,14 +20,14 @@ object ServicesSubscriberActor {
   def apply(factory: ActorRefFactory, serviceId: String, kafkaServicesPublisher: ActorRef): ActorRef = make(factory, serviceId, kafkaServicesPublisher)
 }
 
-private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher: ActorRef) extends SubscriberActor {
+private class ServicesFeedRequestSubscriberActor(serviceId: String, kafkaServicesPublisher: ActorRef) extends SubscriberActor {
   import TttsStrategyMessages._
   
   private var inFlight = 0
   
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
-      log.error("ServicesSubscriberActor Unexpected failure: {}", e.getMessage)
+      log.error("ServicesFeedRequestSubscriberActor Unexpected failure: {}", e.getMessage)
       Restart
   	}
   
@@ -46,26 +46,13 @@ private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher:
            val messageTraits = Utils.generateMessageTraits
 		  
 		   mesg match {
-			case msg: RequestStrategyFacadeTopicMessage => 
-				log.debug("ServicesSubscriberActor, Gettin RequestStrategyFacadeTopicMessage: {}", msg)
-				  val feedRequestMessage = msg.msgType match {
-					    case STRATEGY_REQUEST_MESSAGE_TYPE => RequestFeedServicesTopicMessage(messageTraits._1, FEED_REQUEST_MESSAGE_TYPE, msg.client, None, messageTraits._2 , "0", serviceId)
-					    case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => RequestFeedServicesTopicMessage(messageTraits._1, FEED_STOP_REQUEST_MESSAGE_TYPE, msg.client, None, messageTraits._2, "0", serviceId)
-			      }
-				  kafkaServicesPublisher ! feedRequestMessage
-				  
 			case msg: RequestStrategyServicesTopicMessage => 
-				  log.debug("ServicesSubscriberActor, Gettin RequestStrategyServicesTopicMessage: {}", msg)
+				  log.debug("ServicesFeedRequestSubscriberActor, Gettin RequestStrategyServicesTopicMessage: {}", msg)
 				  val feedRequestMessage = msg.msgType match {
 					    case STRATEGY_REQUEST_MESSAGE_TYPE => RequestFeedServicesTopicMessage(messageTraits._1, FEED_REQUEST_MESSAGE_TYPE, msg.client, None, messageTraits._2 , "0", serviceId)
 					    case STRATEGY_STOP_REQUEST_MESSAGE_TYPE => RequestFeedServicesTopicMessage(messageTraits._1, FEED_STOP_REQUEST_MESSAGE_TYPE, msg.client, None, messageTraits._2, "0", serviceId)
 			      }
 				  kafkaServicesPublisher ! feedRequestMessage
-				  
-			case msg: ResponseStrategyServicesTopicMessage => 
-				  log.debug("ServicesSubscriberActor, Gettin ResponseStrategyServicesTopicMessage: {}", msg)
-				  kafkaServicesPublisher ! msg
-//				  inFlight += 1
 			case _ => // Do nothing
 		   } 
            
@@ -73,21 +60,21 @@ private class ServicesSubscriberActor(serviceId: String, kafkaServicesPublisher:
 			  
 		}	  
 		case OnComplete => {
-				  log.debug("******* ServicesSubscriberActor OnComplete, Gettin ResponseStrategyFacadeTopicMessage")
+				  log.debug("******* ServicesFeedRequestSubscriberActor OnComplete, Gettin ResponseStrategyFacadeTopicMessage")
 		  
 		}
 		case OnError(cause: Throwable) => {
-				  log.debug("******* ServicesSubscriberActor OnError, Gettin ResponseStrategyFacadeTopicMessage: {}", cause.getMessage())
+				  log.debug("******* ServicesFeedRequestSubscriberActor OnError, Gettin ResponseStrategyFacadeTopicMessage: {}", cause.getMessage())
 				  cause.printStackTrace()
 		  
 		}
 
 		case ProducerConfirmationMessage => {
 //		  inFlight -= 1	
-		  log.debug("############################### ServicesSubscriberActor ProducerConfirmationMessage, inFlight = {}", inFlight)
+		  log.debug("############################### ServicesFeedRequestSubscriberActor ProducerConfirmationMessage, inFlight = {}", inFlight)
 		}
 		
-		case z => log.error("ServicesSubscriberActor Received unknown message: {}", z)
+		case z => log.error("ServicesFeedRequestSubscriberActor Received unknown message: {}", z)
 	}
   
 }

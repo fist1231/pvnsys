@@ -30,23 +30,25 @@ private class FacadePublisherActor extends PublisherActor {
 	override def receive = {
 
 		case msg: RequestStrategyFacadeTopicMessage => 
-			  log.debug(s"FacadePublisherActor, Gettin RequestStrategyFacadeTopicMessage: {} - {}", msg.client, msg.msgType)
+			  log.debug(s"FacadePublisherActor, Gettin RequestStrategyFacadeTopicMessage: {} - isActive: {} - totalDemand: {}", msg, isActive, totalDemand)
 		      if (isActive && totalDemand > 0) {
 		        onNext(msg)
 		      } else {
+		    	  log.debug(s"!!!!!!! FacadePublisherActor, Skipping RequestStrategyFacadeTopicMessage: {} - isActive: {} - totalDemand: {}", msg, isActive, totalDemand)
 		        //requeue the message
 		        //message ordering might not be preserved
 		      }
 		case StopMessage => {
 			log.debug("FacadePublisherActor StopMessage")
+			context stop self
 		}
 	    case Request(elements) =>
 	      // nothing to do - we're waiting for the messages to come from Kafka
-			log.debug("FacadePublisherActor Request received")
+			log.debug("FacadePublisherActor Request received {}", elements)
 	    case Cancel =>
 		  log.debug("FacadePublisherActor Cancel request received")
-	      context.stop(self)
-		case _ => log.error("FacadePublisherActor Received unknown message")
+	      context stop self
+		case z => log.error("FacadePublisherActor Received unknown message {}", z)
 	}
   
 }
