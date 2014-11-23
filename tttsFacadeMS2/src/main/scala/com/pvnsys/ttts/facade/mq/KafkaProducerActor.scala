@@ -68,7 +68,7 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
     }
 
   	case StopMessage => {
-      self ! PoisonPill
+      context stop self
     }
     case msg => log.error(s"KafkaProducerActor Received unknown message $msg")
 
@@ -81,10 +81,11 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
 	val props = new Properties();
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
 	props.put("serializer.class", Configuration.serializerClassProducer);
+	props.put("message.send.max.retries", "7");
+	props.put("retry.backoff.ms", "1000");
 
 	val producer = new Producer[Integer, String](new ProducerConfig(props));
     val topic = Configuration.facadeTopic 
-
     // Convert RequestFacadeMessage back to JsValue
     //val jsonMessage = msg.asInstanceOf[RequestFacadeMessage].toJson.compactPrint
     msg match {
@@ -104,7 +105,15 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
 		    val jsonStrMessage = x.toJson.compactPrint
 		    // Send it to Kafka facadeTopic
 		    log.info("Facade Producer sent {}", x)
-		   	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+		    try {
+		    	producer.send(new KeyedMessage[Integer, String](topic, jsonStrMessage));
+		    } catch {
+		      	case e: Throwable => {
+		      	  log.error("KafkaProducerActor Error sending  RequestEngineFacadeMessage: " + e)
+		      	  e.printStackTrace()
+		      	}
+		      	
+		    }
       }
       case _ =>
     }
