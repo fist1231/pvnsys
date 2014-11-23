@@ -149,7 +149,15 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 				        
 				        val newBalance =  sellShort match {
 				          case false => data._2 + ((data._5 * payload.close - comission) - data._2) // Long position: BUY = open long; SELL = close long
-				          case true =>  2* (data._5 * data._6 + comission) - (data._5 * payload.close - comission) + data._2  // Short position: BUY - open short; SELL = cover
+//				          case true =>  2* (data._5 * data._6 + comission) - (data._5 * payload.close - comission) + data._2  // Short position: BUY - open short; SELL = cover
+				          case true =>  {
+				            val position = data._5 * data._6 + comission
+				            val proceeds = data._5 * payload.close - comission
+				            val profit = (-1) * (proceeds - position) - (4 * comission)
+				            // new balance = 
+				            val newBal = position + profit + data._2
+				            newBal
+				          }
 				        }
 				        
 //				        val newBalance =  data._2 + data._5 * payload.close - comission 
