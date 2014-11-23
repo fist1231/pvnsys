@@ -47,6 +47,14 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
   import Utils._
   import TttsFacadeMessages._
 	
+	val props = new Properties();
+	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
+	props.put("serializer.class", Configuration.serializerClassProducer);
+	props.put("message.send.max.retries", "7");
+	props.put("retry.backoff.ms", "1000");
+
+	val producer = new Producer[Integer, String](new ProducerConfig(props));
+  
   override def receive = {
 
   	case msg: RequestFacadeMessage => {
@@ -78,13 +86,13 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
   }
   
   def produceKafkaMsg(msg: TttsFacadeMessage) = {
-	val props = new Properties();
-	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
-	props.put("serializer.class", Configuration.serializerClassProducer);
-	props.put("message.send.max.retries", "7");
-	props.put("retry.backoff.ms", "1000");
-
-	val producer = new Producer[Integer, String](new ProducerConfig(props));
+//	val props = new Properties();
+//	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
+//	props.put("serializer.class", Configuration.serializerClassProducer);
+//	props.put("message.send.max.retries", "7");
+//	props.put("retry.backoff.ms", "1000");
+//
+//	val producer = new Producer[Integer, String](new ProducerConfig(props));
     val topic = Configuration.facadeTopic 
     // Convert RequestFacadeMessage back to JsValue
     //val jsonMessage = msg.asInstanceOf[RequestFacadeMessage].toJson.compactPrint
@@ -125,7 +133,7 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
 */     
 //    emulateFeedServiseResponse(msg, producer, topic)
     
-    producer.close
+//    producer.close
   }
   
 //  private def emulateFeedServiseResponse(msg: RequestFacadeMessage, producer: Producer[Integer, String], topic: String) = {

@@ -34,11 +34,13 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
   import TttsEngineMessages._
   
   
-	val props = new Properties()
-	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
-	props.put("serializer.class", Configuration.serializerClassProducer)
+	val props = new Properties();
+	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
+	props.put("serializer.class", Configuration.serializerClassProducer);
+	props.put("message.send.max.retries", "7");
+	props.put("retry.backoff.ms", "1000");
 
-	val producer = new Producer[Integer, String](new ProducerConfig(props))
+	val producer = new Producer[Integer, String](new ProducerConfig(props));
 	
   
   override def receive = {
@@ -63,6 +65,8 @@ class KafkaFacadeTopicProducerActor extends Actor with ActorLogging {
 //	val props = new Properties()
 //	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer)
 //	props.put("serializer.class", Configuration.serializerClassProducer)
+//	props.put("message.send.max.retries", "7");
+//	props.put("retry.backoff.ms", "1000");
 //
 //	val producer = new Producer[Integer, String](new ProducerConfig(props))
     val topic = Configuration.facadeTopic 
