@@ -83,7 +83,7 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 				}
 
 		        // TODO: pass from UI through FacadeMS
-		        val sellShort = true
+		        val sellShort = false
 				
 			    val enginePayload = strategySignal match {
 			      case "BUY" => if(!data._4) {

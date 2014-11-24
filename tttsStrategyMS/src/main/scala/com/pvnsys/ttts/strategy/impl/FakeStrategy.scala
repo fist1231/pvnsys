@@ -62,7 +62,7 @@ class FakeStrategy extends Strategy with LazyLogging {
 	    case x: ResponseFeedFacadeTopicMessage => {
 	       x.payload match {
 	         case Some(feepPayload) => {
-	        	 val strategyPayload = StrategyPayload(feepPayload.datetime, feepPayload.ticker, feepPayload.open, feepPayload.high, feepPayload.low, feepPayload.close, feepPayload.volume, feepPayload.wap, feepPayload.size, "strategy response payload here")
+	        	 val strategyPayload = StrategyPayload(feepPayload.datetime, feepPayload.ticker, feepPayload.open, feepPayload.high, feepPayload.low, feepPayload.close, feepPayload.volume, feepPayload.wap, feepPayload.size, "strategy response payload here", 0.00, 0.00, 0.00)
 	        	 ResponseStrategyFacadeTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, x.client, Some(strategyPayload), messageTraits._2, x.sequenceNum, signal)
 	           
 	         }
@@ -73,7 +73,7 @@ class FakeStrategy extends Strategy with LazyLogging {
 	    case x: ResponseFeedServicesTopicMessage => {
 	       x.payload match {
 	         case Some(feepPayload) => {
-	        	 val strategyPayload = StrategyPayload(feepPayload.datetime, feepPayload.ticker, feepPayload.open, feepPayload.high, feepPayload.low, feepPayload.close, feepPayload.volume, feepPayload.wap, feepPayload.size, "strategy response payload here")
+	        	 val strategyPayload = StrategyPayload(feepPayload.datetime, feepPayload.ticker, feepPayload.open, feepPayload.high, feepPayload.low, feepPayload.close, feepPayload.volume, feepPayload.wap, feepPayload.size, "strategy response payload here", 0.00, 0.00, 0.00)
 	        	 ResponseStrategyServicesTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, x.client, Some(strategyPayload), messageTraits._2, x.sequenceNum, signal, x.serviceId)	      
 	         }
 	         case None => message

@@ -152,7 +152,7 @@ class AbxStrategyActor extends Actor with ActorLogging {
 			    	strategyResult.onComplete {
 			    	  case Success(result) => {
 					       val payloadStr = s"${result}"
-					       val payloadRsp = StrategyPayload(payload.datetime, "abx", payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr)
+					       val payloadRsp = StrategyPayload(payload.datetime, "abx", payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr, 0.00, 0.00, 0.00)
 					       
 					       val response = sid match {
 					         case Some(servId) => ResponseStrategyServicesTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, clnt, Some(payloadRsp), messageTraits._2, sequenceNum, result, servId)

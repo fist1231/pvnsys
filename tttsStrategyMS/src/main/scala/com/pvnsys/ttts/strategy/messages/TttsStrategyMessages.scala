@@ -28,7 +28,7 @@ object TttsStrategyMessages {
 
 	case class FacadePayload(payload: String) extends TttsStrategyMessage
 	case class FeedPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsStrategyMessage
-	case class StrategyPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsStrategyMessage
+	case class StrategyPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String, lowerBB: Double, middBB: Double, upperBB: Double) extends TttsStrategyMessage
 	
 	case class FacadeTopicMessage(id: String, msgType: String, client: String, payload: Option[StrategyPayload], timestamp: String, sequenceNum: String) extends TttsStrategyMessage
 	case class RequestStrategyFacadeTopicMessage(id: String, msgType: String, client: String, payload: Option[StrategyPayload], timestamp: String, sequenceNum: String) extends TttsStrategyMessage

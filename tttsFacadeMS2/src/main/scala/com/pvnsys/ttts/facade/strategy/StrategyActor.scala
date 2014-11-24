@@ -23,7 +23,7 @@ object StrategyActor {
 object StrategyActorJsonProtocol extends DefaultJsonProtocol {
   import TttsFacadeMessages._
   implicit val facadePayloadFormat = jsonFormat1(FacadePayload)
-  implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
+  implicit val strategyPayloadFormat = jsonFormat13(StrategyPayload)
   implicit val facadeClientMessageFormat = jsonFormat2(FacadeClientMessage)
   implicit val requestFacadeMessageFormat = jsonFormat6(RequestStrategyFacadeMessage)
   implicit val responseFacadeMessageFormat = jsonFormat7(ResponseStrategyFacadeMessage)

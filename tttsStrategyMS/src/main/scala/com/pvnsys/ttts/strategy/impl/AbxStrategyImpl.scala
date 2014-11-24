@@ -130,7 +130,7 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
   	
   	
   	//TODO: replace blocking call with GK what
-  	val data = ReadKdbActor.getQuotesData(tableId)
+  	val data = ReadKdbActor.getAbxQuotesWithBBData(tableId)
   	
 		val l2h: Double = data(0).getOrElse(0.00)
 		val l2l: Double = data(1).getOrElse(0.00)
@@ -139,25 +139,33 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 		val l1l: Double = data(4).getOrElse(0.00)
 		val l1c: Double = data(5).getOrElse(0.00)
 		val maxHigh: Double = data(6).getOrElse(0.00)
+		val lowerBB: Double = data(7).getOrElse(0.00)
+		val middBB: Double = data(8).getOrElse(0.00)
+		val upperBB: Double = data(9).getOrElse(0.00)
 
 		// Doo strategy business logic and return result signal
-        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && maxHigh != 0.00) {
-		  /*
-		   * Close > Prev. high - buy; Close < Prev. Low - sell. ==> No bueno, lost 5k over 200 trades.
-		   */
-		  if(l1c > l2h) {
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && maxHigh != 0.00 && lowerBB != 0.00 && middBB != 0.00 && upperBB != 0.00) {
+          
+		  // Close > Prev. high - buy; Close < Prev. Low - sell. ==> No bueno, lost 5k over 200 trades.
+//		  if(l1c > l2h) {
 		  
-		  /*
-		   * Close > Last 10 max(High) - Buy; Close < Prev. Low - Sell
-		   * 
-		   */
+		  //Close > Last 10 max(High) - Buy; Close < Prev. Low - Sell
 //		  if(l1c > maxHigh) {
-		    "SELL"
-		  } else if(l1c < l2l) {
+		  //Close < LowerBB - Buy; Close > MiddBB - Sell
+		  if(l2c < lowerBB) {
 		    "BUY"
+		  } else if(l2c > middBB) {
+		    "SELL"
 		  } else {
 		    "HOLD"
 		  }
+//		  if(l1c > maxHigh) {
+//		    "SELL"
+//		  } else if(l1c < l2l) {
+//		    "BUY"
+//		  } else {
+//		    "HOLD"
+//		  }
 		} else {
 		  "NOT ENOUGH DATA"
 		}
@@ -171,12 +179,12 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
         val strategyResponseMessage = payload match {
           case Some(payload) => {
 		       val payloadStr = s"${result}"
-		       val payloadRsp = StrategyPayload(payload.datetime, "abx", payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr)
+		       val payloadRsp = StrategyPayload(payload.datetime, "abx", payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr, lowerBB, middBB, upperBB)
 
 
 				val clnt = message match {
-				  case x if message.isInstanceOf[ResponseFeedFacadeTopicMessage] => x.asInstanceOf[ResponseFeedFacadeTopicMessage].client  
-				  case x if message.isInstanceOf[ResponseFeedServicesTopicMessage] => x.asInstanceOf[ResponseFeedServicesTopicMessage].client
+				  case x: ResponseFeedFacadeTopicMessage => x.client  
+				  case x: ResponseFeedServicesTopicMessage=> x.client
 				  case _ => ""
 				}
 			

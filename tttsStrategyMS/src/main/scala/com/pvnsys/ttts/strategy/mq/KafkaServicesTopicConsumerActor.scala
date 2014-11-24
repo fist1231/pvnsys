@@ -29,7 +29,7 @@ object KafkaServicesTopicConsumerActor {
 object KafkaServicesTopicConsumerActorJsonProtocol extends DefaultJsonProtocol {
   import TttsStrategyMessages._
   implicit val feedPayloadFormat = jsonFormat10(FeedPayload)
-  implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
+  implicit val strategyPayloadFormat = jsonFormat13(StrategyPayload)
   implicit val responseFeedServicesTopicMessageFormat = jsonFormat7(ResponseFeedServicesTopicMessage)
   implicit val requestStrategyServicesTopicMessageFormat = jsonFormat7(RequestStrategyServicesTopicMessage)
   implicit val responseFeedFacadeTopicMessageFormat = jsonFormat7(ResponseFeedFacadeTopicMessage)

@@ -24,7 +24,7 @@ object KafkaConsumerActorJsonProtocol extends DefaultJsonProtocol {
   import TttsFacadeMessages._
   implicit val facadePayloadFormat = jsonFormat1(FacadePayload)
   implicit val feedPayloadFormat = jsonFormat10(FeedPayload)
-  implicit val strategyPayloadFormat = jsonFormat10(StrategyPayload)
+  implicit val strategyPayloadFormat = jsonFormat13(StrategyPayload)
   implicit val enginePayloadFormat = jsonFormat15(EnginePayload)
   implicit val responseFeedFacadeMessageFormat = jsonFormat6(ResponseFeedFacadeMessage)
   implicit val responseStrategyFacadeMessageFormat = jsonFormat7(ResponseStrategyFacadeMessage)
@@ -75,23 +75,27 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 	        if(msgStr.contains(FEED_RESPONSE_MESSAGE_TYPE)) {
 	        	val responseFacadeMessage = msgJsonObj.convertTo[ResponseFeedFacadeMessage]
 	        	log.info("Facade Consumer got {}", responseFacadeMessage)
-			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
-			    feedPushActor ! responseFacadeMessage
-			    feedPushActor ! StopMessage
+//			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
+//			    feedPushActor ! responseFacadeMessage
+//			    feedPushActor ! StopMessage
+      		    context.actorSelection("/user/feed") ! responseFacadeMessage
+
 		    }
 	        if(msgStr.contains(STRATEGY_RESPONSE_MESSAGE_TYPE)) {
 	        	val responseFacadeMessage = msgJsonObj.convertTo[ResponseStrategyFacadeMessage]
 	        	log.info("Facade Consumer got {}", responseFacadeMessage)
-			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
-			    feedPushActor ! responseFacadeMessage
-			    feedPushActor ! StopMessage
+//			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
+//			    feedPushActor ! responseFacadeMessage
+//			    feedPushActor ! StopMessage
+	        	context.actorSelection("/user/strategy") ! responseFacadeMessage
 		    }
 	        if(msgStr.contains(ENGINE_RESPONSE_MESSAGE_TYPE)) {
 	        	val responseFacadeMessage = msgJsonObj.convertTo[ResponseEngineFacadeMessage]
 	        	log.info("Facade Consumer got {}", responseFacadeMessage)
-			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
-			    feedPushActor ! responseFacadeMessage
-			    feedPushActor ! StopMessage
+//			    val feedPushActor = context.actorOf(Props(classOf[FeedPushActor]))
+//			    feedPushActor ! responseFacadeMessage
+//			    feedPushActor ! StopMessage
+	        	context.actorSelection("/user/engine") ! responseFacadeMessage
 		    }
 		    
 //		    val responseFacadeMessage = msgJsonObj.convertTo[ResponseFacadeMessage]
@@ -130,7 +134,7 @@ class KafkaConsumerActor(address: InetSocketAddress) extends Actor with ActorLog
 //	  val msg = s"Dummy quote: $rand"
 	
 	case StopMessage => {
-	  self ! PoisonPill
+	  context stop self
 	}
 	case mmm => log.error("KafkaConsumerActor Received unknown message: {}", mmm)
   }
@@ -159,18 +163,18 @@ class FeedPushActor extends Actor with ActorLogging {
   def receive = {
     case msg: ResponseFeedFacadeMessage => {
 	      context.actorSelection("/user/feed") ! msg
-	      self ! StopMessage
+//	      self ! StopMessage
     }
     case msg: ResponseStrategyFacadeMessage => {
 	      context.actorSelection("/user/strategy") ! msg
-	      self ! StopMessage
+//	      self ! StopMessage
     }
     case msg: ResponseEngineFacadeMessage => {
 	      context.actorSelection("/user/engine") ! msg
-	      self ! StopMessage
+//	      self ! StopMessage
     }
     case StopMessage => {
-	  self ! PoisonPill
+	  context stop self
     }
     
   }

@@ -20,7 +20,7 @@ object TttsEngineMessages {
 	case object StartKafkaServicesTopicConsumerMessage extends TttsEngineMessage
 
 	case class FacadePayload(payload: String) extends TttsEngineMessage
-	case class StrategyPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String) extends TttsEngineMessage
+	case class StrategyPayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String, lowerBB: Double, middBB: Double, upperBB: Double) extends TttsEngineMessage
 	case class EnginePayload(datetime: String, ticker: String, open: Double, high: Double, low: Double, close: Double, volume: Long, wap: Double, size: Long, payload: String, funds: Double, balance: Double, tradesNum: Long, inTrade: Boolean, positionSize: Long) extends TttsEngineMessage
 	
 	case class FacadeTopicMessage(id: String, msgType: String, client: String, payload: Option[FacadePayload], timestamp: String, sequenceNum: String) extends TttsEngineMessage
