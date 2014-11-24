@@ -152,9 +152,9 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 		  //Close > Last 10 max(High) - Buy; Close < Prev. Low - Sell
 //		  if(l1c > maxHigh) {
 		  //Close < LowerBB - Buy; Close > MiddBB - Sell
-		  if(l2c < lowerBB) {
+		  if(l2c > upperBB) {
 		    "BUY"
-		  } else if(l2c > middBB) {
+		  } else if(l2c < middBB) {
 		    "SELL"
 		  } else {
 		    "HOLD"
