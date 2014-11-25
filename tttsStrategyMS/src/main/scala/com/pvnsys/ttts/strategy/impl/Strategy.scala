@@ -4,6 +4,25 @@ import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.TttsStrategyMessag
 import com.pvnsys.ttts.strategy.messages.TttsStrategyMessages.FeedPayload
 import scala.concurrent.Future
 
+object Strategy {
+  
+  object StrategySignal extends Enumeration {
+    type StrategySignal = Value
+    val Buy, Sell, HoldLong, Short, Cover, HoldShort, SellStop, CoverStop, NotAvailabe = Value
+//    val Buy = Value("BUY")
+//    val Sell = Value("SELL")
+//    val Hold = Value("HOLD")
+//    val Short = Value("SHORT")
+//    val Cover = Value("COVER")
+//    val SellStop = Value("SELL_STOP")
+//    val CoverStop = Value("COVER_STOP")
+//    val NotAvailabe = Value("NOT_AVAIL")
+  }
+  
+  implicit def strategySignal2String(i: StrategySignal.Value)= i.toString
+  
+}
+
 trait Strategy {
   
   /*

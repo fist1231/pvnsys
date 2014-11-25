@@ -33,6 +33,8 @@ object ReadKdbActor extends LazyLogging {
 	def getQuotesData(tableId: String): List[Option[Double]] = {
 	  
 		  val numberOfTicks = 2
+		  val minLowTicks = 2
+		  val maxHighTicks = 2
 	  
 	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 		  logger.debug("Connected to KDB server. Retrieving data")
@@ -69,21 +71,27 @@ object ReadKdbActor extends LazyLogging {
 			  val l1c: Option[Double] = Some((c.at(colData(2), 0)).asInstanceOf[Double])
 			  
 			  // Select max high of last $numberOfTicks
-			  val resMax = conn.k(s"select [-${numberOfTicks-1}] max high from reverse select [-$numberOfTicks] high from quotes$tableId")
+			  val resMax = conn.k(s"select [-${maxHighTicks-1}] max high from reverse select [-$maxHighTicks] high from quotes$tableId")
 			  val tabresMax: Flip = resMax.asInstanceOf[Flip]
 			  val colNamesMax = tabresMax.x
 			  val colDataMax = tabresMax.y
 			  val maxHigh: Option[Double] = Some((c.at(colDataMax(0), 0)).asInstanceOf[Double])
+
+			  val resMin = conn.k(s"select [-${minLowTicks-1}] min low from reverse select [-$minLowTicks] low from quotes$tableId")
+			  val tabresMin: Flip = resMax.asInstanceOf[Flip]
+			  val colNamesMin = tabresMin.x
+			  val colDataMin = tabresMin.y
+			  val minLow: Option[Double] = Some((c.at(colDataMin(0), 0)).asInstanceOf[Double])
 			  
 //			  log.info("^^^^^^^^^^^^ List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh) = {}", List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh))
 			  
 //			  val kdb: KdbType = (c.at(colData(0), 0).asInstanceOf[Double], c.at(colData(1), 0).asInstanceOf[Double], c.at(colData(2), 0).asInstanceOf[Int], c.at(colData(3), 0).asInstanceOf[Boolean], c.at(colData(4), 0).asInstanceOf[Int])
-		      List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh)
+		      List(l2h, l2l, l2c, l1h, l1l, l1c, minLow, maxHigh)
 //			  log.debug("^^^^^^^^^^^^ data = {}", result)
 //		      conn.close
 //		      result
 		  } else {
-			  List(None, None, None, None, None, None, None)
+			  List(None, None, None, None, None, None, None, None)
 //			  log.debug("^^^^^^^^^^^^ data = {}", result)
 //		      conn.close
 //		      result
@@ -98,15 +106,16 @@ object ReadKdbActor extends LazyLogging {
 	def getAbxQuotesWithBBData(tableId: String): List[Option[Double]] = {
 	  
 		  val numberOfTicks = 20
-//		  val numberOfBBTicks = 20
+		  val numberOfBBTicks = 20
+		  val minLowTicks = 40
+		  val maxHighTicks = 20
 
-//		  val closePrice = new Array[Double](numberOfTicks)
 	      val begin = new MInteger();
 	      val length = new MInteger();
 	
-	      val upperBB = new Array[Double](numberOfTicks)
-	      val middBB = new Array[Double](numberOfTicks)
-	      val lowerBB = new Array[Double](numberOfTicks)
+	      val upperBB = new Array[Double](numberOfBBTicks)
+	      val middBB = new Array[Double](numberOfBBTicks)
+	      val lowerBB = new Array[Double](numberOfBBTicks)
 
 	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 		  logger.debug("Connected to KDB server. Retrieving data")
@@ -136,42 +145,34 @@ object ReadKdbActor extends LazyLogging {
 			  val l1c: Option[Double] = Some((c.at(colData(2), 0)).asInstanceOf[Double])
 			  
 			  // Select max high of last $numberOfTicks
-			  val resMax = conn.k(s"select [-${numberOfTicks-1}] max high from reverse select [-$numberOfTicks] high from quotes$tableId")
+			  val resMax = conn.k(s"select [-${maxHighTicks-1}] max high from reverse select [-$maxHighTicks] high from quotes$tableId")
 			  val tabresMax: Flip = resMax.asInstanceOf[Flip]
 			  val colNamesMax = tabresMax.x
 			  val colDataMax = tabresMax.y
 			  val maxHigh: Option[Double] = Some((c.at(colDataMax(0), 0)).asInstanceOf[Double])
+
+			  val resMin = conn.k(s"select [-${minLowTicks-1}] min low from reverse select [-$minLowTicks] low from quotes$tableId")
+			  val tabresMin: Flip = resMin.asInstanceOf[Flip]
+			  val colNamesMin = tabresMin.x
+			  val colDataMin = tabresMin.y
+			  val minLow: Option[Double] = Some((c.at(colDataMin(0), 0)).asInstanceOf[Double])
 			  
 //			  log.info("^^^^^^^^^^^^ List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh) = {}", List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh))
 			  
-//			  val kdb: KdbType = (c.at(colData(0), 0).asInstanceOf[Double], c.at(colData(1), 0).asInstanceOf[Double], c.at(colData(2), 0).asInstanceOf[Int], c.at(colData(3), 0).asInstanceOf[Boolean], c.at(colData(4), 0).asInstanceOf[Int])
-
-			  
 			  var i = 0;
-			  val cp = for(i <- 0 to (numberOfTicks - 1)) yield ((c.at(colData(1), i)).asInstanceOf[Double])
+			  val cp = for(i <- 0 to (numberOfBBTicks - 1)) yield ((c.at(colData(1), i)).asInstanceOf[Double])
 			  val closePrice = cp.toArray
 			  
 			  val core = new Core
-	          val retCode = core.bbands(0, closePrice.length - 1, closePrice, numberOfTicks, 2.0, 2.0, MAType.Ema, begin, length, upperBB, middBB, lowerBB);
-			  
-//			  closePrice.foreach(println)
-//			  lowerBB.foreach(println)
-//			  middBB.foreach(println)
-//			  upperBB.foreach(println)
+	          val retCode = core.bbands(0, closePrice.length - 1, closePrice, numberOfBBTicks, 2.0, 2.0, MAType.Ema, begin, length, upperBB, middBB, lowerBB);
 			  
 			  val lowerBBVal = Some(lowerBB(0))
 			  val middBBVal = Some(middBB(0))
 			  val upperBBVal = Some(upperBB(0))
 			  
-			  List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh, lowerBBVal, middBBVal, upperBBVal)
-//			  log.debug("^^^^^^^^^^^^ data = {}", result)
-//		      conn.close
-//		      result
+			  List(l2h, l2l, l2c, l1h, l1l, l1c, minLow, maxHigh, lowerBBVal, middBBVal, upperBBVal)
 		  } else {
-			  List(None, None, None, None, None, None, None, None, None, None)
-//			  log.debug("^^^^^^^^^^^^ data = {}", result)
-//		      conn.close
-//		      result
+			  List(None, None, None, None, None, None, None, None, None, None, None)
 		  }
 		  logger.debug("^^^^^^^^^^^^ data = {}", result)
 	      conn.close
@@ -279,16 +280,22 @@ class ReadKdbActor(tableId: String) extends Actor with ActorLogging {
 			  val colNamesMax = tabresMax.x
 			  val colDataMax = tabresMax.y
 			  val maxHigh: Option[Double] = Some((c.at(colDataMax(0), 0)).asInstanceOf[Double])
+
+			  val resMin = conn.k(s"select [-${numberOfTicks-1}] min low from reverse select [-$numberOfTicks] low from quotes$tableId")
+			  val tabresMin: Flip = resMax.asInstanceOf[Flip]
+			  val colNamesMin = tabresMin.x
+			  val colDataMin = tabresMin.y
+			  val minLow: Option[Double] = Some((c.at(colDataMin(0), 0)).asInstanceOf[Double])
 			  
 //			  log.info("^^^^^^^^^^^^ List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh) = {}", List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh))
 			  
 //			  val kdb: KdbType = (c.at(colData(0), 0).asInstanceOf[Double], c.at(colData(1), 0).asInstanceOf[Double], c.at(colData(2), 0).asInstanceOf[Int], c.at(colData(3), 0).asInstanceOf[Boolean], c.at(colData(4), 0).asInstanceOf[Int])
-		      List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh)
+		      List(l2h, l2l, l2c, l1h, l1l, l1c, minLow, maxHigh)
 //			  log.debug("^^^^^^^^^^^^ data = {}", result)
 //		      conn.close
 //		      result
 		  } else {
-			  List(None, None, None, None, None, None, None)
+			  List(None, None, None, None, None, None, None, None)
 //			  log.debug("^^^^^^^^^^^^ data = {}", result)
 //		      conn.close
 //		      result

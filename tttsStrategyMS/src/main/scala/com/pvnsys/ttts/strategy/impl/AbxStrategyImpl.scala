@@ -21,7 +21,6 @@ import java.util.Date
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
 
-
 object AbxStrategyImpl {
 
   import TttsStrategyMessages._
@@ -29,15 +28,8 @@ object AbxStrategyImpl {
   type StrategyKdbType = (Double, Double, Long, Boolean, Long)
 
 //  type QuotesKdbType = (Option[Double], Option[Double], Option[Double], Option[Double], Option[Double], Option[Double])
-  
-  // quotes:([]datetime:`timestamp$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$()) 
+//  quotes:([]datetime:`timestamp$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$()) 
   type TransactionKdbType = (String, String, Double, Double, Double, Double, Long, Double, Long)
-  
-//  sealed trait AbxStrategyMessages
-//  case class StartAbxStrategyMessage(message: TttsStrategyMessage, serviceId: String) extends AbxStrategyMessages
-//  case object StopAbxStrategyMessage extends AbxStrategyMessages
-//  case class AbxStrategyResponseMessage(message: TttsStrategyMessage) extends AbxStrategyMessages
-
   
 }
 
@@ -48,38 +40,18 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
   import AbxStrategyImpl._
   import WriteKdbActor._
   import ReadKdbActor._
-  
+  import Strategy._
+  import StrategySignal._
   
   	def createSchema(serviceId: String, message: TttsStrategyMessage): TttsStrategyMessage = {
-
-//	  	implicit val timeout = Timeout(2 seconds)
-    
 	  	val tableId = constructTableId(message, serviceId)
-	  	
 	  	WriteKdbActor.resetStrategyData(tableId)
-	  	
-//	    val writeKdbActor = context.actorOf(WriteKdbActor.props(tableId))
-//	    val resetSchemaResult: Future[Option[String]] = (writeKdbActor ? ResetStrategyKdbMessage).mapTo[ResponseResetStrategyKdbMessage] map {resultMsg =>
-//    	       logger.info("Received response from Strategy schema Generation")
-//    	       Some("SUCCESS")
-//	    }
-//    	resetSchemaResult.onComplete {
-//    	  case Success(result) => {
-//    	       logger.info("Strategy schema reset was {}", result)
-//    	       writeKdbActor ! StopWriteKdbActor
-//    	  }
-//    	  case Failure(error) => {
-//    		  logger.error("Strategy schema reset was unsuccessfull; error: {}", error.getMessage())
-//    	  }
-//    	}
         message
   	}	
 
   
   	def writeQuotesData(serviceId: String, message: TttsStrategyMessage): TttsStrategyMessage = {
-
 	  	implicit val timeout = Timeout(2 seconds)
-    
 	  	val tableId = constructTableId(message, serviceId)
 
   		val payload = message match {
@@ -90,85 +62,48 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 	  	
         payload match {
           case Some(payload) => {
-            
 		    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 		    	val inputDate = inputSdf.parse(payload.datetime)
 		    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
 		    	val outputDateStr = outputSdf.format(inputDate)
-            
 			  	val writeData = (outputDateStr, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size)
-			  	
 			  	WriteKdbActor.setTransactionData(tableId, writeData)
-			  	
-//			    val writeKdbActor = context.actorOf(WriteKdbActor.props(tableId))
-//			    val writeSchemaResult: Future[Option[String]] = (writeKdbActor ? WriteTransactionKdbMessage(writeData)).mapTo[ResponseWriteTransactionKdbMessage] map {resultMsg =>
-//		    	       logger.info("Received response from WriteTransaction operation")
-//		    	       Some("SUCCESS")
-//			    }
-//		    	writeSchemaResult.onComplete {
-//		    	  case Success(result) => {
-//		    	       logger.info("WriteTransaction was {}", result)
-//		    	       writeKdbActor ! StopWriteKdbActor
-//		    	  }
-//		    	  case Failure(error) => {
-//		    		  logger.error("WriteTransaction was unsuccessfull; error: {}", error.getMessage())
-//		    	  }
-//		    	}
           }
           case None => 
         }
 
     	message
-  
   	}  
   
 
   override def applyStrategy(serviceId: String, message: TttsStrategyMessage): TttsStrategyMessage = {
     
-//	implicit val timeout = Timeout(2 seconds)
-  	val tableId = constructTableId(message, serviceId)
-  	
-  	
-  	//TODO: replace blocking call with GK what
-  	val data = ReadKdbActor.getAbxQuotesWithBBData(tableId)
-  	
+	  	val tableId = constructTableId(message, serviceId)
+	  	
+	  	//TODO: replace blocking call with GK what
+	  	val data = ReadKdbActor.getAbxQuotesWithBBData(tableId)
+	  	
 		val l2h: Double = data(0).getOrElse(0.00)
 		val l2l: Double = data(1).getOrElse(0.00)
 		val l2c: Double = data(2).getOrElse(0.00)
 		val l1h: Double = data(3).getOrElse(0.00)
 		val l1l: Double = data(4).getOrElse(0.00)
 		val l1c: Double = data(5).getOrElse(0.00)
-		val maxHigh: Double = data(6).getOrElse(0.00)
-		val lowerBB: Double = data(7).getOrElse(0.00)
-		val middBB: Double = data(8).getOrElse(0.00)
-		val upperBB: Double = data(9).getOrElse(0.00)
-
-		// Doo strategy business logic and return result signal
-        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && maxHigh != 0.00 && lowerBB != 0.00 && middBB != 0.00 && upperBB != 0.00) {
-          
-		  // Close > Prev. high - buy; Close < Prev. Low - sell. ==> No bueno, lost 5k over 200 trades.
-//		  if(l1c > l2h) {
-		  
-		  //Close > Last 10 max(High) - Buy; Close < Prev. Low - Sell
-//		  if(l1c > maxHigh) {
-		  //Close < LowerBB - Buy; Close > MiddBB - Sell
-		  if(l2c > upperBB) {
-		    "BUY"
-		  } else if(l2c < middBB) {
-		    "SELL"
-		  } else {
-		    "HOLD"
-		  }
-//		  if(l1c > maxHigh) {
-//		    "SELL"
-//		  } else if(l1c < l2l) {
-//		    "BUY"
-//		  } else {
-//		    "HOLD"
-//		  }
-		} else {
-		  "NOT ENOUGH DATA"
-		}
+		val minLow: Double = data(6).getOrElse(0.00)
+		val maxHigh: Double = data(7).getOrElse(0.00)
+		val lowerBB: Double = data(8).getOrElse(0.00)
+		val middBB: Double = data(9).getOrElse(0.00)
+		val upperBB: Double = data(10).getOrElse(0.00)
+    
+		// Do strategy business logic and return result signal
+		
+//		val result = abovePreviousStrategy(data)
+//		val result = maxHighStrategy(data)
+//		val result = bbUpperToMidShortStrategy(data)
+//		val result = bbUpperToLowerShortStrategy(data)
+//		val result = aboveMaxNToBelowMinMLongStrategy(data)
+		val result = belowMinNToAboveMaxMShortStrategy(data)
+		
         
 		val payload = message match {
 		  case x if message.isInstanceOf[ResponseFeedFacadeTopicMessage] => x.asInstanceOf[ResponseFeedFacadeTopicMessage].payload 
@@ -189,14 +124,14 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 				}
 			
 				val sequenceNum = message match {
-				  case x if message.isInstanceOf[ResponseFeedFacadeTopicMessage] => x.asInstanceOf[ResponseFeedFacadeTopicMessage].sequenceNum  
-				  case x if message.isInstanceOf[ResponseFeedServicesTopicMessage] => x.asInstanceOf[ResponseFeedServicesTopicMessage].sequenceNum
+				  case x: ResponseFeedFacadeTopicMessage => x.sequenceNum  
+				  case x: ResponseFeedServicesTopicMessage => x.sequenceNum
 				  case _ => ""
 				}
 			
 				val sid = message match {
-				  case x if message.isInstanceOf[ResponseFeedFacadeTopicMessage] => None  
-				  case x if message.isInstanceOf[ResponseFeedServicesTopicMessage] => Some(x.asInstanceOf[ResponseFeedServicesTopicMessage].serviceId)
+				  case x: ResponseFeedFacadeTopicMessage => None  
+				  case x: ResponseFeedServicesTopicMessage => Some(x.serviceId)
 				  case _ => None
 				}
 		       
@@ -211,96 +146,6 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
         }
         
   	strategyResponseMessage
-  	
-  	
-//    val readKdbActor = context.actorOf(ReadKdbActor.props(tableId))
-//    val strategyResult: Future[Option[TttsStrategyMessage]] = (readKdbActor ? ReadKdbMessage).mapTo[ReadKdbResultMessage] map {resultMessage =>
-//    	// Process previously stored quotes
-//        val data = resultMessage.result 
-//		val l2h: Double = data(0).getOrElse(0.00)
-//		val l2l: Double = data(1).getOrElse(0.00)
-//		val l2c: Double = data(2).getOrElse(0.00)
-//		val l1h: Double = data(3).getOrElse(0.00)
-//		val l1l: Double = data(4).getOrElse(0.00)
-//		val l1c: Double = data(5).getOrElse(0.00)
-//		val maxHigh: Double = data(6).getOrElse(0.00)
-//
-//		// Doo strategy business logic and return result signal
-//        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && maxHigh != 0.00) {
-//		  /*
-//		   * Close > Prev. high - buy; Close < Prev. Low - sell. ==> No bueno, lost 5k over 200 trades.
-//		   */
-////		  if(l1c > l2h) {
-//		  
-//		  /*
-//		   * Close > Last 10 max(High) - Buy; Close < Prev. Low - Sell
-//		   * 
-//		   */
-//		  if(l1c > maxHigh) {
-//		    "BUY"
-//		  } else if(l1c < l2l) {
-//		    "SELL"
-//		  } else {
-//		    "HOLD"
-//		  }
-//		} else {
-//		  "NOT ENOUGH DATA"
-//		}
-//        
-//		val payload = message match {
-//		  case x if message.isInstanceOf[ResponseFeedFacadeTopicMessage] => x.asInstanceOf[ResponseFeedFacadeTopicMessage].payload 
-//		  case x if message.isInstanceOf[ResponseFeedServicesTopicMessage] => x.asInstanceOf[ResponseFeedServicesTopicMessage].payload
-//		  case _ => None
-//		}
-//	
-//        val strategyResponseMessage = payload match {
-//          case Some(payload) => {
-//		       val payloadStr = s"${result}"
-//		       val payloadRsp = StrategyPayload(payload.datetime, "abx", payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr)
-//
-//
-//				val clnt = message match {
-//				  case x if message.isInstanceOf[ResponseFeedFacadeTopicMessage] => x.asInstanceOf[ResponseFeedFacadeTopicMessage].client  
-//				  case x if message.isInstanceOf[ResponseFeedServicesTopicMessage] => x.asInstanceOf[ResponseFeedServicesTopicMessage].client
-//				  case _ => ""
-//				}
-//			
-//				val sequenceNum = message match {
-//				  case x if message.isInstanceOf[ResponseFeedFacadeTopicMessage] => x.asInstanceOf[ResponseFeedFacadeTopicMessage].sequenceNum  
-//				  case x if message.isInstanceOf[ResponseFeedServicesTopicMessage] => x.asInstanceOf[ResponseFeedServicesTopicMessage].sequenceNum
-//				  case _ => ""
-//				}
-//			
-//				val sid = message match {
-//				  case x if message.isInstanceOf[ResponseFeedFacadeTopicMessage] => None  
-//				  case x if message.isInstanceOf[ResponseFeedServicesTopicMessage] => Some(x.asInstanceOf[ResponseFeedServicesTopicMessage].serviceId)
-//				  case _ => None
-//				}
-//		       
-//		       val messageTraits = Utils.generateMessageTraits
-//		       val response: TttsStrategyMessage = sid match {
-//		         case Some(servId) => ResponseStrategyServicesTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, clnt, Some(payloadRsp), messageTraits._2, sequenceNum, result, servId)
-//		         case None => ResponseStrategyFacadeTopicMessage(messageTraits._1, STRATEGY_RESPONSE_MESSAGE_TYPE, clnt, Some(payloadRsp), messageTraits._2, sequenceNum, result)
-//		       }
-//		       Some(response)
-//          }	    
-//          case None => None
-//        }
-//        strategyResponseMessage
-//	}
-//
-//	strategyResult.onComplete {
-//	  case Success(result) => {
-//	    result match {
-//	      case Some(result) => result
-//	      case None =>
-//	    }
-//	  }
-//	  case Failure(error) => {
-//	    logger.error("AbxStrategy process method error: {}", error.getMessage())
-//	  }
-//	}
-    
   }
   	
   private def constructTableId(msg: TttsStrategyMessage, serviceId: String): String = {
@@ -315,6 +160,183 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 	    }
 	    case _ =>  "Invalid"
     }	    
+  }
+  
+  
+  /*
+   * ============== Strategies ===============================
+   */
+
+    private def aboveMaxNToBelowMinMLongStrategy(data: List[Option[Double]]) = {
+      
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+		val minLow: Double = data(6).getOrElse(0.00)
+		val maxHigh: Double = data(7).getOrElse(0.00)
+		val lowerBB: Double = data(8).getOrElse(0.00)
+		val middBB: Double = data(9).getOrElse(0.00)
+		val upperBB: Double = data(10).getOrElse(0.00)
+    
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && minLow != 0.00 && maxHigh != 0.00 && lowerBB != 0.00 && middBB != 0.00 && upperBB != 0.00) {
+		  if(l2c <= minLow) {
+		    Buy 
+		  } else if(l2c >= maxHigh) {
+		    Sell
+		  } else {
+	    	HoldLong
+		  }
+		} else {
+		  NotAvailabe
+		}
+        result
+  }
+  
+    private def belowMinNToAboveMaxMShortStrategy(data: List[Option[Double]]) = {
+      
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+		val minLow: Double = data(6).getOrElse(0.00)
+		val maxHigh: Double = data(7).getOrElse(0.00)
+		val lowerBB: Double = data(8).getOrElse(0.00)
+		val middBB: Double = data(9).getOrElse(0.00)
+		val upperBB: Double = data(10).getOrElse(0.00)
+    
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && minLow != 0.00 && maxHigh != 0.00 && lowerBB != 0.00 && middBB != 0.00 && upperBB != 0.00) {
+		  if(l2c <= minLow) {
+		    Short
+		  } else if(l2c >= maxHigh) {
+		    Cover
+		  } else {
+	    	HoldShort
+		  }
+		} else {
+		  NotAvailabe
+		}
+        result
+  }
+  
+    private def bbUpperToLowerShortStrategy(data: List[Option[Double]]) = {
+      
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+		val minLow: Double = data(6).getOrElse(0.00)
+		val maxHigh: Double = data(7).getOrElse(0.00)
+		val lowerBB: Double = data(8).getOrElse(0.00)
+		val middBB: Double = data(9).getOrElse(0.00)
+		val upperBB: Double = data(10).getOrElse(0.00)
+    
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && minLow != 0.00 && maxHigh != 0.00 && lowerBB != 0.00 && middBB != 0.00 && upperBB != 0.00) {
+		  if(l2c > upperBB) {
+		    Short
+		  } else if(l2c < lowerBB) {
+		    Cover
+		  } else {
+	    	HoldShort
+		  }
+		} else {
+		  NotAvailabe
+		}
+        result
+  }
+
+  
+  private def bbUpperToMidShortStrategy(data: List[Option[Double]]) = {
+
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+		val minLow: Double = data(6).getOrElse(0.00)
+		val maxHigh: Double = data(7).getOrElse(0.00)
+		val lowerBB: Double = data(8).getOrElse(0.00)
+		val middBB: Double = data(9).getOrElse(0.00)
+		val upperBB: Double = data(10).getOrElse(0.00)
+    
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && minLow != 0.00 && maxHigh != 0.00 && lowerBB != 0.00 && middBB != 0.00 && upperBB != 0.00) {
+		  if(l2c > upperBB) {
+		    Short
+		  } else if(l2c < middBB) {
+		    Cover
+		  } else {
+		    HoldShort
+		  }
+		} else {
+		  NotAvailabe
+		}
+        result
+  }
+  
+  private def maxHighStrategy(data: List[Option[Double]]) = {
+
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+		val minLow: Double = data(6).getOrElse(0.00)
+		val maxHigh: Double = data(7).getOrElse(0.00)
+		val lowerBB: Double = data(8).getOrElse(0.00)
+		val middBB: Double = data(9).getOrElse(0.00)
+		val upperBB: Double = data(10).getOrElse(0.00)
+    
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && minLow != 0.00 && maxHigh != 0.00 && lowerBB != 0.00 && middBB != 0.00 && upperBB != 0.00) {
+          
+		  //Close > Last N max(High) - Buy; Close < Prev. Low - Sell
+		  if(l1c > maxHigh) {
+		    Sell
+		  } else if(l1c < l2l) {
+		    Buy
+		  } else {
+		    HoldLong
+		  }
+		} else {
+		  NotAvailabe
+		}
+        result
+  }
+  
+  private def abovePreviousStrategy(data: List[Option[Double]]) = {
+    
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+		val minLow: Double = data(6).getOrElse(0.00)
+		val maxHigh: Double = data(7).getOrElse(0.00)
+		val lowerBB: Double = data(8).getOrElse(0.00)
+		val middBB: Double = data(9).getOrElse(0.00)
+		val upperBB: Double = data(10).getOrElse(0.00)
+    
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && minLow != 0.00 && maxHigh != 0.00 && lowerBB != 0.00 && middBB != 0.00 && upperBB != 0.00) {
+			// Close > Prev. high - buy; Close < Prev. Low - sell. 
+			if(l1c > l2h) {
+				Buy
+			} else if(l1c < l2l) {
+				Sell
+			} else {
+				HoldLong
+			}
+		} else {
+		  NotAvailabe
+		}
+        result
   }
   
 }

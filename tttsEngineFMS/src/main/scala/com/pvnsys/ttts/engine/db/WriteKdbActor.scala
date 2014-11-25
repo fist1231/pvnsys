@@ -11,7 +11,7 @@ import akka.actor.AllForOneStrategy
 import akka.actor.Props
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor.actorRef2Scala
-import com.pvnsys.ttts.engine.impl.SimulatorEngineActor
+import com.pvnsys.ttts.engine.impl.Engine
 import kx.c
 import kx.c._
 import kx.c.Flip
@@ -19,7 +19,7 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
 
 object WriteKdbActor extends LazyLogging {
   
-  import SimulatorEngineActor._
+  import Engine._
   def props(tableId: String) = Props(new WriteKdbActor(tableId))
   sealed trait WriteKdbMessages
   case class WriteEngineKdbMessage(data: EngineKdbType) extends WriteKdbMessages
@@ -39,9 +39,8 @@ object WriteKdbActor extends LazyLogging {
       val price = 0.00
       
       val createEngineStr = s"engine$tableId" + """:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$();price:`float$())"""
-      val createTradeStr = s"trade$tableId" + """:([]dts:`datetime$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$())"""
+      val createTradeStr = s"trade$tableId" + """:([]dts:`datetime$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$();balance:`float$();transnum:`long$())"""
 
- 	  logger.debug("============== 1")
       conn.k(createEngineStr)
  	  logger.debug("WriteKdbActor created ENGINE table: {}", createEngineStr)
       
@@ -72,7 +71,7 @@ object WriteKdbActor extends LazyLogging {
   
   def setTransactionData(tableId: String, data: TransactionKdbType) = {
       val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
-      val updateStr = s"`trade$tableId insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6})" 
+      val updateStr = s"`trade$tableId insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6};${data._7};${data._8})" 
  	  logger.debug("WriteKdbActor updating TRADE table data with: {}", updateStr)
       conn.k(updateStr)
       conn close
@@ -87,7 +86,7 @@ class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
   
 	import WriteKdbActor._
 	import TttsEngineMessages._
-    import SimulatorEngineActor._
+    import Engine._
 	
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
@@ -128,9 +127,8 @@ class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
       val possize = 0L
       
       val createEngineStr = s"engine$tableId" + """:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$();price:`float$())"""
-      val createTradeStr = s"trade$tableId" + """:([]dts:`datetime$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$())"""
+      val createTradeStr = s"trade$tableId" + """:([]dts:`datetime$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$();balance:`float$();transnum:`long$())"""
 
- 	  log.debug("============== 1")
       conn.k(createEngineStr)
  	  log.debug("WriteKdbActor created ENGINE table: {}", createEngineStr)
       
@@ -213,7 +211,7 @@ class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
   
   def setTransactionData(data: TransactionKdbType) = {
       val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
-      val updateStr = s"`trade$tableId insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6})" 
+      val updateStr = s"`trade$tableId insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6};${data._7};${data._8})" 
  	  log.debug("WriteKdbActor updating TRADE table data with: {}", updateStr)
       conn.k(updateStr)
       conn close

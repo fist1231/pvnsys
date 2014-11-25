@@ -11,7 +11,7 @@ import akka.actor.AllForOneStrategy
 import akka.actor.Props
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor.actorRef2Scala
-import com.pvnsys.ttts.engine.impl.SimulatorEngineActor
+import com.pvnsys.ttts.engine.impl.Engine
 import kx.c
 import kx.c._
 import kx.c.Flip
@@ -19,7 +19,7 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
 
 object ReadKdbActor extends LazyLogging {
   
-  import SimulatorEngineActor._
+  import Engine._
   def props(tableId: String) = Props(new ReadKdbActor(tableId))
   sealed trait ReadKdbMessages
   case object ReadKdbMessage extends ReadKdbMessages
@@ -57,7 +57,7 @@ class ReadKdbActor(tableId: String) extends Actor with ActorLogging {
   
 	import ReadKdbActor._
 	import TttsEngineMessages._
-	import SimulatorEngineActor._
+	import Engine._
 	
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>

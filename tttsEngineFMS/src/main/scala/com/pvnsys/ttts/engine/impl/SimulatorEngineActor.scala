@@ -18,23 +18,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
 object SimulatorEngineActor {
-
   import TttsEngineMessages._
-  /*
-   * Engine table row Tuple: 
-   *   funds - initial balance; 
-   *   balance - current balance; 
-   *   transnum - number of transactions; 
-   *   intrade - is trade in progress; 
-   *   possize - trade in progress position size
-   *   
-   *   engine:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$();price:`float$())
-   */ 
-  type EngineKdbType = (Double, Double, Long, Boolean, Long, Double)
-  
-  // trade:([]time:`time$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$()) 
-  type TransactionKdbType = (String, String, Double, Long, String, Double)
-  
   sealed trait SimulatorEngineMessages
   case class StartSimulatorEngineMessage(message: TttsEngineMessage, serviceId: String) extends SimulatorEngineMessages
   case object StopSimulatorEngineMessage extends SimulatorEngineMessages
@@ -52,6 +36,7 @@ class SimulatorEngineActor extends Actor with ActorLogging {
   import SimulatorEngineActor._
   import ReadKdbActor._
   import WriteKdbActor._
+  import Engine._
   
   
   /*
@@ -93,7 +78,7 @@ class SimulatorEngineActor extends Actor with ActorLogging {
 			    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
 			    	val outputDateStr = outputSdf.format(inputDate)
 
-			    	val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "BUY", -1 * position)
+			    	val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "BUY", -1 * position, newBalance, newTransnum)
 			        writeTransactionData(tableId, transactionData)
 			        Some(EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, "BOUGHT", newFunds, newBalance, newTransnum, newIntrade, newPossize))
 			        
@@ -121,7 +106,7 @@ class SimulatorEngineActor extends Actor with ActorLogging {
 		    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
 		    	val outputDateStr = outputSdf.format(inputDate)
 		        
-		        val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "SELL", sellProceeds)
+		        val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "SELL", sellProceeds, newBalance, newTransnum)
 		        writeTransactionData(tableId, transactionData)
 		        Some(EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, "SOLD", newFunds, newBalance, newTransnum, newIntrade, newPossize))
 
