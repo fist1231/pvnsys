@@ -20,9 +20,10 @@ class TttsFMSTest extends FunSuite {
 //  	  iter.drop(1).foreach(x=>println(x))
   	  val initSize = Source.fromFile(filename).getLines.length
   	    var count = 0
-	  while(true) {
+  	    var stopCount = 0
+	  while(stopCount <= 10) {
 	    getLine(filename, initSize, increment(count))
-	    
+	    stopCount += 1
 //	    getLine(filename)
 	  } 
     

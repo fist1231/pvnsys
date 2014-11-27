@@ -166,6 +166,7 @@ class KafkaServicesTopicConsumerActor(processorActorRef: ActorRef, facadeRespons
 		      }
 		} catch {
 		  case e: Throwable => log.error("KafkaServicesTopicConsumerActor Error processing message, stop consuming: " + e)
+		  e.printStackTrace()
 		}
 	  
 	}

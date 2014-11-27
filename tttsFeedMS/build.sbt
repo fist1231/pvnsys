@@ -30,6 +30,7 @@ libraryDependencies ++= {
     "io.spray"            %%  "spray-json"     % "1.3.1",
     "io.spray"            %%   "spray-can"     % sprayVersion,
     "io.spray"            %%   "spray-routing" % sprayVersion,
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2",
 //	"org.apache.kafka" % "kafka_2.10" % "0.8.1.1"
 //	    exclude("javax.jms", "jms")
 //	    exclude("com.sun.jdmk", "jmxtools")
@@ -58,3 +59,4 @@ libraryDependencies ++= {
 }
 
 seq(Revolver.settings: _*)
+

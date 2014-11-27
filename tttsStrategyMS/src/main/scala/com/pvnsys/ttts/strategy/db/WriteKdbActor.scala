@@ -11,7 +11,7 @@ import akka.actor.AllForOneStrategy
 import akka.actor.Props
 import akka.actor.SupervisorStrategy.Restart
 import akka.actor.actorRef2Scala
-import com.pvnsys.ttts.strategy.impl.AbxStrategyActor
+import com.pvnsys.ttts.strategy.impl.Strategy
 import kx.c
 import kx.c._
 import kx.c.Flip
@@ -19,7 +19,7 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
 
 object WriteKdbActor extends LazyLogging {
   
-  import AbxStrategyActor._
+  import Strategy._
   def props(tableId: String) = Props(new WriteKdbActor(tableId))
   sealed trait WriteKdbMessages
   case class WriteStrategyKdbMessage(data: StrategyKdbType) extends WriteKdbMessages
@@ -41,15 +41,16 @@ object WriteKdbActor extends LazyLogging {
       val possize = 0L
  	  logger.info("============== 1  tableID= {}", tableId)
 
-      val createStrategyStr = s"strategy$tableId" + """:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$())"""
+//      val createStrategyStr = s"strategy$tableId" + """:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$())"""
+      val createStrategyStr = s"strategy$tableId" + """:([]dts:`datetime$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$();minlow:`float$();maxhigh:`float$();lowerbb:`float$();middbb:`float$();upperbb:`float$())"""
       val createQuotesStr = s"quotes$tableId" + """:([]dts:`datetime$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$())"""
 
       conn.k(createStrategyStr)
  	  logger.info("WriteKdbActor created STRATEGY table: {}", createStrategyStr)
       
- 	  val insertStrategyDataStr = s"`strategy$tableId insert($funds;$balance;$transnum;$intradeStr;$possize)"
- 	  conn.k(insertStrategyDataStr)
- 	  logger.info("WriteKdbActor populated STRATEGY initial data: {}", insertStrategyDataStr)
+// 	  val insertStrategyDataStr = s"`strategy$tableId insert($funds;$balance;$transnum;$intradeStr;$possize)"
+// 	  conn.k(insertStrategyDataStr)
+// 	  logger.info("WriteKdbActor populated STRATEGY initial data: {}", insertStrategyDataStr)
       
 //      val updateStr = s"strategy:update funds:$funds,balance:$balance,transnum:$transnum,intrade:$intradeStr,possize:$possize from strategy" 
 //      conn.k(updateStr)
@@ -77,6 +78,17 @@ object WriteKdbActor extends LazyLogging {
       
   }
   
+
+  def setStrategyData(tableId: String, data: StrategyKdbType) = {
+      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
+//	  quotes:([]dts:`datetime$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$())
+	  val updateStr = s"`strategy$tableId insert(${data._1};`${data._2};${data._3};${data._4};${data._5};${data._6};${data._7};${data._8};${data._9};${data._10};${data._11};${data._12};${data._13};${data._14})" 
+ 	  logger.info("WriteKdbActor updating TRADE table data with: {}", updateStr)
+      conn.k(updateStr)
+      
+      conn close
+      
+  }
   
 }
 
@@ -87,7 +99,7 @@ class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
   
 	import WriteKdbActor._
 	import TttsStrategyMessages._
-    import AbxStrategyActor._
+    import Strategy._
 	
     override val supervisorStrategy = AllForOneStrategy(loggingEnabled = true) {
     case e: Exception =>
@@ -103,7 +115,7 @@ class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
 		}
 		case msg: WriteStrategyKdbMessage => {
 			log.debug("WriteKdbActor received WriteStrategyKdbMessage")
-			setStrategyData(msg.data)
+//			setStrategyData(msg.data)
 		}
 		case msg: WriteTransactionKdbMessage => {
 			log.debug("WriteKdbActor received WriteTransactionKdbMessage")
@@ -160,22 +172,22 @@ class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
 	
 	
 	
-  def setStrategyData(data: StrategyKdbType) = {
-      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
-//      val res = conn.k(s"update strategy set funds=${data._1}, balance=${data._2}, transnum=${data._3}, intrade=${data._4}, possize=${data._5}")
-      
-      var intradeStr = "0b"
-      if(data._4) {
-        intradeStr = "1b"
-      }
-      
-      val updateStr = s"strategy$tableId:update funds:${data._1},balance:${data._2},transnum:${data._3},intrade:${intradeStr},possize:${data._5} from strategy$tableId" 
-      conn.k(updateStr)
- 	  log.info("WriteKdbActor updated STRATEGY data with: {}", updateStr)
-
-      conn close
-      
-  }
+//  def setStrategyData(data: StrategyKdbType) = {
+//      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
+////      val res = conn.k(s"update strategy set funds=${data._1}, balance=${data._2}, transnum=${data._3}, intrade=${data._4}, possize=${data._5}")
+//      
+//      var intradeStr = "0b"
+//      if(data._4) {
+//        intradeStr = "1b"
+//      }
+//      
+//      val updateStr = s"strategy$tableId:update funds:${data._1},balance:${data._2},transnum:${data._3},intrade:${intradeStr},possize:${data._5} from strategy$tableId" 
+//      conn.k(updateStr)
+// 	  log.info("WriteKdbActor updated STRATEGY data with: {}", updateStr)
+//
+//      conn close
+//      
+//  }
 
   
   /*

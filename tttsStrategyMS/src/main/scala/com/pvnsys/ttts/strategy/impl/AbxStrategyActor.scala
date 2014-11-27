@@ -26,13 +26,6 @@ object AbxStrategyActor {
   /*
    *   
    */ 
-  type StrategyKdbType = (Double, Double, Long, Boolean, Long)
-
-//  type QuotesKdbType = (Option[Double], Option[Double], Option[Double], Option[Double], Option[Double], Option[Double])
-  
-  // quotes:([]datetime:`timestamp$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$()) 
-  type TransactionKdbType = (String, String, Double, Double, Double, Double, Long, Double, Long)
-  
   sealed trait AbxStrategyMessages
   case class StartAbxStrategyMessage(message: TttsStrategyMessage, serviceId: String) extends AbxStrategyMessages
   case object StopAbxStrategyMessage extends AbxStrategyMessages
@@ -47,10 +40,10 @@ object AbxStrategyActor {
 class AbxStrategyActor extends Actor with ActorLogging {
 
   import TttsStrategyMessages._
-  import AbxStrategyActor._
+  import Strategy._
   import WriteKdbActor._
   import ReadKdbActor._
-
+  import AbxStrategyActor._
   
   override def receive = {
     case m: StartAbxStrategyMessage => {

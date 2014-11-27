@@ -21,6 +21,12 @@ object Strategy {
   
   implicit def strategySignal2String(i: StrategySignal.Value)= i.toString
   
+//  type StrategyKdbType = (Double, Double, Long, Boolean, Long)
+  type StrategyKdbType = (String, String, Double, Double, Double, Double, Long, Double, Long, Double, Double, Double, Double, Double)
+
+//  quotes:([]datetime:`timestamp$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$()) 
+  type TransactionKdbType = (String, String, Double, Double, Double, Double, Long, Double, Long)
+  
 }
 
 trait Strategy {

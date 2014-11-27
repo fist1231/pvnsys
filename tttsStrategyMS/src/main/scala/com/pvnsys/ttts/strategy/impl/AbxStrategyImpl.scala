@@ -22,15 +22,6 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
 
 
 object AbxStrategyImpl {
-
-  import TttsStrategyMessages._
-
-  type StrategyKdbType = (Double, Double, Long, Boolean, Long)
-
-//  type QuotesKdbType = (Option[Double], Option[Double], Option[Double], Option[Double], Option[Double], Option[Double])
-//  quotes:([]datetime:`timestamp$();sym:`symbol$();open:`float$();high:`float$();low:`float$();close:`float$();volume:`long$();wap:`float$();size:`long$()) 
-  type TransactionKdbType = (String, String, Double, Double, Double, Double, Long, Double, Long)
-  
 }
 
 
@@ -102,12 +93,13 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 //		val result = bbUpperToMidShortStrategy(data)
 //		val result = bbUpperToLowerShortStrategy(data)
 //		val result = aboveMaxNToBelowMinMLongStrategy(data)
-		val result = belowMinNToAboveMaxMShortStrategy(data)
-		
+//		val result = belowMinNToAboveMaxMShortStrategy(data)
+//		val result = closeBelow2AboveMidBBPercentageLong(data)
+		val result = closeAbove2BelowMidBBPercentageShort(data)
         
 		val payload = message match {
-		  case x if message.isInstanceOf[ResponseFeedFacadeTopicMessage] => x.asInstanceOf[ResponseFeedFacadeTopicMessage].payload 
-		  case x if message.isInstanceOf[ResponseFeedServicesTopicMessage] => x.asInstanceOf[ResponseFeedServicesTopicMessage].payload
+		  case x: ResponseFeedFacadeTopicMessage => x.payload 
+		  case x: ResponseFeedServicesTopicMessage => x.payload
 		  case _ => None
 		}
 	
@@ -116,6 +108,14 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 		       val payloadStr = s"${result}"
 		       val payloadRsp = StrategyPayload(payload.datetime, "abx", payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr, lowerBB, middBB, upperBB)
 
+		       
+		    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+		    	val inputDate = inputSdf.parse(payload.datetime)
+		    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
+		    	val outputDateStr = outputSdf.format(inputDate)
+			  	val writeData = (outputDateStr, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, minLow, maxHigh, lowerBB, middBB, upperBB)
+			  	WriteKdbActor.setStrategyData(tableId, writeData)
+			  	
 
 				val clnt = message match {
 				  case x: ResponseFeedFacadeTopicMessage => x.client  
@@ -166,6 +166,66 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
   /*
    * ============== Strategies ===============================
    */
+
+    private def closeAbove2BelowMidBBPercentageShort(data: List[Option[Double]]) = {
+      
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+		val minLow: Double = data(6).getOrElse(0.00)
+		val maxHigh: Double = data(7).getOrElse(0.00)
+		val lowerBB: Double = data(8).getOrElse(0.00)
+		val middBB: Double = data(9).getOrElse(0.00)
+		val upperBB: Double = data(10).getOrElse(0.00)
+    
+		val percentage = 2.00
+		
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && minLow != 0.00 && maxHigh != 0.00 && lowerBB != 0.00 && middBB != 0.00 && upperBB != 0.00) {
+		  if((l2c / middBB - 1) * 100  >= percentage) {
+		    Short 
+		  } else if((l2c / middBB - 1) * 100  <= (-1) * percentage) {
+		    Cover
+		  } else {
+	    	HoldShort
+		  }
+		} else {
+		  NotAvailabe
+		}
+        result
+  	}
+
+    private def closeBelow2AboveMidBBPercentageLong(data: List[Option[Double]]) = {
+      
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+		val minLow: Double = data(6).getOrElse(0.00)
+		val maxHigh: Double = data(7).getOrElse(0.00)
+		val lowerBB: Double = data(8).getOrElse(0.00)
+		val middBB: Double = data(9).getOrElse(0.00)
+		val upperBB: Double = data(10).getOrElse(0.00)
+    
+		val percentage = 3.00
+		
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && minLow != 0.00 && maxHigh != 0.00 && lowerBB != 0.00 && middBB != 0.00 && upperBB != 0.00) {
+		  if((l2c / middBB - 1) * 100  <= (-1) * percentage) {
+		    Buy 
+		  } else if((l2c / middBB - 1) * 100  >= percentage) {
+		    Sell
+		  } else {
+	    	HoldLong
+		  }
+		} else {
+		  NotAvailabe
+		}
+        result
+  }
 
     private def aboveMaxNToBelowMinMLongStrategy(data: List[Option[Double]]) = {
       

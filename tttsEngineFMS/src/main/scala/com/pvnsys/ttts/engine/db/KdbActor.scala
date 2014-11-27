@@ -56,8 +56,14 @@ class KdbActor(serviceId: String) extends Actor with ActorLogging {
 
 	final private def startKdb() = {
 		  log.debug("KdbActor starting kdb server ...")
-		  lazy val cmd = Seq("db/kdb/w32/q.exe", "db/kdb/engine.q", "-p", Configuration.kdbPort)
-		  cmd.lineStream
+		  val osName = System.getProperty("os.name").toLowerCase
+		  if(osName.indexOf("win") >= 0) {
+			  lazy val cmd = Seq("db/kdb/w32/q.exe", "db/kdb/strategy.q", "-p", Configuration.kdbPort)
+			  cmd.lineStream
+		  } else {
+			  lazy val cmd = Seq("./db/kdb/l32/q", "./db/kdb/strategy.q", "-p", Configuration.kdbPort)
+			  cmd.lineStream
+		  }
 		  
 //		  proc = Process(cmd).run(ProcessLogger(line => (), err => println("Uh-oh: "+err)))
 //		  proc.destroy
