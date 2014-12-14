@@ -95,8 +95,11 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 //		val result = aboveMaxNToBelowMinMLongStrategy(data)
 //		val result = belowMinNToAboveMaxMShortStrategy(data)
 //		val result = closeBelow2AboveMidBBPercentageLong(data)
-		val result = closeAbove2BelowMidBBPercentageShort(data)
-        
+//		val result = closeAbove2BelowMidBBPercentageShort(data)
+  
+		val result = fromLowerBBLongStrategy(data)
+		
+		
 		val payload = message match {
 		  case x: ResponseFeedFacadeTopicMessage => x.payload 
 		  case x: ResponseFeedServicesTopicMessage => x.payload
@@ -393,6 +396,41 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 			} else {
 				HoldLong
 			}
+		} else {
+		  NotAvailabe
+		}
+        result
+  }
+
+  
+  private def fromLowerBBLongStrategy(data: List[Option[Double]]) = {
+    
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+		val minLow: Double = data(6).getOrElse(0.00)
+		val maxHigh: Double = data(7).getOrElse(0.00)
+		val l1LowerBB: Double = data(8).getOrElse(0.00)
+		val l1MiddBB: Double = data(9).getOrElse(0.00)
+		val l1UpperBB: Double = data(10).getOrElse(0.00)
+		val l2LowerBB: Double = data(11).getOrElse(0.00)
+		val l2MiddBB: Double = data(12).getOrElse(0.00)
+		val l2UpperBB: Double = data(13).getOrElse(0.00)
+    
+		val percentage = 2.00
+		
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && minLow != 0.00 && maxHigh != 0.00 && l2LowerBB != 0.00 && l2MiddBB != 0.00 && l2UpperBB != 0.00 && l1LowerBB != 0.00 && l1MiddBB != 0.00 && l1UpperBB != 0.00) {
+//		  if(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB) {
+		  if(l1l < l1LowerBB) {
+		    Buy 
+		  } else if(l1c/l2c >= 1.1) {
+		    Sell
+		  } else {
+	    	HoldLong
+		  }
 		} else {
 		  NotAvailabe
 		}

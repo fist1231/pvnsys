@@ -50,8 +50,8 @@ class KafkaProducerActor(address: InetSocketAddress) extends Actor with ActorLog
 	val props = new Properties();
 	props.put("metadata.broker.list", Configuration.metadataBrokerListProducer);
 	props.put("serializer.class", Configuration.serializerClassProducer);
-	props.put("message.send.max.retries", "7");
-	props.put("retry.backoff.ms", "1000");
+//	props.put("message.send.max.retries", "7");
+//	props.put("retry.backoff.ms", "1000");
 
 	val producer = new Producer[Integer, String](new ProducerConfig(props));
   

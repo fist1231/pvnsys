@@ -105,7 +105,8 @@ object ReadKdbActor extends LazyLogging {
   
 	def getAbxQuotesWithBBData(tableId: String): List[Option[Double]] = {
 	  
-		  val numberOfTicks = 20
+		  val numberOfTicks = 21
+		  val numberOfCloseTicksForBB = 20
 		  val numberOfBBTicks = 20
 		  val minLowTicks = 40
 		  val maxHighTicks = 20
@@ -159,20 +160,39 @@ object ReadKdbActor extends LazyLogging {
 			  
 //			  log.info("^^^^^^^^^^^^ List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh) = {}", List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh))
 			  
+
+		  // Select last $numberOfTicks ticks' high low and close prices
+		  val resBB = conn.k(s"select [-$numberOfTicks] high, low, close from quotes$tableId")
+		  val tabresBB: Flip = resBB.asInstanceOf[Flip]
+		  val colNamesBB = tabresBB.x
+		  val colDataBB = tabresBB.y
+			  
+			  
 			  var i = 0;
-			  val cp = for(i <- 0 to (numberOfBBTicks - 1)) yield ((c.at(colData(1), i)).asInstanceOf[Double])
+			  val cp = for(i <- 0 to (numberOfTicks - 1)) yield ((c.at(colDataBB(2), i)).asInstanceOf[Double])
 			  val closePrice = cp.toArray
 			  
 			  val core = new Core
+			  // Take last 2 BB values, thus (numberOfBBTicks-1)
 	          val retCode = core.bbands(0, closePrice.length - 1, closePrice, numberOfBBTicks, 2.0, 2.0, MAType.Ema, begin, length, upperBB, middBB, lowerBB);
 			  
-			  val lowerBBVal = Some(lowerBB(0))
-			  val middBBVal = Some(middBB(0))
-			  val upperBBVal = Some(upperBB(0))
+//			  closePrice.foreach(println)
+//			  println("=================")
+//			  lowerBB.foreach(println)
+//			  println("=================")
+//			  upperBB.foreach(println)
 			  
-			  List(l2h, l2l, l2c, l1h, l1l, l1c, minLow, maxHigh, lowerBBVal, middBBVal, upperBBVal)
+			  val l1LowerBBVal = Some(lowerBB(1))
+			  val l1MiddBBVal = Some(middBB(1))
+			  val l1UpperBBVal = Some(upperBB(1))
+
+			  val l2LowerBBVal = Some(lowerBB(0))
+			  val l2MiddBBVal = Some(middBB(0))
+			  val l2UpperBBVal = Some(upperBB(0))
+			  
+			  List(l2h, l2l, l2c, l1h, l1l, l1c, minLow, maxHigh, l1LowerBBVal, l1MiddBBVal, l1UpperBBVal, l2LowerBBVal, l2MiddBBVal, l2UpperBBVal)
 		  } else {
-			  List(None, None, None, None, None, None, None, None, None, None, None)
+			  List(None, None, None, None, None, None, None, None, None, None, None, None, None, None)
 		  }
 		  logger.debug("^^^^^^^^^^^^ data = {}", result)
 	      conn.close

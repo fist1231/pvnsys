@@ -39,6 +39,7 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 	val comission = 9.99 // Comission in $
 	val minimumBalanceAllowed = 1.00 // Minimum allowed balance amount
   	val stopLossPercentage = 2.00 // Percentage above which the Stop Loss sell/cover is triggered
+  	val profitTakingPercentage = 4.00
     // =================================================
 
   	def createSchema(serviceId: String, message: TttsEngineMessage): TttsEngineMessage = {
@@ -84,7 +85,10 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 			      case HoldLong | HoldShort => {
 			    	  // Check if stop loss triggered. If a current price (low) falls below some $payload.close of the purchase price ($data._6)
 			    	  if(isStopLossTriggered(data._6, payload.close, stopLossPercentage, sSig)) {
-			    	    val isStopped = true
+//			    	    val isStopped = true
+			    	    closePosition(tableId, payload, data, sSig)
+			    	  } else if(isProfitTakingTriggered(data._6, payload.close, profitTakingPercentage, sSig)) {
+//			    	    val isProfitStopped = true
 			    	    closePosition(tableId, payload, data, sSig)
 			    	  } else {
 			    		  holdPosition //"PASS"
@@ -198,7 +202,15 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
       }
 	  result
   }
-    
+
+  private def isProfitTakingTriggered(tradePrice: Double, currentPrice: Double, profitTakingPercentage: Double, tradeType: Value) = {
+      val result = tradeType match {
+        case HoldLong => (currentPrice/tradePrice * 100 - 100) >= profitTakingPercentage
+        case HoldShort => (100 - currentPrice/tradePrice * 100) >= profitTakingPercentage
+      }
+	  result
+  }
+  
   private def constructTableId(msg: TttsEngineMessage, serviceId: String): String = {
     msg match {
 	    case x: ResponseStrategyFacadeTopicMessage => {
