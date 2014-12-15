@@ -101,8 +101,15 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 		
 		
 //      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1h > l1UpperBB); profT:10%; stopL:2%; Bal:4480.49; trans:290		
-//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:10%; stopL:2%; Bal:7803.62; trans:114		
-//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:15%; stopL:2%; Bal:; trans:		
+//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:5%; stopL:2%; Bal:5266.32; trans:160		
+//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:10%; stopL:2%; Bal:7803.62; trans:114
+//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:12%; stopL:1%; Bal:7619.71; trans:140
+//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:12%; stopL:2%; Bal:8369.89; trans:108
+		
+//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:12% && above middBB; stopL:2%; Bal:10658.37; trans:112
+//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:12%; stopL:3%; Bal:6855.26; trans:80
+		
+//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:15%; stopL:2%; Bal:6064.09; trans:90	
 		val result = fromUpperBBShortStrategy(data)
 		
 		
@@ -466,8 +473,8 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
         val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && minLow != 0.00 && maxHigh != 0.00 && l2LowerBB != 0.00 && l2MiddBB != 0.00 && l2UpperBB != 0.00 && l1LowerBB != 0.00 && l1MiddBB != 0.00 && l1UpperBB != 0.00) {
 		  if(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB) {
 		    Short 
-//		  } else if(l1h > l1UpperBB) { 2014.11.07T15:30:00.000 abx 12.16 0  4480.49 290
-		  } else if(l1c/l1c < 0.85) {
+//		  } else if(l1h > l1UpperBB) { //2014.11.07T15:30:00.000 abx 12.16 0  4480.49 290
+		  } else if(l1c/l1c < 0.5) {
 		    Cover
 		  } else {
 	    	HoldShort
