@@ -39,7 +39,7 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 	val comission = 9.99 // Comission in $
 	val minimumBalanceAllowed = 1.00 // Minimum allowed balance amount
   	val stopLossPercentage = 2.00 // Percentage above which the Stop Loss sell/cover is triggered
-  	val profitTakingPercentage = 4.00
+  	val profitTakingPercentage = 15.00
     // =================================================
 
   	def createSchema(serviceId: String, message: TttsEngineMessage): TttsEngineMessage = {

@@ -1,0 +1,28 @@
+c:\q\w32>q
+KDB+ 3.2 2014.11.01 Copyright (C) 1993-2014 Kx Systems
+w32/ 4()core 4095MB tsa tsax 192.168.1.9 NONEXPIRE
+
+Welcome to kdb+ 32bit edition
+For support please see http://groups.google.com/d/forum/personal-kdbpl
+us
+Tutorials can be found at http://code.kx.com/wiki/Tutorials
+To exit, type \\
+To remove this startup msg, edit q.q
+q)h: hopen `::4444
+q)h "select from strategy_9373b70c764d4ea6ba7404839f5d253d_12700128375
+"
+
+q)h "save `strategy_9373b70c764d4ea6ba7404839f5d253d_12700128375.csv"
+`:strategy_9373b70c764d4ea6ba7404839f5d253d_12700128375.csv
+
+
+===================================================================
+Copy table and remove extra data"
+
+create quote_test table from another table including data
+q)h "quotes_test ,: quotes_497d6df24f644a70a3524c1c8243627d_12700123326"
+
+delete all records with year 2012
+q)h "delete from `quotes_test where dts.year=2012"
+
+q)h "delete from `quotes_test where dts.mm<>11"
