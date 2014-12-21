@@ -97,28 +97,8 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 //		val result = closeBelow2AboveMidBBPercentageLong(data)
 //		val result = closeAbove2BelowMidBBPercentageShort(data)
   
-//      b:(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB); s:(l1c/l1c > 1.5); profT:3% && below middBB; stopL:1%; Bal:2658.13; trans:96
-//      b:(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB); s:(l1c/l1c > 1.5); profT:6% && below middBB; stopL:2%; Bal:6208.61; trans:38
-//      b:(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB); s:(l1c/l1c > 1.5); profT:8% && below middBB; stopL:2%; Bal:6064.39; trans:32
-//      b:(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB); s:(l1c/l1c > 1.5); profT:10% && below middBB; stopL:1%; Bal:6685.71; trans:24
-//      b:(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB); s:(l1c/l1c > 1.5); profT:10% && below middBB; stopL:2%; Bal:6990.06; trans:18
-//      b:(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB); s:(l1c/l1c > 1.5); profT:10% && above upperBB; stopL:2%; Bal:6697.38; trans:18
-//      b:(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB); s:(l1c/l1c > 1.5); profT:12% && below middBB; stopL:2%; Bal:7412.49; trans:18
-//      b:(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB); s:(l1c/l1c > 1.5); profT:12% && below middBB; stopL:3%; Bal:7309.4; trans:10
-//      b:(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB); s:(l1c/l1c > 1.5); profT:15% && below middBB; stopL:2%; Bal:6431.41; trans:14
 		val result = fromLowerBBLongStrategy(data)
 		
-		
-//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1h > l1UpperBB); profT:10%; stopL:2%; Bal:4480.49; trans:290		
-//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:5%; stopL:2%; Bal:5266.32; trans:160		
-//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:10%; stopL:2%; Bal:7803.62; trans:114
-//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:12%; stopL:1%; Bal:7619.71; trans:140
-//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:12%; stopL:2%; Bal:8369.89; trans:108
-		
-//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:12% && above middBB; stopL:2%; Bal:10658.37; trans:112
-//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:12%; stopL:3%; Bal:6855.26; trans:80
-		
-//      b:(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB); s:(l1c/l1c < 0.85); profT:15%; stopL:2%; Bal:6064.09; trans:90	
 //		val result = fromUpperBBShortStrategy(data)
 		
 		
