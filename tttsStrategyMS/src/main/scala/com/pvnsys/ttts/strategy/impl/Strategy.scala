@@ -8,7 +8,8 @@ object Strategy {
   
   object StrategySignal extends Enumeration {
     type StrategySignal = Value
-    val Buy, Sell, HoldLong, Short, Cover, HoldShort, SellStop, CoverStop, NotAvailabe = Value
+//    val Buy, Sell, HoldLong, Short, Cover, HoldShort, SellStop, CoverStop, NotAvailabe = Value
+    val Buy, Close, Hold, Short, CloseStop, ProfitStop, NotAvailabe = Value
 //    val Buy = Value("BUY")
 //    val Sell = Value("SELL")
 //    val Hold = Value("HOLD")

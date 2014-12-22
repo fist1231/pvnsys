@@ -38,8 +38,9 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 //    val sellShort = true // Is this a short sell
 	val comission = 9.99 // Comission in $
 	val minimumBalanceAllowed = 1.00 // Minimum allowed balance amount
-  	val stopLossPercentage = 2.00 // Percentage above which the Stop Loss sell/cover is triggered
-  	val profitTakingPercentage = 15.00
+  	val stopLossPercentage = 1.00 // Percentage above which the Stop Loss sell/cover is triggered
+  	val profitTakingLongPercentage = 10.00
+  	val profitTakingShortPercentage = 12.00
     // =================================================
 
   	def createSchema(serviceId: String, message: TttsEngineMessage): TttsEngineMessage = {
@@ -80,16 +81,20 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 			    val enginePayload = sSig match {
 			      case Buy | Short =>  openPosition(tableId, payload, data, sSig)
 //			      case Short =>  openPosition(tableId, payload, data, Short)
-			      case Sell | Cover => closePosition(tableId, payload, data, sSig) 
+//			      case Sell | Cover => closePosition(tableId, payload, data, sSig) 
+			      case Close => closePosition(tableId, payload, data, sSig, false, false) 
 //			      case Cover => closePosition(tableId, payload, data, Cover, false) 
-			      case HoldLong | HoldShort => {
+//			      case HoldLong | HoldShort => {
+			      case Hold => {
 			    	  // Check if stop loss triggered. If a current price (low) falls below some $payload.close of the purchase price ($data._6)
-			    	  if(isStopLossTriggered(data._6, payload.close, stopLossPercentage, sSig)) {
-//			    	    val isStopped = true
-			    	    closePosition(tableId, payload, data, sSig)
-			    	  } else if(isProfitTakingTriggered(data._6, payload, profitTakingPercentage, sSig)) {
-//			    	    val isProfitStopped = true
-			    	    closePosition(tableId, payload, data, sSig)
+			    	  if(isStopLossTriggered(data, payload.close, stopLossPercentage, sSig)) {
+			    	    val isStopped = true
+			    	    val isProfitStopped = false
+			    	    closePosition(tableId, payload, data, sSig, isStopped, isProfitStopped)
+			    	  } else if(isProfitTakingTriggered(data, payload, sSig)) {
+			    	    val isStopped = false
+			    	    val isProfitStopped = true
+			    	    closePosition(tableId, payload, data, sSig, isStopped, isProfitStopped)
 			    	  } else {
 			    		  holdPosition //"PASS"
 			    	  }
@@ -114,7 +119,7 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 	 */
     
 
-  private def openPosition(tableId: String, payload: StrategyPayload, data: EngineKdbType, tradeType: String): Option[EnginePayload] = {
+  private def openPosition(tableId: String, payload: StrategyPayload, data: EngineKdbType, tradeType: Value): Option[EnginePayload] = {
 		  if(!data._4) {
 		        var newPossize = ((data._2 - comission) / payload.close).longValue
 		        if(newPossize > 0) {
@@ -128,7 +133,11 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 		            val newTransnum = data._3 + 1
 			        val newIntrade = true
 			        val price = payload.close
-			        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, price)
+			        val newIslong = tradeType match {
+		              case Buy => true
+		              case Short => false
+		            }
+			        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, price, newIslong)
 			        WriteKdbActor.setEngineData(tableId, newData)
 			        /*
 			         * trade:([]time:`time$();sym:`symbol$();price:`float$();size:`int$();oper:`symbol$();cost:`float$())
@@ -142,7 +151,7 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 //			          case false => "BUY" // Long position: BUY = open long; SELL = close long
 //			          case true => "SHORT" // Short position: BUY - open short; SELL = cover
 //			        }
-			    	val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, tradeType, -1 * position, newBalance, newTransnum)
+			    	val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, tradeType.toString, -1 * position, newBalance, newTransnum)
 			        WriteKdbActor.setTransactionData(tableId, transactionData)
 			        Some(EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, tradeType, newFunds, newBalance, newTransnum, newIntrade, newPossize))
 		        } else {
@@ -153,35 +162,50 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 	  	}
   }    
     
-  private def closePosition(tableId: String, payload: StrategyPayload, data: EngineKdbType, tradeType: Value): Option[EnginePayload] = {
+  private def closePosition(tableId: String, payload: StrategyPayload, data: EngineKdbType, tradeType: Value, isStopped: Boolean, isProfitStopped: Boolean): Option[EnginePayload] = {
 	  	if(data._4) {
+	  	    val isLong = data._7 
+	  	   
             val newFunds = data._1 
 	        val newTransnum = data._3 + 1
 	        val sellProceeds = data._5 * payload.close - comission
-	        val newBalance =  tradeType match {
-	          case Sell | HoldLong => data._2 + ((data._5 * payload.close - comission) - data._2) // Long position: BUY = open long; SELL = close long
-	          case Cover | HoldShort =>  {
+	        val newBalance =  (tradeType, isLong) match {
+//	          case Sell | HoldLong => data._2 + ((data._5 * payload.close - comission) - data._2) // Long position: BUY = open long; SELL = close long
+	          case (Close | Hold, true) => data._2 + ((data._5 * payload.close - comission) - data._2) // Long position: BUY = open long; SELL = close long
+//	          case Cover | HoldShort =>  {
+	          case (Close | Hold, false) =>  {
 	            val position = data._5 * data._6 + comission
 	            val proceeds = data._5 * payload.close - comission
 	            val profit = (-1) * (proceeds - position) - (4 * comission)
 	            val newBal = position + profit + data._2
 	            newBal
 	          }
+	          case (_, _) => 0.0
 	        }
 	        val newPossize = 0l
 	        val newIntrade = false
+	        val newIslong = false
 	        val price = payload.close
-	        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, price)
+	        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, price, newIslong)
 	        WriteKdbActor.setEngineData(tableId, newData)
 	    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 	    	val inputDate = inputSdf.parse(payload.datetime)
 	    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
 	    	val outputDateStr = outputSdf.format(inputDate)
-	        val tradeTypeOutcome =  tradeType match {
-	          case Sell => Sell
-	          case HoldLong => SellStop
-	          case Cover => Cover
-	          case HoldShort => CoverStop
+//	        val tradeTypeOutcome =  tradeType match {
+//	          case Sell => Sell
+//	          case HoldLong => SellStop
+//	          case Cover => Cover
+//	          case HoldShort => CoverStop
+//	        }
+	        val tradeTypeOutcome =  (tradeType, isLong, isStopped, isProfitStopped) match {
+	          case (Close, true, false, false) => Close
+	          case (Hold, true, true, false) => CloseStop
+	          case (Hold, true, false, true) => ProfitStop
+	          case (Close, false, false, false) => Close
+	          case (Hold, false, true, false) => CloseStop
+	          case (Hold, false, false, true) => ProfitStop
+	          case (_, _, _, _) => NotAvailabe
 	        }
 	        
 	        val tt = tradeTypeOutcome.toString
@@ -195,24 +219,37 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
   
   private val holdPosition = None
 
-  private def isStopLossTriggered(tradePrice: Double, currentPrice: Double, stopLossPercentage: Double, tradeType: Value) = {
-      val result = tradeType match {
-        case HoldLong => (100 - currentPrice/tradePrice * 100) >= stopLossPercentage
-        case HoldShort => (currentPrice/tradePrice * 100 - 100) >= stopLossPercentage
+  private def isStopLossTriggered(data: EngineKdbType, currentPrice: Double, stopLossPercentage: Double, tradeType: Value) = {
+      val tradePrice = data._6
+      val isLong = data._7
+      val result = (tradeType, isLong) match {
+        case (Hold, true) => (100 - currentPrice/tradePrice * 100) >= stopLossPercentage
+        case (Hold, false) => (currentPrice/tradePrice * 100 - 100) >= stopLossPercentage
+        case (_, _) => false
       }
 	  result
   }
 
-  private def isProfitTakingTriggered(tradePrice: Double, payload: StrategyPayload, profitTakingPercentage: Double, tradeType: Value) = {
+  private def isProfitTakingTriggered(data: EngineKdbType, payload: StrategyPayload, tradeType: Value) = {
+      val tradePrice = data._6
+      val isLong = data._7
+      val vwap = payload.wap 
 	  val currentPrice = payload.close 
 	  val middBB = payload.middBB 
-//	  val upperBB = payload.upperBB 
-//	  val lowerBB = payload.lowerBB 
-      val result = tradeType match {
-        case HoldLong => (((currentPrice/tradePrice * 100 - 100) >= profitTakingPercentage) && (currentPrice < middBB))
-        case HoldShort => (((100 - currentPrice/tradePrice * 100) >= profitTakingPercentage) && (currentPrice > middBB))
+	  val upperBB = payload.upperBB 
+	  val lowerBB = payload.lowerBB 
+      val result = (tradeType, isLong) match {
+//        case HoldLong => (((currentPrice/tradePrice * 100 - 100) >= profitTakingPercentage) && (currentPrice < middBB))
+//        case HoldLong => ((currentPrice/tradePrice * 100 - 100) >= profitTakingPercentage)
+//        case (Hold, true) => (((currentPrice/tradePrice * 100 - 100) >= profitTakingPercentage) && (currentPrice > upperBB))
+//        case (Hold, true) => ((currentPrice/tradePrice * 100 - 100) >= profitTakingLongPercentage)
+        case (Hold, true) => (((currentPrice/tradePrice * 100 - 100) >= profitTakingLongPercentage) && (currentPrice < vwap))
+//        case HoldShort => (((100 - currentPrice/tradePrice * 100) >= profitTakingPercentage) && (currentPrice > middBB))
 //        case HoldLong => (((currentPrice/tradePrice * 100 - 100) >= profitTakingPercentage) && (currentPrice > upperBB))
-//        case HoldShort => (((100 - currentPrice/tradePrice * 100) >= profitTakingPercentage) && (currentPrice < lowerBB))
+//        case (Hold, false) => (((100 - currentPrice/tradePrice * 100) >= profitTakingPercentage) && (currentPrice < lowerBB))
+//        case (Hold, false) => ((100 - currentPrice/tradePrice * 100) >= profitTakingShortPercentage)
+        case (Hold, false) => (((100 - currentPrice/tradePrice * 100) >= profitTakingShortPercentage) && (currentPrice > vwap))
+        case (_, _) => false
       }
 	  result
   }

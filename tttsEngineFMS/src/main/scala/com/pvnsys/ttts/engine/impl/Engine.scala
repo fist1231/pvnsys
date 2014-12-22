@@ -6,7 +6,8 @@ object Engine {
   
   object StrategySignal extends Enumeration {
     type StrategySignal = Value
-    val Buy, Sell, HoldLong, Short, Cover, HoldShort, SellStop, CoverStop, NotAvailabe = Value
+//    val Buy, Sell, HoldLong, Short, Cover, HoldShort, SellStop, CoverStop, NotAvailabe = Value
+    val Buy, Close, Hold, Short, CloseStop, ProfitStop, NotAvailabe = Value
   }
 
   /*
@@ -19,7 +20,7 @@ object Engine {
    *   
    *   engine:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$();price:`float$())
    */ 
-  type EngineKdbType = (Double, Double, Long, Boolean, Long, Double)
+  type EngineKdbType = (Double, Double, Long, Boolean, Long, Double, Boolean)
   
   // trade:([]time:`time$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$();balance:`float$();transnum:`long$()) 
   type TransactionKdbType = (String, String, Double, Long, String, Double, Double, Long)

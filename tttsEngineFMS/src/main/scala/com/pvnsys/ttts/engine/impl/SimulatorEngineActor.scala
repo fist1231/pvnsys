@@ -65,8 +65,9 @@ class SimulatorEngineActor extends Actor with ActorLogging {
 			        val newTransnum = data._3 + 1
 			        val newBalance =  data._2 - position 
 			        val newIntrade = true
+			        val newIsLong = true
 	
-			        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, payload.close)
+			        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, payload.close, newIsLong)
 			        writeEngineData(tableId, newData)
 
 			        /*
@@ -97,8 +98,9 @@ class SimulatorEngineActor extends Actor with ActorLogging {
 		        val newBalance =  data._5 * payload.close - comission + data._2 
 		        val newPossize = 0l
 		        val newIntrade = false
+		        val newIsLong = false
 	
-		        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, payload.close)
+		        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, payload.close, newIsLong)
 		        writeEngineData(tableId, newData)
 	
 		    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
