@@ -38,9 +38,9 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 //    val sellShort = true // Is this a short sell
 	val comission = 9.99 // Comission in $
 	val minimumBalanceAllowed = 1.00 // Minimum allowed balance amount
-  	val stopLossPercentage = 1.00 // Percentage above which the Stop Loss sell/cover is triggered
-  	val profitTakingLongPercentage = 10.00
-  	val profitTakingShortPercentage = 12.00
+  	val stopLossPercentage = 0.50 // Percentage above which the Stop Loss sell/cover is triggered
+  	val profitTakingLongPercentage = 11.00
+  	val profitTakingShortPercentage = 11.00
     // =================================================
 
   	def createSchema(serviceId: String, message: TttsEngineMessage): TttsEngineMessage = {
@@ -244,11 +244,13 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 //        case (Hold, true) => (((currentPrice/tradePrice * 100 - 100) >= profitTakingPercentage) && (currentPrice > upperBB))
 //        case (Hold, true) => ((currentPrice/tradePrice * 100 - 100) >= profitTakingLongPercentage)
         case (Hold, true) => (((currentPrice/tradePrice * 100 - 100) >= profitTakingLongPercentage) && (currentPrice < vwap))
+//        case (Hold, true) => (((currentPrice/tradePrice * 100 - 100) >= profitTakingLongPercentage) && (currentPrice < middBB))
 //        case HoldShort => (((100 - currentPrice/tradePrice * 100) >= profitTakingPercentage) && (currentPrice > middBB))
 //        case HoldLong => (((currentPrice/tradePrice * 100 - 100) >= profitTakingPercentage) && (currentPrice > upperBB))
 //        case (Hold, false) => (((100 - currentPrice/tradePrice * 100) >= profitTakingPercentage) && (currentPrice < lowerBB))
 //        case (Hold, false) => ((100 - currentPrice/tradePrice * 100) >= profitTakingShortPercentage)
-        case (Hold, false) => (((100 - currentPrice/tradePrice * 100) >= profitTakingShortPercentage) && (currentPrice > vwap))
+//        case (Hold, false) => (((100 - currentPrice/tradePrice * 100) >= profitTakingShortPercentage) && (currentPrice > vwap))
+        case (Hold, false) => (((100 - currentPrice/tradePrice * 100) >= profitTakingShortPercentage) && (currentPrice > middBB))
         case (_, _) => false
       }
 	  result
