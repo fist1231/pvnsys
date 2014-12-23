@@ -105,7 +105,7 @@ object ReadKdbActor extends LazyLogging {
   
 	def getAbxQuotesWithBBData(tableId: String): List[Option[Double]] = {
 	  
-		  val numberOfTicks = 21
+		  val numberOfTicks = 22
 		  val numberOfCloseTicksForBB = 20
 		  val numberOfBBTicks = 20
 		  val minLowTicks = 40
@@ -137,13 +137,16 @@ object ReadKdbActor extends LazyLogging {
 		   * == Sell signal:
 		   * If last tick close is above BB Middle
 		   */ 
-		  val result= if(java.lang.reflect.Array.getLength(colData(0)) > (numberOfTicks - 1)) {
-			  val l2h: Option[Double] = Some((c.at(colData(0), 1)).asInstanceOf[Double])
-			  val l2l: Option[Double] = Some((c.at(colData(1), 1)).asInstanceOf[Double])
-			  val l2c: Option[Double] = Some((c.at(colData(2), 1)).asInstanceOf[Double])
-			  val l1h: Option[Double] = Some((c.at(colData(0), 0)).asInstanceOf[Double])
-			  val l1l: Option[Double] = Some((c.at(colData(1), 0)).asInstanceOf[Double])
-			  val l1c: Option[Double] = Some((c.at(colData(2), 0)).asInstanceOf[Double])
+		  val result= if(java.lang.reflect.Array.getLength(colData(0)) > numberOfTicks-1) {
+			  val thish: Option[Double] = Some((c.at(colData(0), 0)).asInstanceOf[Double])
+			  val thisl: Option[Double] = Some((c.at(colData(1), 0)).asInstanceOf[Double])
+			  val thisc: Option[Double] = Some((c.at(colData(2), 0)).asInstanceOf[Double])
+			  val l1h: Option[Double] = Some((c.at(colData(0), 1)).asInstanceOf[Double])
+			  val l1l: Option[Double] = Some((c.at(colData(1), 1)).asInstanceOf[Double])
+			  val l1c: Option[Double] = Some((c.at(colData(2), 1)).asInstanceOf[Double])
+			  val l2h: Option[Double] = Some((c.at(colData(0), 2)).asInstanceOf[Double])
+			  val l2l: Option[Double] = Some((c.at(colData(1), 2)).asInstanceOf[Double])
+			  val l2c: Option[Double] = Some((c.at(colData(2), 2)).asInstanceOf[Double])
 			  
 			  // Select max high of last $numberOfTicks
 			  val resMax = conn.k(s"select [-${maxHighTicks-1}] max high from reverse select [-$maxHighTicks] high from quotes$tableId")
@@ -160,16 +163,15 @@ object ReadKdbActor extends LazyLogging {
 			  
 //			  log.info("^^^^^^^^^^^^ List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh) = {}", List(l2h, l2l, l2c, l1h, l1l, l1c, maxHigh))
 			  
-
-		  // Select last $numberOfTicks ticks' high low and close prices
-		  val resBB = conn.k(s"select [-$numberOfTicks] high, low, close from quotes$tableId")
-		  val tabresBB: Flip = resBB.asInstanceOf[Flip]
-		  val colNamesBB = tabresBB.x
-		  val colDataBB = tabresBB.y
+			  // Select last $numberOfTicks ticks' high low and close prices
+			  val resBB = conn.k(s"select [-$numberOfTicks] high, low, close from quotes$tableId")
+			  val tabresBB: Flip = resBB.asInstanceOf[Flip]
+			  val colNamesBB = tabresBB.x
+			  val colDataBB = tabresBB.y
 			  
 			  
 			  var i = 0;
-			  val cp = for(i <- 0 to (numberOfTicks - 1)) yield ((c.at(colDataBB(2), i)).asInstanceOf[Double])
+			  val cp = for(i <- 0 to (numberOfTicks-1)) yield ((c.at(colDataBB(2), i)).asInstanceOf[Double])
 			  val closePrice = cp.toArray
 			  
 			  val core = new Core
@@ -182,17 +184,23 @@ object ReadKdbActor extends LazyLogging {
 //			  println("=================")
 //			  upperBB.foreach(println)
 			  
-			  val l1LowerBBVal = Some(lowerBB(1))
-			  val l1MiddBBVal = Some(middBB(1))
-			  val l1UpperBBVal = Some(upperBB(1))
 
 			  val l2LowerBBVal = Some(lowerBB(0))
 			  val l2MiddBBVal = Some(middBB(0))
 			  val l2UpperBBVal = Some(upperBB(0))
+
+			  val l1LowerBBVal = Some(lowerBB(1))
+			  val l1MiddBBVal = Some(middBB(1))
+			  val l1UpperBBVal = Some(upperBB(1))
 			  
-			  List(l2h, l2l, l2c, l1h, l1l, l1c, minLow, maxHigh, l1LowerBBVal, l1MiddBBVal, l1UpperBBVal, l2LowerBBVal, l2MiddBBVal, l2UpperBBVal)
+			  val thisLowerBBVal = Some(lowerBB(2))
+			  val thisMiddBBVal = Some(middBB(2))
+			  val thisUpperBBVal = Some(upperBB(2))
+			  
+			  
+			  List(l2h, l2l, l2c, l1h, l1l, l1c, thish, thisl, thisc, minLow, maxHigh, l2LowerBBVal, l2MiddBBVal, l2UpperBBVal, l1LowerBBVal, l1MiddBBVal, l1UpperBBVal, thisLowerBBVal, thisMiddBBVal, thisUpperBBVal)
 		  } else {
-			  List(None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+			  List(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
 		  }
 		  logger.debug("^^^^^^^^^^^^ data = {}", result)
 	      conn.close
