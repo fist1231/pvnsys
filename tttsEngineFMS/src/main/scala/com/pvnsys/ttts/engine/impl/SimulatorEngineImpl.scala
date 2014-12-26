@@ -38,12 +38,14 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 //    val sellShort = true // Is this a short sell
 	val comission = 9.99 // Comission in $
 	val minimumBalanceAllowed = 1.00 // Minimum allowed balance amount
-  	val stopLossPercentage = 2.00 // Percentage above which the Stop Loss sell/cover is triggered
-  	val profitTakingLongPercentage = 13.00
-  	val profitTakingShortPercentage = 13.00
-//  	val stopLossPercentage = 0.50
-//  	val profitTakingLongPercentage = 4.00
-//  	val profitTakingShortPercentage = 4.00
+//  	val stopLossLongPercentage = 2.00 
+//  	val stopLossShortPercentage = 2.00  
+//  	val profitTakingLongPercentage = 13.00
+//  	val profitTakingShortPercentage = 13.00
+  	val stopLossLongPercentage = 0.50
+  	val stopLossShortPercentage = 0.10
+  	val profitTakingLongPercentage = 15.00
+  	val profitTakingShortPercentage = 5.00
     // =================================================
 
   	def createSchema(serviceId: String, message: TttsEngineMessage): TttsEngineMessage = {
@@ -90,7 +92,7 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 //			      case HoldLong | HoldShort => {
 			      case Hold => {
 			    	  // Check if stop loss triggered. If a current price (low) falls below some $payload.close of the purchase price ($data._6)
-			    	  if(isStopLossTriggered(data, payload.close, stopLossPercentage, sSig)) {
+			    	  if(isStopLossTriggered(data, payload.close, sSig)) {
 			    	    val isStopped = true
 			    	    val isProfitStopped = false
 			    	    closePosition(tableId, payload, data, sSig, isStopped, isProfitStopped)
@@ -235,12 +237,12 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
   
   private val holdPosition = None
 
-  private def isStopLossTriggered(data: EngineKdbType, currentPrice: Double, stopLossPercentage: Double, tradeType: Value) = {
+  private def isStopLossTriggered(data: EngineKdbType, currentPrice: Double, tradeType: Value) = {
       val tradePrice = data._6
       val isLong = data._7
       val result = (tradeType, isLong) match {
-        case (Hold, true) => (100 - currentPrice/tradePrice * 100) >= stopLossPercentage
-        case (Hold, false) => (currentPrice/tradePrice * 100 - 100) >= stopLossPercentage
+        case (Hold, true) => (100 - currentPrice/tradePrice * 100) >= stopLossLongPercentage
+        case (Hold, false) => (currentPrice/tradePrice * 100 - 100) >= stopLossShortPercentage
         case (_, _) => false
       }
 	  result
