@@ -66,6 +66,9 @@ class SimulatorEngineActor extends Actor with ActorLogging {
 			        val newBalance =  data._2 - position 
 			        val newIntrade = true
 			        val newIsLong = true
+			        
+			        val pl = 0.0
+			        val plac = 0.0
 	
 			        val newData = (newFunds, newBalance, newTransnum, newIntrade, newPossize, payload.close, newIsLong)
 			        writeEngineData(tableId, newData)
@@ -79,7 +82,7 @@ class SimulatorEngineActor extends Actor with ActorLogging {
 			    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
 			    	val outputDateStr = outputSdf.format(inputDate)
 
-			    	val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "BUY", -1 * position, newBalance, newTransnum)
+			    	val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "BUY", -1 * position, newBalance, pl, plac, newTransnum)
 			        writeTransactionData(tableId, transactionData)
 			        Some(EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, "BOUGHT", newFunds, newBalance, newTransnum, newIntrade, newPossize))
 			        
@@ -107,8 +110,11 @@ class SimulatorEngineActor extends Actor with ActorLogging {
 		    	val inputDate = inputSdf.parse(payload.datetime)
 		    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
 		    	val outputDateStr = outputSdf.format(inputDate)
-		        
-		        val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "SELL", sellProceeds, newBalance, newTransnum)
+		    	
+		        val pl = 0.0
+		        val plac = 0.0
+		    	
+		        val transactionData = (outputDateStr, payload.ticker, payload.close, newPossize, "SELL", sellProceeds, newBalance, pl, plac, newTransnum)
 		        writeTransactionData(tableId, transactionData)
 		        Some(EnginePayload(payload.datetime, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, "SOLD", newFunds, newBalance, newTransnum, newIntrade, newPossize))
 

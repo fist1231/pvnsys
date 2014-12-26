@@ -23,7 +23,7 @@ object Engine {
   type EngineKdbType = (Double, Double, Long, Boolean, Long, Double, Boolean)
   
   // trade:([]time:`time$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$();balance:`float$();transnum:`long$()) 
-  type TransactionKdbType = (String, String, Double, Long, String, Double, Double, Long)
+  type TransactionKdbType = (String, String, Double, Long, String, Double, Double, Double, Double, Long)
   
   implicit def engineSignal2String(i: StrategySignal.Value) = i.toString
 }

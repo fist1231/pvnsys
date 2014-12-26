@@ -40,7 +40,7 @@ object WriteKdbActor extends LazyLogging {
       val price = 0.00
       
       val createEngineStr = s"engine$tableId" + """:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$();price:`float$();islong:`boolean$())"""
-      val createTradeStr = s"trade$tableId" + """:([]dts:`datetime$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$();balance:`float$();transnum:`long$())"""
+      val createTradeStr = s"trade$tableId" + """:([]dts:`datetime$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$();balance:`float$();pl:`float$();plac:`float$();transnum:`long$())"""
 
       conn.k(createEngineStr)
  	  logger.debug("WriteKdbActor created ENGINE table: {}", createEngineStr)
@@ -76,7 +76,7 @@ object WriteKdbActor extends LazyLogging {
   
   def setTransactionData(tableId: String, data: TransactionKdbType) = {
       val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
-      val updateStr = s"`trade$tableId insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6};${data._7};${data._8})" 
+      val updateStr = s"`trade$tableId insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6};${data._7};${data._8};${data._9};${data._10})" 
  	  logger.debug("WriteKdbActor updating TRADE table data with: {}", updateStr)
       conn.k(updateStr)
       conn close
@@ -133,7 +133,7 @@ class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
       val possize = 0L
       
       val createEngineStr = s"engine$tableId" + """:([]funds:`float$();balance:`float$();transnum:`long$();intrade:`boolean$();possize:`long$();price:`float$();islong:`boolean$())"""
-      val createTradeStr = s"trade$tableId" + """:([]dts:`datetime$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$();balance:`float$();transnum:`long$())"""
+      val createTradeStr = s"trade$tableId" + """:([]dts:`datetime$();sym:`symbol$();price:`float$();size:`long$();oper:`symbol$();cost:`float$();balance:`float$();pl:`float$();plac:`float$();transnum:`long$())"""
 
       conn.k(createEngineStr)
  	  log.debug("WriteKdbActor created ENGINE table: {}", createEngineStr)
@@ -221,7 +221,7 @@ class WriteKdbActor(tableId: String) extends Actor with ActorLogging {
   
   def setTransactionData(data: TransactionKdbType) = {
       val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
-      val updateStr = s"`trade$tableId insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6};${data._7};${data._8})" 
+      val updateStr = s"`trade$tableId insert(${data._1};`${data._2};${data._3};${data._4};`${data._5};${data._6};${data._7};${data._8};${data._9};${data._10})" 
  	  log.debug("WriteKdbActor updating TRADE table data with: {}", updateStr)
       conn.k(updateStr)
       conn close
