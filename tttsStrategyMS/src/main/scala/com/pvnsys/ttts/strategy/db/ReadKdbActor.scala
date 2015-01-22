@@ -105,19 +105,34 @@ object ReadKdbActor extends LazyLogging {
   
 	def getAbxQuotesWithBBData(tableId: String): List[Option[Double]] = {
 	  
-		  val numberOfTicks = 22
-		  val numberOfCloseTicksForBB = 20
-		  val numberOfBBTicks = 20
+		  val numberOfTicks = 100
+//		  val numberOfCloseTicksForBB = 20
+		  val numberOfBB20Ticks = 20
+		  val numberOfBB35Ticks = 35
+		  val numberOfBB60Ticks = 60
+
+		  val numberOfSma100Ticks = 100
+		  
 		  val minLowTicks = 40
 		  val maxHighTicks = 20
 
 	      val begin = new MInteger();
 	      val length = new MInteger();
 	
-	      val upperBB = new Array[Double](numberOfBBTicks)
-	      val middBB = new Array[Double](numberOfBBTicks)
-	      val lowerBB = new Array[Double](numberOfBBTicks)
+	      val upperBB20 = new Array[Double](numberOfBB20Ticks)
+	      val middBB20 = new Array[Double](numberOfBB20Ticks)
+	      val lowerBB20 = new Array[Double](numberOfBB20Ticks)
 
+	      val upperBB35 = new Array[Double](numberOfBB35Ticks)
+	      val middBB35 = new Array[Double](numberOfBB35Ticks)
+	      val lowerBB35 = new Array[Double](numberOfBB35Ticks)
+
+	      val upperBB60 = new Array[Double](numberOfBB60Ticks)
+	      val middBB60 = new Array[Double](numberOfBB60Ticks)
+	      val lowerBB60 = new Array[Double](numberOfBB60Ticks)
+
+	      val sma100 = new Array[Double](numberOfSma100Ticks)
+	      
 	      val conn: c = new c(Configuration.kdbHost, Configuration.kdbPort.toInt)
 		  logger.debug("Connected to KDB server. Retrieving data")
 		  
@@ -137,7 +152,8 @@ object ReadKdbActor extends LazyLogging {
 		   * == Sell signal:
 		   * If last tick close is above BB Middle
 		   */ 
-		  val result= if(java.lang.reflect.Array.getLength(colData(0)) > numberOfTicks-1) {
+		  val result= if(java.lang.reflect.Array.getLength(colData(0)) >= numberOfTicks) {
+		    
 			  val thish: Option[Double] = Some((c.at(colData(0), 0)).asInstanceOf[Double])
 			  val thisl: Option[Double] = Some((c.at(colData(1), 0)).asInstanceOf[Double])
 			  val thisc: Option[Double] = Some((c.at(colData(2), 0)).asInstanceOf[Double])
@@ -169,38 +185,80 @@ object ReadKdbActor extends LazyLogging {
 			  val colNamesBB = tabresBB.x
 			  val colDataBB = tabresBB.y
 			  
-			  
 			  var i = 0;
-			  val cp = for(i <- 0 to (numberOfTicks-1)) yield ((c.at(colDataBB(2), i)).asInstanceOf[Double])
-			  val closePrice = cp.toArray
-			  
 			  val core = new Core
-			  // Take last 2 BB values, thus (numberOfBBTicks-1)
-	          val retCode = core.bbands(0, closePrice.length - 1, closePrice, numberOfBBTicks, 2.0, 2.0, MAType.Ema, begin, length, upperBB, middBB, lowerBB);
 			  
-//			  closePrice.foreach(println)
+			  // -2 - to get prev 2 days data (l1 and l2)
+			  val closePrice20 = for(i <- (numberOfTicks - numberOfBB20Ticks - 2) to (numberOfTicks - 1)) yield ((c.at(colDataBB(2), i)).asInstanceOf[Double])
+			  val closePriceArray20 = closePrice20.toArray
+	          val retCode20 = core.bbands(0, closePriceArray20.length - 1, closePriceArray20, numberOfBB20Ticks, 2.0, 2.0, MAType.Ema, begin, length, upperBB20, middBB20, lowerBB20);
+
+			  val closePrice35 = for(i <- (numberOfTicks - numberOfBB35Ticks - 2) to (numberOfTicks - 1)) yield ((c.at(colDataBB(2), i)).asInstanceOf[Double])
+			  val closePriceArray35 = closePrice35.toArray
+	          val retCode35 = core.bbands(0, closePriceArray35.length - 1, closePriceArray35, numberOfBB35Ticks, 2.0, 2.0, MAType.Sma, begin, length, upperBB35, middBB35, lowerBB35);
+
+			  val closePrice60 = for(i <- (numberOfTicks - numberOfBB60Ticks - 2) to (numberOfTicks - 1)) yield ((c.at(colDataBB(2), i)).asInstanceOf[Double])
+			  val closePriceArray60 = closePrice60.toArray
+	          val retCode60 = core.bbands(0, closePriceArray60.length - 1, closePriceArray60, numberOfBB60Ticks, 2.0, 2.0, MAType.Sma, begin, length, upperBB60, middBB60, lowerBB60);
+
+			  val closePrice100 = for(i <- 0 to (numberOfSma100Ticks - 1)) yield ((c.at(colDataBB(2), i)).asInstanceOf[Double])
+			  val closePriceArray100 = closePrice100.toArray
+	          val retCodeSma100 = core.sma(0, closePriceArray100.length - 1, closePriceArray100, numberOfSma100Ticks, begin, length, sma100);
+			  
+//			  closePrice20.foreach(println)
 //			  println("=================")
-//			  lowerBB.foreach(println)
+//			  lowerBB20.foreach(println)
 //			  println("=================")
-//			  upperBB.foreach(println)
+//			  upperBB20.foreach(println)
 			  
 
-			  val l2LowerBBVal = Some(lowerBB(0))
-			  val l2MiddBBVal = Some(middBB(0))
-			  val l2UpperBBVal = Some(upperBB(0))
+			  val l2LowerBB20Val = Some(lowerBB20(0))
+			  val l2MiddBB20Val = Some(middBB20(0))
+			  val l2UpperBB20Val = Some(upperBB20(0))
 
-			  val l1LowerBBVal = Some(lowerBB(1))
-			  val l1MiddBBVal = Some(middBB(1))
-			  val l1UpperBBVal = Some(upperBB(1))
+			  val l1LowerBB20Val = Some(lowerBB20(1))
+			  val l1MiddBB20Val = Some(middBB20(1))
+			  val l1UpperBB20Val = Some(upperBB20(1))
 			  
-			  val thisLowerBBVal = Some(lowerBB(2))
-			  val thisMiddBBVal = Some(middBB(2))
-			  val thisUpperBBVal = Some(upperBB(2))
+			  val thisLowerBB20Val = Some(lowerBB20(2))
+			  val thisMiddBB20Val = Some(middBB20(2))
+			  val thisUpperBB20Val = Some(upperBB20(2))
+
+			  
+			  val l2LowerBB35Val = Some(lowerBB35(0))
+			  val l2MiddBB35Val = Some(middBB35(0))
+			  val l2UpperBB35Val = Some(upperBB35(0))
+
+			  val l1LowerBB35Val = Some(lowerBB35(1))
+			  val l1MiddBB35Val = Some(middBB35(1))
+			  val l1UpperBB35Val = Some(upperBB35(1))
+			  
+			  val thisLowerBB35Val = Some(lowerBB35(2))
+			  val thisMiddBB35Val = Some(middBB35(2))
+			  val thisUpperBB35Val = Some(upperBB35(2))
+
+			  
+			  val l2LowerBB60Val = Some(lowerBB60(0))
+			  val l2MiddBB60Val = Some(middBB60(0))
+			  val l2UpperBB60Val = Some(upperBB60(0))
+
+			  val l1LowerBB60Val = Some(lowerBB60(1))
+			  val l1MiddBB60Val = Some(middBB60(1))
+			  val l1UpperBB60Val = Some(upperBB60(1))
+			  
+			  val thisLowerBB60Val = Some(lowerBB60(2))
+			  val thisMiddBB60Val = Some(middBB60(2))
+			  val thisUpperBB60Val = Some(upperBB60(2))
+
+			  val thisSma100Val = Some(sma100(0))
 			  
 			  
-			  List(l2h, l2l, l2c, l1h, l1l, l1c, thish, thisl, thisc, minLow, maxHigh, l2LowerBBVal, l2MiddBBVal, l2UpperBBVal, l1LowerBBVal, l1MiddBBVal, l1UpperBBVal, thisLowerBBVal, thisMiddBBVal, thisUpperBBVal)
+			  List(l2h, l2l, l2c, l1h, l1l, l1c, thish, thisl, thisc, minLow, maxHigh,
+			      l2LowerBB20Val, l2MiddBB20Val, l2UpperBB20Val, l1LowerBB20Val, l1MiddBB20Val, l1UpperBB20Val, thisLowerBB20Val, thisMiddBB20Val, thisUpperBB20Val,
+			      l2LowerBB35Val, l2MiddBB35Val, l2UpperBB35Val, l1LowerBB35Val, l1MiddBB35Val, l1UpperBB35Val, thisLowerBB35Val, thisMiddBB35Val, thisUpperBB35Val,
+			      l2LowerBB60Val, l2MiddBB60Val, l2UpperBB60Val, l1LowerBB60Val, l1MiddBB60Val, l1UpperBB60Val, thisLowerBB60Val, thisMiddBB60Val, thisUpperBB60Val, thisSma100Val)
 		  } else {
-			  List(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+			  List(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
 		  }
 		  logger.debug("^^^^^^^^^^^^ data = {}", result)
 	      conn.close

@@ -38,14 +38,14 @@ class SimulatorEngineImpl extends Engine with LazyLogging {
 //    val sellShort = true // Is this a short sell
 	val comission = 9.99 // Comission in $
 	val minimumBalanceAllowed = 1.00 // Minimum allowed balance amount
-//  	val stopLossLongPercentage = 2.00 
-//  	val stopLossShortPercentage = 2.00  
-//  	val profitTakingLongPercentage = 13.00
-//  	val profitTakingShortPercentage = 13.00
-  	val stopLossLongPercentage = 0.50
-  	val stopLossShortPercentage = 0.10
-  	val profitTakingLongPercentage = 15.00
-  	val profitTakingShortPercentage = 5.00
+  	val stopLossLongPercentage = 2.00 
+  	val stopLossShortPercentage = 2.00  
+  	val profitTakingLongPercentage = 13.00
+  	val profitTakingShortPercentage = 13.00
+//  	val stopLossLongPercentage = 0.50
+//  	val stopLossShortPercentage = 0.10
+//  	val profitTakingLongPercentage = 15.00
+//  	val profitTakingShortPercentage = 5.00
     // =================================================
 
   	def createSchema(serviceId: String, message: TttsEngineMessage): TttsEngineMessage = {

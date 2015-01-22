@@ -82,10 +82,18 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 //		val thisc: Double = data(8).getOrElse(0.00)
 		val minLow: Double = data(9).getOrElse(0.00)
 		val maxHigh: Double = data(10).getOrElse(0.00)
-		val thisLowerBB: Double = data(17).getOrElse(0.00)
-		val thisMiddBB: Double = data(18).getOrElse(0.00)
-		val thisUpperBB: Double = data(19).getOrElse(0.00)
-    
+		val thisLowerBB20: Double = data(17).getOrElse(0.00)
+		val thisMiddBB20: Double = data(18).getOrElse(0.00)
+		val thisUpperBB20: Double = data(19).getOrElse(0.00)
+
+		val thisLowerBB35: Double = data(26).getOrElse(0.00)
+		val thisMiddBB35: Double = data(27).getOrElse(0.00)
+		val thisUpperBB35: Double = data(28).getOrElse(0.00)
+
+		val thisLowerBB60: Double = data(35).getOrElse(0.00)
+		val thisMiddBB60: Double = data(36).getOrElse(0.00)
+		val thisUpperBB60: Double = data(37).getOrElse(0.00)
+		
 		// Do strategy business logic and return result signal
 		
 //		val result = abovePreviousStrategy(data)
@@ -100,7 +108,8 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
   
 //		val result = fromLowerBBLongStrategy(data)
 		
-		val result = fromBBtoBBStrategy(data)
+//		val result = fromBBtoBBStrategy(data)
+		val result = multipleBBtoBBStrategy(data)
 		
 		
 		val payload = message match {
@@ -112,14 +121,14 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
         val strategyResponseMessage = payload match {
           case Some(payload) => {
 		       val payloadStr = s"${result}"
-		       val payloadRsp = StrategyPayload(payload.datetime, "abx", payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr, thisLowerBB, thisMiddBB, thisUpperBB)
+		       val payloadRsp = StrategyPayload(payload.datetime, "abx", payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, payloadStr, thisLowerBB20, thisMiddBB20, thisUpperBB20)
 
 		       
 		    	val inputSdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 		    	val inputDate = inputSdf.parse(payload.datetime)
 		    	val outputSdf = new java.text.SimpleDateFormat("yyyy.MM.dd'T'HH:mm:ss.SSS")
 		    	val outputDateStr = outputSdf.format(inputDate)
-			  	val writeData = (outputDateStr, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, minLow, maxHigh, thisLowerBB, thisMiddBB, thisUpperBB)
+			  	val writeData = (outputDateStr, payload.ticker, payload.open, payload.high, payload.low, payload.close, payload.volume, payload.wap, payload.size, minLow, maxHigh, thisLowerBB20, thisMiddBB20, thisUpperBB20)
 			  	WriteKdbActor.setStrategyData(tableId, writeData)
 			  	
 
@@ -475,7 +484,7 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 		}
         result
   }
-
+  
   private def fromBBtoBBStrategy(data: List[Option[Double]]) = {
 
 		val l2h: Double = data(0).getOrElse(0.00)
@@ -523,6 +532,97 @@ class AbxStrategyImpl extends Strategy with LazyLogging {
 		  } else {
 	    	Hold
 		  }
+		} else {
+		  NotAvailabe
+		}
+        result
+  }
+  
+
+  private def multipleBBtoBBStrategy(data: List[Option[Double]]) = {
+
+		val l2h: Double = data(0).getOrElse(0.00)
+		val l2l: Double = data(1).getOrElse(0.00)
+		val l2c: Double = data(2).getOrElse(0.00)
+		val l1h: Double = data(3).getOrElse(0.00)
+		val l1l: Double = data(4).getOrElse(0.00)
+		val l1c: Double = data(5).getOrElse(0.00)
+		val thish: Double = data(6).getOrElse(0.00)
+		val thisl: Double = data(7).getOrElse(0.00)
+		val thisc: Double = data(8).getOrElse(0.00)
+		val minLow: Double = data(9).getOrElse(0.00)
+		val maxHigh: Double = data(10).getOrElse(0.00)
+		val l2LowerBB20: Double = data(11).getOrElse(0.00)
+		val l2MiddBB20: Double = data(12).getOrElse(0.00)
+		val l2UpperBB20: Double = data(13).getOrElse(0.00)
+		val l1LowerBB20: Double = data(14).getOrElse(0.00)
+		val l1MiddBB20: Double = data(15).getOrElse(0.00)
+		val l1UpperBB20: Double = data(16).getOrElse(0.00)
+		val thisLowerBB20: Double = data(17).getOrElse(0.00)
+		val thisMiddBB20: Double = data(18).getOrElse(0.00)
+		val thisUpperBB20: Double = data(19).getOrElse(0.00)
+		val l2LowerBB35: Double = data(20).getOrElse(0.00)
+		val l2MiddBB35: Double = data(21).getOrElse(0.00)
+		val l2UpperBB35: Double = data(22).getOrElse(0.00)
+		val l1LowerBB35: Double = data(23).getOrElse(0.00)
+		val l1MiddBB35: Double = data(24).getOrElse(0.00)
+		val l1UpperBB35: Double = data(25).getOrElse(0.00)
+		val thisLowerBB35: Double = data(26).getOrElse(0.00)
+		val thisMiddBB35: Double = data(27).getOrElse(0.00)
+		val thisUpperBB35: Double = data(28).getOrElse(0.00)
+		val l2LowerBB60: Double = data(29).getOrElse(0.00)
+		val l2MiddBB60: Double = data(30).getOrElse(0.00)
+		val l2UpperBB60: Double = data(31).getOrElse(0.00)
+		val l1LowerBB60: Double = data(32).getOrElse(0.00)
+		val l1MiddBB60: Double = data(33).getOrElse(0.00)
+		val l1UpperBB60: Double = data(34).getOrElse(0.00)
+		val thisLowerBB60: Double = data(35).getOrElse(0.00)
+		val thisMiddBB60: Double = data(36).getOrElse(0.00)
+		val thisUpperBB60: Double = data(37).getOrElse(0.00)
+		val thisSma100Val: Double = data(38).getOrElse(0.00)
+    
+//        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && thish != 0.00 && thisl != 0.00 && thisc != 0.00 && minLow != 0.00 && maxHigh != 0.00 && l2LowerBB != 0.00 && l2MiddBB != 0.00 && l2UpperBB != 0.00 && l1LowerBB != 0.00 && l1MiddBB != 0.00 && l1UpperBB != 0.00 && thisLowerBB != 0.00 && thisMiddBB != 0.00 && thisUpperBB != 0.00) {
+//		  if(l2h > l2UpperBB && l2c > l2UpperBB && l1c < l1UpperBB) {
+//		    Short 
+//		  } else if(l1c/l2c < 0.5) {
+//		    Close
+//		  } else if(l2l < l2LowerBB && l2c < l2LowerBB && l1c > l1LowerBB) {
+//		    Buy 
+//		  } else if(l1c/l2c >= 1.50) {
+//		    Close
+//		  } else {
+//	    	Hold
+//		  }
+        val result = if(l2h != 0.00 && l2l != 0.00 && l2c != 0.00 && l1h != 0.00 && l1l != 0.00 && l1c != 0.00 && thish != 0.00 && thisl != 0.00 && thisc != 0.00 && minLow != 0.00 && maxHigh != 0.00
+            && l2LowerBB20 != 0.00 && l2MiddBB20 != 0.00 && l2UpperBB20 != 0.00 && l1LowerBB20 != 0.00 && l1MiddBB20 != 0.00 && l1UpperBB20 != 0.00 && thisLowerBB20 != 0.00 && thisMiddBB20 != 0.00 && thisUpperBB20 != 0.00
+            && l2LowerBB35 != 0.00 && l2MiddBB35 != 0.00 && l2UpperBB35 != 0.00 && l1LowerBB35 != 0.00 && l1MiddBB35 != 0.00 && l1UpperBB35 != 0.00 && thisLowerBB35 != 0.00 && thisMiddBB35 != 0.00 && thisUpperBB35 != 0.00
+            && l2LowerBB60 != 0.00 && l2MiddBB60 != 0.00 && l2UpperBB60 != 0.00 && l1LowerBB60 != 0.00 && l1MiddBB60 != 0.00 && l1UpperBB60 != 0.00 && thisLowerBB60 != 0.00 && thisMiddBB60 != 0.00 && thisUpperBB60 != 0.00) {
+          
+	          if(thisc >= thisSma100Val) {
+				  if(l1c > l1UpperBB60 && thisc < thisUpperBB60) {
+				    Short 
+				  } else if(thisc/l1c < 0.5) {
+				    Close
+				  } else if(l1c < l1LowerBB35 && thisc > thisLowerBB35) {
+				    Buy 
+				  } else if(thisc/l1c >= 1.50) {
+				    Close
+				  } else {
+			    	Hold
+				  }
+	          } else {
+				  if(l1c > l1UpperBB35 && thisc < thisUpperBB35) {
+				    Short 
+				  } else if(thisc/l1c < 0.5) {
+				    Close
+				  } else if(l1c < l1LowerBB60 && thisc > thisLowerBB60) {
+				    Buy 
+				  } else if(thisc/l1c >= 1.50) {
+				    Close
+				  } else {
+			    	Hold
+				  }
+	          }
 		} else {
 		  NotAvailabe
 		}
